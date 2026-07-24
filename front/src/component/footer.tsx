@@ -1,5 +1,7 @@
 import Link from "next/link"
-export function Footer()
+
+//composant pour le footer (liens vers "politique de confidentialité")
+export default function Footer()
 {
     return (
     <footer className="w-full bg-white py-3 text-center">

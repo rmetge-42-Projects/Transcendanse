@@ -1,17 +1,21 @@
 import Link from "next/link";
-import { Footer } from "./privacy/footer";
+import Footer from "../component/footer";
+import Bottom from "../component/display/bottom";
 
+//page d'accuille (liens vers "politique de confidentialité" et "login")
 export default function Home() {
   return (
-    <main className="bg-gradient-to-br to-orange-500 from-rose-500 min-h-screen flex flex-col items-center justify-between ">
+    <main>
+      <Bottom>
       <h1 className="text-blue-950 text-6xl md:text-8xl font-black mt-4">
         Chi-Fou-Mi
       </h1>
       <div>
-        <Link href='/login'>
-          <button className="text-blue-950 text-center">
-            Se connecté / S'inscrir
-          </button>
+        <Link 
+          href="/login" 
+          className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-6 rounded-xl transition duration-200 shadow-lg inline-block"
+        >
+          Se connecter / S'inscrire
         </Link>
       </div>
       <div className="max-w-2xl text-center text-gray-300 text-lg">
@@ -24,7 +28,7 @@ export default function Home() {
 
 
       <Footer/>
-
+      </Bottom>
     </main>
   );
 }
