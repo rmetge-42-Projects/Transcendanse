@@ -1,6 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -14,5 +15,10 @@ export class AuthController {
 
     // 3. Simulation : On vérifie avec de fausses données (Mock data)
     return this.authService.validateUser(loginDto.email, loginDto.password);
+  }
+
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto){
+    return this.authService.registerUser(registerDto.email, registerDto.password, registerDto.validatePassword);
   }
 }
