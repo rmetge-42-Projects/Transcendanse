@@ -1,0 +1,90 @@
+'use client'
+import Bottom from "@/src/component/display/bottom"
+import Link from "next/link"
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Footer from "@/src/component/footer";
+
+export default function NewAccount(){
+    const router = useRouter();
+    const [invalide, setInvalide] = useState('');
+
+    function login(){
+        router.push("/login")
+    }
+    
+    const   [email, setEmail] = useState('');
+    const   [password, setPassword] = useState('');
+    const   [validatePassword, setValidatePassword] = useState('');
+
+    async function submit(e : React.FormEvent<HTMLFormElement>)
+    {
+        e.preventDefault()
+        if (!email.trim() || !password.trim() || !validatePassword.trim()) {
+        setInvalide('Veuillez remplir tous les champs obligatoires.');
+        return; // ⛔ ON S'ARRÊTE ICI ! La requête ne partira pas au back.
+      }
+
+      // 2. Si tout est OK, on efface l'erreur et on envoie au Back-end (NestJS)
+      setInvalide('');
+      console.log({email, password, validatePassword});
+      try {
+        const reponse = await(fetch('http://localhost:4000/auth/register', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password, validatePassword })}));
+        const data = await(reponse.json());
+        console.log(data);
+        if (data.success === true)
+        {
+          localStorage.setItem('token', data.access_token);
+          router.push("/profile");
+        //   page questionner personnel
+        }
+        else 
+        {
+          setInvalide("Email ou mot de passe incorrect.");
+          setEmail('');
+          setPassword('');
+          setValidatePassword('');
+        }
+      }
+      catch(error)
+      {
+        console.error("error de connextion : ", error);
+      }
+      }
+    return(
+        <Bottom>
+            <div className="w-full px-6  border-gray-200 py-4">
+              <Link 
+                href="/" 
+                className="text-sm text-gray-600 hover:text-black flex items-center gap-1 transition"
+              >
+                ← Retour à l'accueil
+              </Link>
+            </div>
+            {/* <h1 className="text-blue-950 text-6xl md:text-8xl font-black mt-4">
+              Chi-Fou-Mi
+            </h1> */}
+            <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md ">
+            
+              <h2 className="text-center text-2xl">Create Account</h2>
+              <form onSubmit={submit} className="flex flex-col gap-4">
+                <label>Email</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="rounded px-3 py-2 w-full border "/>
+                <label>Password</label>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="rounded px-3 py-2 w-full border "/>
+                <label>Validate password</label>
+                <input type="password" value={validatePassword} onChange={(e) => setValidatePassword(e.target.value)} className="rounded px-3 py-2 w-full border "/>
+                {invalide && <p className="text-red-500">{invalide}</p>}
+                <button className="bg-blue-600 text-white rounded p-2 mt-4">Submit</button>
+              </form>
+              <button className="bg-gray-600 text-white rounded p-2 mt-4" onClick={login}>Back to login</button>
+            </div>
+            <Footer/>
+        </Bottom>
+    )
+}

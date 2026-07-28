@@ -1,7 +1,6 @@
 'use client'
 import Bottom from "../../component/display/bottom"
 import Footer from "@/src/component/footer"
-import { METHODS } from "http"
 import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -11,10 +10,21 @@ export default function Login()
 {
   const router = useRouter();
   const [invalide, setInvalide] = useState('');
+
+  function register(){
+    router.push("/register")
+  }
+
   async function submit(e : React.FormEvent<HTMLFormElement>)
   {
     e.preventDefault()
-    console.log({email, password});
+    if (!email.trim() || !password.trim()) {
+        setInvalide('Veuillez remplir tous les champs obligatoires.');
+        return; // ⛔ ON S'ARRÊTE ICI ! La requête ne partira pas au back.
+    }
+      // 2. Si tout est OK, on efface l'erreur et on envoie au Back-end (NestJS)
+    setInvalide('');
+    // console.log({email, password});
     try {
       const reponse = await(fetch('http://localhost:4000/auth/login', {
         method: 'POST',
@@ -31,7 +41,7 @@ export default function Login()
       }
       else 
       {
-        setInvalide(data.message);
+        setInvalide("Email ou mot de passe incorrect.");
         setEmail('');
         setPassword('');
       }
@@ -67,6 +77,7 @@ export default function Login()
                 {invalide && <p className="text-red-500">{invalide}</p>}
                 <button className="bg-blue-600 text-white rounded p-2 mt-4">Login</button>
               </form>
+              <button className="bg-gray-600 text-white rounded p-2 mt-4" onClick={register}>Create new account</button>
             </div>
             <Footer/>
         </Bottom>
