@@ -49,5 +49,13 @@ export class AuthService
         throw new UnauthorizedException("Email ou mot de passe incorrect.");
         
     }
+
+    async   createProfile(name: string, username: string, birthday: Date, kind: string, orientation: string, biography: string)
+    {
+        return {
+            success: true,
+            message: "Profile Create !"
+        }
+    }
 }
 
