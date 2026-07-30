@@ -24,17 +24,18 @@ export  default function CreateAccount()
 			const token = localStorage.getItem('token');
 			if (token)
 			{
-				const reponse = await(fetch('http://localhost:4000/auth/creatProfile', {
+				const formatBackDate = new Date(birthday).toISOString();
+				const reponse = await(fetch('http://localhost:4000/auth/createProfile', {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						"Authorization": `Bearer ${token}`,
+						// "Authorization": `Bearer ${token}`,
 					},
-					body: JSON.stringify({name, username, birthday, kind, orientation, biography})
+					body: JSON.stringify({name, username, birthday:formatBackDate, kind, orientation, biography})
 				}))
 				const data = await(reponse.json());
 				console.log(data);
-				if (data.success ===true)
+				if (data.success === true)
 					router.push("/profile");
 				else
 					setInvalide("Error, reessayer");
@@ -136,7 +137,7 @@ export  default function CreateAccount()
 							className="rounded  px-3 py-2 w-full bg-white border "
 						/>
 					</div>
-					{invalide && <p className="text-red-500">{invalide}</p>}
+					{invalide && <p className="bg-red-600 text-white font-bold px-3 py-1 rounded-lg">{invalide}</p>}
 					<button className="bg-blue-950 text-white rounded p-2 mt-4">Submit</button>
 				</form>
 			</div>

@@ -1,4 +1,5 @@
-import {IsNotEmpty, IsString, IsDate } from "class-validator";
+import {IsNotEmpty, IsString, IsDate, IsOptional } from "class-validator";
+import { Type } from "class-transformer";
 
 export class CreateDto{
 
@@ -10,6 +11,7 @@ export class CreateDto{
     @IsNotEmpty()
     username!: string;
 
+    @Type(()=> Date)
     @IsDate()
     @IsNotEmpty()
     birthday!: Date;
@@ -23,5 +25,6 @@ export class CreateDto{
     orientation!: string
     
     @IsString()
+    @IsOptional()
     biography!: string
 }

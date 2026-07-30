@@ -16,3 +16,7 @@ Nommé(recommandé pour les composants)| export function Bouton() {}      |impor
 syntaxe :
     -Un titre principal <h1>.
     -Un paragraphe <p> de présentation.
+
+axios
+react query
+react hook form
