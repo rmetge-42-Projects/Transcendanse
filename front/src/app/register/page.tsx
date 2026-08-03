@@ -4,53 +4,53 @@ import Link from "next/link"
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Footer from "@/src/component/footer";
+import { useForm } from 'react-hook-form';
+import { api } from '@/src/lib/axios';
+//page register pour cree son compte
+
+type	RegisterFormValues = {
+	email: string;
+	password: string;
+	validatePassword: string;
+}
+
 export default function NewAccount(){
-	const router = useRouter();
-	const [invalide, setInvalide] = useState('');
-	function login(){
+	const	router = useRouter();
+	const	[invalide, setInvalide] = useState('');
+	const	[isLoading, setIsLoading] = useState(false);
+
+	const {
+			register,
+			handleSubmit,
+			reset,
+			formState: { errors },
+	} = useForm<RegisterFormValues>();
+
+	function loginRedirect(){
 		router.push("/login")
 	}
 	
-	const   [email, setEmail] = useState('');
-	const   [password, setPassword] = useState('');
-	const   [validatePassword, setValidatePassword] = useState('');
-	async function submit(e : React.FormEvent<HTMLFormElement>)
+	
+	const	onSubmit = async (data: RegisterFormValues) =>
 	{
-		e.preventDefault()
-		if (!email.trim() || !password.trim() || !validatePassword.trim()) {
-		setInvalide('Veuillez remplir tous les champs obligatoires.');
-		return; // ⛔ ON S'ARRÊTE ICI ! La requête ne partira pas au back.
-	}
-	// 2. Si tout est OK, on efface l'erreur et on envoie au Back-end (NestJS)
-	setInvalide('');
-	console.log({email, password, validatePassword});
-	try {
-		const reponse = await(fetch('http://localhost:4000/auth/register', {
-			method: 'POST',
-			headers: {
-			'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({ email, password, validatePassword })}));
-		const data = await(reponse.json());
-		console.log(data);
-		if (data.success === true)
-		{
-		localStorage.setItem('token', data.access_token);
-		router.push("/createProfile");
-		//  obligatoire
+		setInvalide('');
+		setIsLoading(true);
+		data.email;
+		data.password;
+		data.validatePassword;
+
+		try {
+			const res = await api.post("/auth/register", data)
+			localStorage.setItem("token", res.data.access_token)
+			router.push("/createProfile");
 		}
-		else 
-		{
-		setInvalide("Email ou mot de passe incorrect.");
-		setEmail('');
-		setPassword('');
-		setValidatePassword('');
+		catch{
+				setInvalide("Email ou mot de passe incorrect.");
+				reset();
 		}
-	}
-	catch(error)
-	{
-		console.error("error de connextion : ", error);
-	}
+		finally{
+			setIsLoading(false);
+		}
 	}
 	return(
 		<Bottom>
@@ -65,32 +65,46 @@ export default function NewAccount(){
 
 			<div className="bg-white p-8 flex flex-col items-center rounded-xl shadow-lg w-full max-w-md max-w-2xl mx-auto my-auto">
 				<h1 className="text-center text-2xl font-bold text-blue-950 mb-6">Create Account</h1>
-				<form onSubmit={submit} className="flex flex-col gap-4">
+				<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
 					<label>Email</label>
 					<input 
-					type="email" 
-					placeholder="ex: test@test.com" 
-					value={email} 
-					onChange={(e) => setEmail(e.target.value)}
-					className="rounded px-3 py-2 w-full border "/>
+						type="email" 
+						placeholder="ex: test@test.com" 
+						{...register("email", {required: "L\'email est obligatoire"})}
+						className="rounded px-3 py-2 w-full border "
+					/>
+					{errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
 					<label>Password</label>
 					<input 
-					type="password" 
-					placeholder="ex: Password.123" 
-					value={password} 
-					onChange={(e) => setPassword(e.target.value)} 
-					className="rounded px-3 py-2 w-full border "/>
+						type="password" 
+						placeholder="ex: Password.123" 
+						{...register("password", {required: "Le mot de passe est obligatoire"})}
+						className="rounded px-3 py-2 w-full border "
+					/>
+					{errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
 					<label>Validate password</label>
 					<input 
-					type="password" 
-					placeholder="ex: Password.123" 
-					value={validatePassword} 
-					onChange={(e) => setValidatePassword(e.target.value)} 
-					className="rounded px-3 py-2 w-full border "/>
+						type="password" 
+						placeholder="ex: Password.123"
+						{...register("validatePassword", {required: "La validation de mot de passe est obligatoire"})} 
+						className="rounded px-3 py-2 w-full border "
+					/>
+					{errors.validatePassword && <p className="text-red-500 text-sm mt-1">{errors.validatePassword.message}</p>}
 					{invalide && <p className="text-red-500">{invalide}</p>}
-					<button className="bg-blue-600 text-white rounded p-2 mt-4">Submit</button>
+					<button 
+						type="submit"
+						disabled={isLoading}
+						className="bg-blue-600 text-white rounded p-2 mt-4"
+					>
+						{isLoading ? "Connexion..." : "Submit"}
+					</button>
 				</form>
-				<button className="bg-gray-600 text-white rounded p-2 mt-4" onClick={login}>Back to login</button>
+				<button 
+					className="bg-gray-600 text-white rounded p-2 mt-4" 
+					onClick={loginRedirect}
+				>
+					Back to login
+				</button>
 			</div>
 			<Footer/>
 		</Bottom>
