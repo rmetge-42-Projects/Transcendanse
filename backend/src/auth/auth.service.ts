@@ -3,10 +3,9 @@ import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
-export class AuthService 
-{
-    constructor(private jwtService: JwtService){}
-    
+export class AuthService {
+  constructor(private jwtService: JwtService){}
+
     async   validateUser(email: string, pass: string) 
     {
         if (email === 'test@test.com' && pass === '123456')
@@ -58,4 +57,3 @@ export class AuthService
         }
     }
 }
-
