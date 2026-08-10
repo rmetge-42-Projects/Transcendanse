@@ -6,4 +6,4 @@ main = ecoute sur les port (app.enableCors();)
 
 auth = authantification 
 
-guards, jwt.strategy.ts et un peu auth.controller = gestion du token pendant la requet; jai pas tout bien compris => tout supprime a refaire
+dto = c'est pour verifier que les info recu soit bonne

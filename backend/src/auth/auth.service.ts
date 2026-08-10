@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
+import { CreateDto } from './dto/createProfile.dto';
+import { ModifyDto } from './dto/modify.dto';
+//autentification
 
 @Injectable()
 export class AuthService {
   constructor(private jwtService: JwtService){}
 
+    //verifie si l'utilisateur existe
     async   validateUser(email: string, pass: string) 
     {
         if (email === 'test@test.com' && pass === '123456')
@@ -27,6 +31,7 @@ export class AuthService {
         throw new UnauthorizedException("Email ou mot de passe incorrect.");
     }
 
+    //cree un nouvelle utilisateur
     async   registerUser(email: string, pass: string, validPass: string)
     {
         if (pass === validPass)
@@ -49,11 +54,21 @@ export class AuthService {
         
     }
 
-    async   createProfile(name: string, username: string, birthday: Date, kind: string, orientation: string, biography: string)
+    //ressegne les info du nouvelle utilisateur
+    async   createProfile(createDto: CreateDto)
     {
         return {
             success: true,
             message: "Profile Create !"
+        }
+    }
+
+    //modifier les info du profile (ex: username, bio ...)
+    async   modifyProfile(modifyDto: ModifyDto)
+    {
+        return {
+            success: true,
+            message: "Profile Modify"
         }
     }
 }

@@ -3,6 +3,8 @@ import Bottom from "@/src/component/display/bottom"
 import { useRouter } from "next/navigation";
 import Footer from "@/src/component/footer";
 import { useState } from "react";
+import Modify from "../modifyProfile/page";
+import Link from "next/link";
 
 export default function Profile(){
     const router = useRouter();
@@ -24,8 +26,6 @@ export default function Profile(){
     }
     return(
         <Bottom>
-            <h1>your profile</h1>
-
             {/* Conteneur principal du menu */}
             <div style={{ position: 'absolute', top: '16px', right:'16px', zIndex: 50 }}>
                 
@@ -36,30 +36,31 @@ export default function Profile(){
 
                 {/* 3. Le volet déroulant  */}
                 {isOpen && (
-                    <div style={{
-                        position: 'absolute',
-                        right: 0,
-                        marginTop: '8px',
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #ccc',
-                        borderRadius: '6px',
-                        padding: '8px',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                        zIndex: 10
-                    }}>
-                        {/* Onglet Déconnexion dans le volet */}
-                        <span
+                    <div className="absolute right-0 mt-2 bg-white border border-gray-300 rounded-md p-2 shadow-md z-10 flex flex-col gap-2">
+                        <button
                             onClick={logout}
-                            style={{
-                                fontWeight: '500',
-                                cursor: 'pointer',  // Affiche la petite main au survol
-                                color: '#ff4d4f',}}>
-                            Logout
-                        </span>
+                            className="font-medium cursor-pointer text-red-500 text-left bg-transparent border-none p-0"
+                        >
+                        Logout
+                        </button>
+                        <Link href="/modifyProfile"
+                            className="font-medium cursor-pointer text-black text-left bg-transparent border-none p-0"
+                        >
+                        Modify
+                        </Link>
                     </div>
                 )}
 
             </div>
+
+            <h1 
+                className="text-2xl font-bold w-full flex justify-center pt-6"
+            >
+            your name
+            </h1>
+            <p>
+                bio
+            </p>
 
             <Footer/>
         </Bottom>
