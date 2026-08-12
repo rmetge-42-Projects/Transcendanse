@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Footer from "../component/footer";
-import Bottom from "../component/display/bottom";
+import Footer from "../display/footer";
+import Bottom from "../display/bottom";
 //page d'accuille (liens vers "politique de confidentialité" et "login")
 
 export default function Home() {

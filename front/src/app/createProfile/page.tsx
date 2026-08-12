@@ -1,6 +1,6 @@
 'use client'
-import Bottom from "@/src/component/display/bottom"
-import Footer from "@/src/component/footer"
+import Bottom from "@/src/display/bottom"
+import Footer from "@/src/display/footer"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from 'react-hook-form';

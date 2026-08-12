@@ -1,9 +1,9 @@
 'use client'
-import Bottom from "@/src/component/display/bottom"
+import Bottom from "@/src/display/bottom"
 import Link from "next/link"
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Footer from "@/src/component/footer";
+import Footer from "@/src/display/footer";
 import { useForm } from 'react-hook-form';
 import { api } from '@/src/lib/axios';
 //page register pour cree son compte

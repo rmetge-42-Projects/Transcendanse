@@ -78,8 +78,8 @@
 // 	)
 // }	
 'use client';
-import Bottom from "../../component/display/bottom";
-import Footer from "@/src/component/footer";
+import Bottom from "../../display/bottom";
+import Footer from "@/src/display/footer";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
