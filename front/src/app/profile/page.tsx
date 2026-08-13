@@ -117,15 +117,15 @@ export default function Profile() {
 
   const { data: user, isLoading, isError } = useUser();
 
-	useEffect(() => {
-    // 1. On attend que React Query ait fini de charger
-    if (!isLoading && user) {
-      // 2. Si le username (ou d'autres champs obligatoires) est absent
-      if (!user.username || !user.kind || !user.orientation || !user.birthday) {
-        router.push('/createProfile');
-      }
-    }
-  }, [user, isLoading, router]);
+	// useEffect(() => {
+  //   // 1. On attend que React Query ait fini de charger
+  //   if (!isLoading && user) {
+  //     // 2. Si le username (ou d'autres champs obligatoires) est absent
+  //     if (!user.username || !user.kind || !user.orientation || !user.birthday) {
+  //       router.push('/createProfile');
+  //     }
+  //   }
+  // }, [user, isLoading, router]);
 
   function menu() {
     setIsOpen(!isOpen);

@@ -297,7 +297,7 @@ export default function Modify() {
                                 Select an option
                             </option>
                             <option value="man">Man</option>
-                            <option value="woman">Weman</option>
+                            <option value="woman">Woman</option>
                             <option value="all">All</option>
                         </select>
                         {errors.orientation && <p className="bg-red-600 text-white text-sm mt-1 p-1 rounded">{errors.orientation.message}</p>}
