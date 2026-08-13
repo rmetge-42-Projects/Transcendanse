@@ -111,8 +111,6 @@ export default function Login() {
 		setInvalide(''); 
 		// On bloque le bouton
 		setIsLoading(true);
-		data.email
-		data.password
 		try{
 			const res = await api.post("/auth/login", data);
 			localStorage.setItem('token', res.data.access_token);

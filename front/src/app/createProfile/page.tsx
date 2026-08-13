@@ -26,7 +26,6 @@ export  default function CreateAccount()
 	const {
 		register,
 		handleSubmit,
-		reset,
 		formState: { errors },
 	} = useForm<ProfileFormValues>();
 
@@ -34,22 +33,15 @@ export  default function CreateAccount()
 	{
 		setInvalide('');
 		setIsSumbit(true);
-		data.name;
-		data.username;
-		data.birthday;
-		data.kind;
-		data.orientation;
-		data.biography;
+		// data.name;
+		// data.username;
+		// data.birthday;
+		// data.kind;
+		// data.orientation;
+		// data.biography;
 		try {
-			const token = localStorage.getItem('token');
-			if (token)
-			{
-				const res = await api.post("/auth/createProfile", data);
-				router.push("/profile");
-			}
-			else 
-				setInvalide("Utilisateur non connecter");
-
+			const res = await api.post("/auth/createProfile", data);
+			router.push("/profile");
 		}
 		catch(error)
 		{
@@ -112,7 +104,7 @@ export  default function CreateAccount()
 								Select an option
 							</option>
 							<option value="man">Man</option>
-							<option value="woman">Woman</option>
+							<option value="woman">Weman</option>
 							<option value="non_binary">Non-binary</option>
 						</select>
 						{errors.kind && <p className="bg-red-600 text-white text-sm mt-1">{errors.kind.message}</p>}
@@ -126,7 +118,7 @@ export  default function CreateAccount()
 							<option disabled hidden>
 								Select an option
 							</option>
-							<option value="Men">Men</option>
+							<option value="Men">Man</option>
 							<option value="Woman">Weman</option>
 							<option value="All">All</option>
 						</select>

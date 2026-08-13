@@ -1,74 +1,105 @@
 // 'use client'
-// import Bottom from "@/src/component/display/bottom"
+
+// import Bottom from "@/src/display/bottom";
+// import Footer from "@/src/display/footer";
 // import { useRouter } from "next/navigation";
-// import Footer from "@/src/component/footer";
 // import { useState } from "react";
-// import Modify from "../modifyProfile/page";
 // import Link from "next/link";
+// // import { useQuery } from '@tanstack/react-query';
+// // import { api } from "@/src/lib/axios";
+// import { useUser } from "@/src/hook/useUser";
 
+// export default function Profile() {
+//   // 1. TOUS les hooks déclarés tout en haut
+//   const router = useRouter();
+//   const [isOpen, setIsOpen] = useState(false);
 
+//     const { data: user, isLoading, isError } = useUser();
 
+//   // 3. Tes fonctions
+//   function menu() {
+//     setIsOpen(!isOpen);
+//   }
 
-// export default function Profile(){
-//     const router = useRouter();
-//     const [isOpen, setIsOpen] = useState(false);
-//     function menu() {
-//         setIsOpen(!isOpen);
+//   function logout() {
+//     const confirmLogout = window.confirm("Es-tu sûr de vouloir te déconnecter ?");
+//     if (confirmLogout) {
+//       localStorage.removeItem('token');
+//       router.push('/');
 //     }
-//     function logout() {
-//       // 1. Demander une confirmation à l'utilisateur
-//       const confirmLogout = window.confirm("Es-tu sûr de vouloir te déconnecter ?");
-        
-//       if (confirmLogout) {
-//         // 2. Supprimer le token du localStorage
-//         localStorage.removeItem('token');
-    
-//         // 3. Rediriger vers la page d'accueil
-//         router.push('/');
-//       }
-//     }
-//     return(
-//         <Bottom>
-//             {/* Conteneur principal du menu */}
-//             <div style={{ position: 'absolute', top: '16px', right:'16px', zIndex: 50 }}>
-                
-//                 {/* 2. Bouton  */}
-//                 <button onClick={menu}>
-//                     ⚙️ {isOpen ? '▲' : '▼'}
-//                 </button>
+//   }
 
-//                 {/* 3. Le volet déroulant  */}
-//                 {isOpen && (
-//                     <div className="absolute right-0 mt-2 bg-white border border-gray-300 rounded-md p-2 shadow-md z-10 flex flex-col gap-2">
-//                         <button
-//                             onClick={logout}
-//                             className="font-medium cursor-pointer text-red-500 text-left bg-transparent border-none p-0"
-//                         >
-//                         Logout
-//                         </button>
-//                         <Link href="/modifyProfile"
-//                             className="font-medium cursor-pointer text-black text-left bg-transparent border-none p-0"
-//                         >
-//                         Modify
-//                         </Link>
-//                     </div>
-//                 )}
-
-//             </div>
-
-//             <h1 
-//                 className="text-2xl font-bold w-full flex justify-center pt-6"
-//             >
-//             your name
-//             </h1>
-//             <p>
-//                 bio
-//             </p>
-
-//             <Footer/>
-//         </Bottom>
+//   // 4. Gestion de l'attente pendant le chargement
+//   if (isLoading) {
+//     return (
+//       <Bottom>
+//         <p className="text-center pt-10">Chargement de ton profil...</p>
+//         <Footer />
+//       </Bottom>
 //     );
+//   }
+
+//   // 5. Gestion de l'erreur (si pas de token / token expiré)
+//   if (isError || !user) {
+//     return (
+//       <Bottom>
+//         <p className="text-center pt-10 text-red-500">
+//           Erreur : impossible de charger le profil.
+//         </p>
+//         <Footer />
+//       </Bottom>
+//     );
+//   }
+
+//   // 6. Rendu final avec les VRAIES données envoyées par le back ({data.xxx})
+//   return (
+//     <Bottom>
+//       {/* Conteneur principal du menu */}
+//       <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 50 }}>
+        
+//         {/* Bouton Paramètres */}
+//         <button onClick={menu}>
+//           ⚙️ {isOpen ? '▲' : '▼'}
+//         </button>
+
+//         {/* Le volet déroulant */}
+//         {isOpen && (
+//           <div className="absolute right-0 mt-2 bg-white border border-gray-300 rounded-md p-2 shadow-md z-10 flex flex-col gap-2">
+//             <button
+//               onClick={logout}
+//               className="font-medium cursor-pointer text-red-500 text-left bg-transparent border-none p-0"
+//             >
+//               Logout
+//             </button>
+//             <Link 
+//               href="/modifyProfile"
+//               className="font-medium cursor-pointer text-black text-left bg-transparent border-none p-0"
+//             >
+//               Modify
+//             </Link>
+//           </div>
+//         )}
+
+//       </div>
+
+//       {/* Affichage des données dynamiques du back */}
+//       <h1 className="text-2xl font-bold w-full flex justify-center pt-6">
+//         {user.username}
+//       </h1>
+
+//       <p className="text-center text-gray-500 mt-1">
+//         {user.email}
+//       </p>
+
+//       <p className="text-center mt-4">
+//         {user.biography || "Aucune biographie pour le moment."}
+//       </p>
+
+//       <Footer />
+//     </Bottom>
+//   );
 // }
+
 
 'use client'
 
@@ -77,26 +108,25 @@ import Footer from "@/src/display/footer";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-// import { useQuery } from '@tanstack/react-query';
-// import { api } from "@/src/lib/axios";
 import { useUser } from "@/src/hook/useUser";
+import { useEffect } from 'react';
 
 export default function Profile() {
-  // 1. TOUS les hooks déclarés tout en haut
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
-  // 2. La requête React Query
-//   const { data, isLoading, isError } = useQuery({
-//     queryKey: ['userMe'],
-//     queryFn: async () => {
-//       const res = await api.get('/users/me'); 
-//       return res.data; 
-//     }
-//   });
-    const { data: user, isLoading, isError } = useUser();
+  const { data: user, isLoading, isError } = useUser();
 
-  // 3. Tes fonctions
+	useEffect(() => {
+    // 1. On attend que React Query ait fini de charger
+    if (!isLoading && user) {
+      // 2. Si le username (ou d'autres champs obligatoires) est absent
+      if (!user.username || !user.kind || !user.orientation || !user.birthday) {
+        router.push('/createProfile');
+      }
+    }
+  }, [user, isLoading, router]);
+
   function menu() {
     setIsOpen(!isOpen);
   }
@@ -109,73 +139,122 @@ export default function Profile() {
     }
   }
 
-  // 4. Gestion de l'attente pendant le chargement
+  // État de chargement grand format
   if (isLoading) {
     return (
       <Bottom>
-        <p className="text-center pt-10">Chargement de ton profil...</p>
+        <div className="flex flex-col items-center justify-center min-h-[70vh]">
+          <div className="w-14 h-14 border-4 border-blue-950 border-t-transparent rounded-full animate-spin" />
+          <p className="mt-6 text-gray-600 font-medium text-lg">Chargement de ton profil...</p>
+        </div>
         <Footer />
       </Bottom>
     );
   }
 
-  // 5. Gestion de l'erreur (si pas de token / token expiré)
+  // État d'erreur grand format
   if (isError || !user) {
     return (
       <Bottom>
-        <p className="text-center pt-10 text-red-500">
-          Erreur : impossible de charger le profil.
-        </p>
+        <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-6">
+          <p className="text-red-500 font-bold text-2xl">
+            Erreur : impossible de charger le profil.
+          </p>
+          <p className="text-gray-500 text-base mt-2">
+            Vérifie ta connexion ou réessaye de te connecter.
+          </p>
+        </div>
         <Footer />
       </Bottom>
     );
   }
 
-  // 6. Rendu final avec les VRAIES données envoyées par le back ({data.xxx})
   return (
     <Bottom>
-      {/* Conteneur principal du menu */}
-      <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 50 }}>
+      {/* Conteneur large pour écran Web */}
+      <div className="relative max-w-4xl mx-auto min-h-[75vh] flex flex-col justify-between px-6 py-10">
         
-        {/* Bouton Paramètres */}
-        <button onClick={menu}>
-          ⚙️ {isOpen ? '▲' : '▼'}
-        </button>
+        {/* Menu paramètres en haut à droite */}
+        <div className="absolute top-4 right-6 z-50">
+          <button 
+            onClick={menu}
+            className="p-3 rounded-2xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-all cursor-pointer text-2xl"
+            aria-label="Settings"
+          >
+            ⚙️
+          </button>
 
-        {/* Le volet déroulant */}
-        {isOpen && (
-          <div className="absolute right-0 mt-2 bg-white border border-gray-300 rounded-md p-2 shadow-md z-10 flex flex-col gap-2">
-            <button
-              onClick={logout}
-              className="font-medium cursor-pointer text-red-500 text-left bg-transparent border-none p-0"
+          {isOpen && (
+            <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 p-2 flex flex-col gap-1 text-base">
+              <Link 
+                href="/modifyProfile"
+                className="px-4 py-3 rounded-xl hover:bg-gray-100 font-semibold text-gray-800 transition-colors flex items-center gap-3"
+              >
+                ✏️ Modifier le profil
+              </Link>
+              <button
+                onClick={logout}
+                className="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 font-semibold text-red-600 transition-colors cursor-pointer flex items-center gap-3"
+              >
+                🚪 Déconnexion
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Carte de profil principale */}
+        <div className="flex flex-col items-center mt-20 bg-white border border-gray-200/80 rounded-3xl shadow-xl p-8 md:p-14 w-full text-center">
+          
+          {/* Avatar géant blanc sur fond sombre centré en haut */}
+          <div className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-blue-950 flex items-center justify-center shadow-2xl mb-6 border-8 border-white -mt-24 md:-mt-28">
+            <svg 
+              className="w-20 h-20 md:w-24 md:h-24 text-white" 
+              fill="currentColor" 
+              viewBox="0 0 24 24"
             >
-              Logout
-            </button>
-            <Link 
-              href="/modifyProfile"
-              className="font-medium cursor-pointer text-black text-left bg-transparent border-none p-0"
-            >
-              Modify
-            </Link>
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
           </div>
-        )}
 
+          {/* Nom & Email */}
+          <h1 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">
+            {user.username}
+          </h1>
+          <p className="text-base md:text-xl font-medium text-gray-500 mt-2">
+            {user.email}
+          </p>
+
+          {/* Badges de genre et orientation */}
+          {(user.kind || user.orientation) && (
+            <div className="flex gap-3 mt-6 flex-wrap justify-center">
+              {user.kind && (
+                <span className="bg-blue-50 text-blue-950 text-sm md:text-base font-bold px-5 py-2 rounded-full border border-blue-100 capitalize shadow-sm">
+                  {user.kind}
+                </span>
+              )}
+              {user.orientation && (
+                <span className="bg-purple-50 text-purple-900 text-sm md:text-base font-bold px-5 py-2 rounded-full border border-purple-100 capitalize shadow-sm">
+                  {user.orientation}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Zone de biographie */}
+          <div className="w-full max-w-2xl mt-10 pt-8 border-t border-gray-100 text-left">
+            <span className="text-xs md:text-sm font-extrabold text-gray-400 uppercase tracking-widest block mb-3">
+              À propos de moi
+            </span>
+            <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-100">
+              <p className="text-gray-800 text-base md:text-lg leading-relaxed">
+                {user.biography || "Aucune biographie pour le moment."}
+              </p>
+            </div>
+          </div>
+
+        </div>
       </div>
-
-      {/* Affichage des données dynamiques du back */}
-      <h1 className="text-2xl font-bold w-full flex justify-center pt-6">
-        {user.username}
-      </h1>
-
-      <p className="text-center text-gray-500 mt-1">
-        {user.email}
-      </p>
-
-      <p className="text-center mt-4">
-        {user.biography || "Aucune biographie pour le moment."}
-      </p>
-
-      <Footer />
+        <Footer />
     </Bottom>
   );
 }

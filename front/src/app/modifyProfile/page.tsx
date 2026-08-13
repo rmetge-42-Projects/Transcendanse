@@ -1,5 +1,5 @@
-// 'use client'
 // import Bottom from "@/src/display/bottom"
+// 'use client'
 // import Footer from "@/src/display/footer"
 // import { useState } from "react"
 // import { useRouter } from "next/navigation"
@@ -164,6 +164,7 @@ import { useForm } from 'react-hook-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { api } from '@/src/lib/axios'
 import { useUser } from "@/src/hook/useUser"
+import Link from "next/link"
 
 type ProfileFormValues = {
     username: string;
@@ -217,6 +218,10 @@ export default function Modify() {
         );
     }
 
+    const passwordRedirect = () => {
+		router.push("/modifyPassword");
+	};
+
     // 3. SOUMISSION DU FORMULAIRE
     const onSubmit = async (data: ProfileFormValues) => {
         setInvalide('');
@@ -238,6 +243,14 @@ export default function Modify() {
 
     return (
         <Bottom>
+            <div className="w-full px-6 border-gray-200 py-4">
+				<Link 
+					href="/profile" 
+					className="text-sm text-gray-600 hover:text-black flex items-center gap-1 transition"
+				>
+					← Retour au profil
+				</Link>
+			</div>
             <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
                 <h1 className="text-blue-950 text-3xl md:text-6xl font-black text-center">
                     Modify Profile
@@ -283,9 +296,9 @@ export default function Modify() {
                             <option value="" disabled hidden>
                                 Select an option
                             </option>
-                            <option value="Men">Men</option>
-                            <option value="Woman">Woman</option>
-                            <option value="All">All</option>
+                            <option value="man">Man</option>
+                            <option value="woman">Weman</option>
+                            <option value="all">All</option>
                         </select>
                         {errors.orientation && <p className="bg-red-600 text-white text-sm mt-1 p-1 rounded">{errors.orientation.message}</p>}
 
@@ -310,6 +323,12 @@ export default function Modify() {
                         {isSubmit ? "Envoi..." : "Submit"}
                     </button>
                 </form>
+                <button 
+					className="bg-gray-600 hover:bg-gray-700 text-white rounded p-2 mt-4 cursor-pointer disabled:bg-gray-400" 
+					onClick={passwordRedirect}
+                    >
+					Modify Password
+				</button>
             </div>
             <Footer />
         </Bottom>

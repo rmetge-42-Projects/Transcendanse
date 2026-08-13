@@ -1,7 +1,6 @@
 import {IsNotEmpty, IsString, IsDate, IsOptional } from "class-validator";
-import { Type } from "class-transformer";
 
-export class ModifyDto{
+export class ModifyProfileDto{
 
     @IsString()
     @IsNotEmpty()
