@@ -1,6 +1,6 @@
 import {IsNotEmpty, IsString, IsDate, IsOptional } from "class-validator";
 
-export class ModifyPasswordDto{
+export class PasswordDto{
 
     @IsString()
     @IsNotEmpty()

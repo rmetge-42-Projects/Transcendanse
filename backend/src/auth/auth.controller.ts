@@ -2,9 +2,8 @@ import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { CreateDto } from '../users/dto/createProfile.dto';
-import { ModifyProfileDto } from '../users/dto/modifyProfile.dto';
-import { ModifyPasswordDto } from './dto/modifyPassword.dto';
+import { PasswordDto } from './dto/password.dto';
+import { EmailDto } from './dto/email.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -25,10 +24,19 @@ export class AuthController {
 	}
 
 	//requette pour modifier le mdp
-	//modifyPassword
-	@Post('modifyPassword')
-	async modifyPassword(@Body() modifyPasswordDto: ModifyPasswordDto)
+	//front = composant/password
+	@Post('password')
+	async modifyPassword(@Body() passwordDto: PasswordDto)
 	{
-		return this.authService.modifyPassword(modifyPasswordDto);
+		return this.authService.password(passwordDto);
 	}
+
+	//requette pour modifier l'email
+	//front = composant/email
+	@Post('email')
+	async modifyEmail(@Body() emailDto: EmailDto)
+	{
+		return this.authService.email(emailDto);
+	}
+
 }

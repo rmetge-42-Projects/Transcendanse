@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
-import { CreateDto } from '../users/dto/createProfile.dto';
-import { ModifyProfileDto } from '../users/dto/modifyProfile.dto';
-import { ModifyPasswordDto } from './dto/modifyPassword.dto';
+import { PasswordDto } from './dto/password.dto';
+import { EmailDto } from './dto/email.dto';
 //autentification
 
 @Injectable()
@@ -56,13 +55,25 @@ export class AuthService {
     }
 
     //l'utilisateur modify le mot de passe
-    async   modifyPassword(modifyPasswordDto: ModifyPasswordDto)
+    async   password(passwordDto: PasswordDto)
     {
-        if (modifyPasswordDto.newPass === modifyPasswordDto.verifNewPass && modifyPasswordDto.newPass !== modifyPasswordDto.lastPass)
+        if (passwordDto.newPass === passwordDto.verifNewPass && passwordDto.newPass !== passwordDto.lastPass)
             return {
                 success: true,
                 message: "Password Modify"
             }
-        throw new UnauthorizedException("Incorrect Password");
+        throw new BadRequestException("Incorrect Password");
     }
+
+    //l'utilisateur modify le mot de passe
+    async   email(emailDto: EmailDto)
+    {
+        if (emailDto.newEmail !== emailDto.lastEmail)
+            return {
+                success: true,
+                message: "Email Modify"
+            }
+        throw new BadRequestException("Incorrect Password");
+    }
+
 }
