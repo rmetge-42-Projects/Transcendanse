@@ -39,7 +39,7 @@ export  default function CreateAccount()
 		// data.orientation;
 		// data.biography;
 		try {
-			const res = await api.post("/auth/createProfile", data);
+			const res = await api.post("/users/createProfile", data);
 			router.push("/profile");
 		}
 		catch(error)

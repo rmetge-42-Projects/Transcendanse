@@ -228,7 +228,7 @@ export default function Modify() {
         setIsSubmit(true);
         try {
             // L'intercepteur Axios injecte déjà le token Bearer
-            await api.post("/auth/modifyProfile", data);
+            await api.post("/users/modifyProfile", data);
             
             // Invalidation du cache pour forcer le rafraîchissement des données du profil
             await queryClient.invalidateQueries({ queryKey: ['userMe'] });
