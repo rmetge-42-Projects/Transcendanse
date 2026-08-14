@@ -125,8 +125,8 @@ export  default function CreateAccount()
 						<label className="text-sm font-semibold text-gray-700">
 							Biography
 						</label>
-						<input
-							type="text"
+						<textarea
+							rows={3}
 							placeholder="j'aime les fleures ......"
 							{...register("biography")}
 							className="rounded  px-3 py-2 w-full bg-white border "
