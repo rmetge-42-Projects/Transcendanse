@@ -21,6 +21,15 @@ services:
     ports:
       # (Temporaire) Expose le port 3000 pour tes tests locaux
       - "3000:3000"
+  frontend:
+    build:
+      context: ./front
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    ports:
+      - "3001:3000"
 
   vault:
     image: hashicorp/vault:1.13
