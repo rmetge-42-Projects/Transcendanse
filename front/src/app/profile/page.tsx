@@ -6,23 +6,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { useUser } from "@/src/hook/useUser";
-import { useEffect } from 'react';
+import { Settings, UserPen, Lock } from 'lucide-react';
+import Navigation from "@/src/display/navigation";
 
 export default function Profile() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
+	//hook pour les donne(attendre que les donner soit la)
   const { data: user, isLoading, isError } = useUser();
-
-	// useEffect(() => {
-  //   // 1. On attend que React Query ait fini de charger
-  //   if (!isLoading && user) {
-  //     // 2. Si le username (ou d'autres champs obligatoires) est absent
-  //     if (!user.username || !user.kind || !user.orientation || !user.birthday) {
-  //       router.push('/createProfile');
-  //     }
-  //   }
-  // }, [user, isLoading, router]);
 
   function menu() {
     setIsOpen(!isOpen);
@@ -73,27 +65,36 @@ export default function Profile() {
         
         {/* Menu paramètres en haut à droite */}
         <div className="absolute top-4 right-6 z-50">
-          <button 
-            onClick={menu}
-            className="p-3 rounded-2xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-all cursor-pointer text-2xl"
-            aria-label="Settings"
-          >
-            ⚙️
+					<button 
+					  onClick={menu}
+					  className="p-3 rounded-2xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-all cursor-pointer text-gray-700 flex items-center justify-center"
+					  aria-label="Settings"
+					>
+					  <Settings />
           </button>
 
           {isOpen && (
-            <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 p-2 flex flex-col gap-1 text-base">
+						<div className="absolute right-0 mt-3 w-56 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 p-2 flex flex-col gap-1 text-base">
               <Link 
                 href="/modifyProfile"
                 className="px-4 py-3 rounded-xl hover:bg-gray-100 font-semibold text-gray-800 transition-colors flex items-center gap-3"
               >
-                ✏️ Modifier le profil
+								<UserPen/>
+								 Modifier le profil
               </Link>
+							<Link 
+								href="/privacy"
+								className="px-4 py-3 rounded-xl hover:bg-gray-100 font-semibold text-gray-800 transition-colors flex items-center gap-3"
+              >
+								<Lock/>
+								Politique de confidentialité
+							</Link>
+
               <button
                 onClick={logout}
                 className="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 font-semibold text-red-600 transition-colors cursor-pointer flex items-center gap-3"
               >
-                🚪 Déconnexion
+              	Se déconnecter
               </button>
             </div>
           )}
@@ -151,7 +152,7 @@ export default function Profile() {
 
         </div>
       </div>
-        <Footer />
+			<Navigation/>
     </Bottom>
   );
 }

@@ -3,9 +3,9 @@
 import Bottom from "@/src/display/bottom"
 import Footer from "@/src/display/footer"
 import Link from "next/link"
-import Password from "@/src/composant/password"
-import Profile from "@/src/composant/profile"
-import Email from "@/src/composant/email"
+import Password from "@/src/composant/modifation/password"
+import Profile from "@/src/composant/modifation/profile"
+import Email from "@/src/composant/modifation/email"
 
 export default function Modify() {
     return (

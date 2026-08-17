@@ -12,3 +12,7 @@ dans le front: npm install
 le back et le front sont lancer en meme temps sur 2 terminal
 
 navigateur: http://localhost:3000
+
+npm install lucide-react => icon pour le front
+
+vider le cache = rm -rf .next
