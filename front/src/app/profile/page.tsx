@@ -8,6 +8,8 @@ import Link from "next/link";
 import { useUser } from "@/src/hook/useUser";
 import { Settings, UserPen, Lock } from 'lucide-react';
 import Navigation from "@/src/display/navigation";
+import { getKindLabel, getOrientationLabel } from "@/src/constant/user";
+import { User } from "lucide-react";
 
 export default function Profile() {
   const router = useRouter();
@@ -19,6 +21,14 @@ export default function Profile() {
   function menu() {
     setIsOpen(!isOpen);
   }
+
+	
+	const ORIENTATION_LABELS: Record<string, string> = {
+	  hetero: "Hétérosexuel(le)",
+	  gay: "Homosexuel(le)",
+	  bi: "Bisexuel(le)",
+	  // Ajoute d'autres orientations si nécessaire
+	};
 
   function logout() {
     const confirmLogout = window.confirm("Es-tu sûr de vouloir te déconnecter ?");
@@ -105,13 +115,7 @@ export default function Profile() {
           
           {/* Avatar géant blanc sur fond sombre centré en haut */}
           <div className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-blue-950 flex items-center justify-center shadow-2xl mb-6 border-8 border-white -mt-24 md:-mt-28">
-            <svg 
-              className="w-20 h-20 md:w-24 md:h-24 text-white" 
-              fill="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-            </svg>
+						<User className="w-30 h-30 text-white"/>
           </div>
 
           {/* Nom & Email */}
@@ -123,19 +127,32 @@ export default function Profile() {
           </p>
 
           {/* Badges de genre et orientation */}
-          {(user.kind || user.orientation) && (
-            <div className="flex gap-3 mt-6 flex-wrap justify-center">
-              {user.kind && (
-                <span className="bg-blue-50 text-blue-950 text-sm md:text-base font-bold px-5 py-2 rounded-full border border-blue-100 capitalize shadow-sm">
-                  {user.kind}
-                </span>
-              )}
-              {user.orientation && (
-                <span className="bg-purple-50 text-purple-900 text-sm md:text-base font-bold px-5 py-2 rounded-full border border-purple-100 capitalize shadow-sm">
-                  {user.orientation}
-                </span>
-              )}
-            </div>
+					{(user.kind || user.orientation) && (
+      		<div className="flex gap-3 mt-6 flex-wrap justify-center">
+      		  {user.kind && (
+      		    <span className="bg-blue-50 text-blue-950 text-sm md:text-base font-bold px-5 py-2 rounded-full border border-blue-100 shadow-sm">
+      		      {getKindLabel(user.kind)}
+      		    </span>
+      		  )}
+      		  {user.orientation && (
+      		    <span className="bg-purple-50 text-purple-900 text-sm md:text-base font-bold px-5 py-2 rounded-full border border-purple-100 shadow-sm">
+      		      {getOrientationLabel(user.orientation)}
+      		    </span>
+      		  )}
+      		</div>
+          // {(user.kind || user.orientation) && (
+          //   <div className="flex gap-3 mt-6 flex-wrap justify-center">
+          //     {user.kind && (
+          //       <span className="bg-blue-50 text-blue-950 text-sm md:text-base font-bold px-5 py-2 rounded-full border border-blue-100 capitalize shadow-sm">
+          //         {user.kind}
+          //       </span>
+          //     )}
+          //     {user.orientation && (
+          //       <span className="bg-purple-50 text-purple-900 text-sm md:text-base font-bold px-5 py-2 rounded-full border border-purple-100 capitalize shadow-sm">
+          //         {user.orientation}
+          //       </span>
+          //     )}
+          //   </div>
           )}
 
           {/* Zone de biographie */}
