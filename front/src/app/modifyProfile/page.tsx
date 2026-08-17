@@ -1,34 +1,3 @@
-// 'use client'
-
-// import Bottom from "@/src/display/bottom"
-// import Footer from "@/src/display/footer"
-// import Link from "next/link"
-// import Password from "@/src/composant/password"
-// import Profile from "@/src/composant/profile"
-// import Email from "@/src/composant/email"
-
-// export default function Modify() {
-//     return (
-//         <Bottom>
-//             <div className="w-full px-6 border-gray-200 py-4">
-// 				<Link 
-// 					href="/profile" 
-// 					className="text-sm text-gray-600 hover:text-black flex items-center gap-1 transition"
-// 				>
-// 					← Retour au profil
-// 				</Link>
-// 			</div>
-//             <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
-//                 <Profile/>
-//                 <Email/>
-//                 <Password/>
-//             </div>
-//             <Footer />
-//         </Bottom>
-//     );
-// }
-
-
 'use client'
 
 import Bottom from "@/src/display/bottom"

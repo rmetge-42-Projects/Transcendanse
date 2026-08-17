@@ -66,7 +66,7 @@ export default function NewAccount(){
 			</div>
 
 			<div className="bg-white p-8 flex flex-col items-center rounded-xl shadow-lg w-full max-w-md max-w-2xl mx-auto my-auto">
-				<h1 className="text-center text-2xl font-bold text-blue-950 mb-6">Create Account</h1>
+				<h1 className="text-center text-2xl font-bold text-blue-950 mb-6">S'inscrire</h1>
 				<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
 					<label>Email</label>
 					<input 
@@ -76,7 +76,7 @@ export default function NewAccount(){
 						className="rounded px-3 py-2 w-full border "
 					/>
 					{errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
-					<label>Password</label>
+					<label>Mot de passe</label>
 					<div className="relative w-full">
 						<input 
 							// type="password" 
@@ -105,7 +105,7 @@ export default function NewAccount(){
                     	</button>
 					</div>
 					{errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
-					<label>Validate password</label>
+					<label>Validation mot de passe</label>
 					<div className="relative w-full">
 
 						<input 
@@ -140,14 +140,14 @@ export default function NewAccount(){
 						disabled={isLoading}
 						className="bg-blue-600 text-white rounded p-2 mt-4"
 					>
-						{isLoading ? "Connexion..." : "Submit"}
+						{isLoading ? "Connexion..." : "S'inscrire"}
 					</button>
 				</form>
 				<button 
 					className="bg-gray-600 text-white rounded p-2 mt-4" 
 					onClick={loginRedirect}
 				>
-					Back to login
+					J'ai deja un compte
 				</button>
 			</div>
 			<Footer/>
