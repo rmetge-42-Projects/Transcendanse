@@ -1,20 +1,9 @@
-import Link from 'next/link';
-
 //page de politiqued de confidentialité (liens vers "accuille")
 export default function PrivacyPage() {
   return (
     // Fond blanc pur pour un look "papier" officiel
     <main className="bg-white min-h-screen text-black font-sans">
-      
-      
-      {/* <div className="max-w-7xl mx-auto px-6 border-b border-gray-200 py-4">
-        <Link 
-          href="/" 
-          className="text-sm text-gray-600 hover:text-black flex items-center gap-1 transition"
-        >
-          ← Retour à l'accueil
-        </Link>
-      </div> */}
+     
 
       {/* Contenu principal centré */}
       <article className="max-w-4xl mx-auto p-6 md:p-12">
