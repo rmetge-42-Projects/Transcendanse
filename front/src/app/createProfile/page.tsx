@@ -43,7 +43,7 @@ export  default function CreateAccount()
 		setIsSumbit(true);
 		try {
 			const res = await api.post("/users/createProfile", data);
-			router.push("/profile");
+			router.push("/myProfile");
 		}
 		catch(error)
 		{

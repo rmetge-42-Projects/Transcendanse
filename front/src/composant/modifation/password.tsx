@@ -32,7 +32,7 @@ export default function Password() {
         setIsSubmit(true);
         try {
             await api.post("/auth/password", data);
-            router.push("/profile");
+            router.push("/myProfile");
         } catch {
             setInvalide("Erreur lors de la modification, réessayez.");
         } finally {

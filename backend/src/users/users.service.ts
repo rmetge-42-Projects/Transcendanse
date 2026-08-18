@@ -6,6 +6,24 @@ import { ModifyProfileDto } from './dto/modifyProfile.dto';
 @Injectable()
 export class UsersService {
 
+  
+  //implemente les info du nouvelle utilisateur dans la db
+  async   createProfile(createDto: CreateDto)
+  {
+    return {
+      success: true,
+      message: "Profile Create !"
+    }
+  }
+  //modifier les info du profile (ex: username, bio ...) dans la db
+  async   modifyProfile(modifyProfileDto: ModifyProfileDto)
+  {
+    return {
+      success: true,
+      message: "Profile Modify"
+    }
+  }
+
   //envoie les info de l'utilisateur
   getProfile() {
     return {
@@ -19,20 +37,14 @@ export class UsersService {
     };
   }
 
-  //implemente les info du nouvelle utilisateur dans la db
-  async   createProfile(createDto: CreateDto)
-  {
-      return {
-          success: true,
-          message: "Profile Create !"
-      }
-  }
-  //modifier les info du profile (ex: username, bio ...) dans la db
-  async   modifyProfile(modifyProfileDto: ModifyProfileDto)
-  {
-      return {
-          success: true,
-          message: "Profile Modify"
-      }
+  //envoie les infos des profil des match
+  getOtherProfile() {
+    return {
+      id: 12,
+      username: 'match',
+      kind: 'woman',
+      orientation: 'man',
+      biography: 'j\'aime les fleur',
+    };
   }
 }

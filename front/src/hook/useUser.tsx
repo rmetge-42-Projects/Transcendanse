@@ -11,3 +11,13 @@ export function useUser() {
     },
   });
 }
+
+export function otherUser() {
+  return useQuery({
+    queryKey: ['otherUser'],
+    queryFn: async () => {
+      const res = await api.get('/users/other');
+      return res.data;
+    },
+  });
+}

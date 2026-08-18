@@ -8,7 +8,7 @@ app/login/pages.tsx : pas de login (envoie email et mdp au back)
 app/component -> display/bottom.tsx : composant pour le fond
             /footer.tsx : composant pour le footer qui est en bas de chaque pas, il redirige vers les politique de confidentialité
 
-app/profile/page.tsx : page de profile (nom, photo ...)
+app/myProfile/page.tsx : page de profile (nom, photo ...)
     ->utilise hook/useUser.tsx
 
 app/register/page.tsx : page pour cree un compte (envoie email mdp et verif mdp  au back )

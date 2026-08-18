@@ -45,7 +45,7 @@ export default function Profile() {
         try {
             await api.post("/users/modifyProfile", data);
             await queryClient.invalidateQueries({ queryKey: ['userMe'] });
-            router.push("/profile");
+            router.push("/mprofile");
         } catch {
             setInvalide("Erreur lors de la modification, réessayez.");
         } finally {

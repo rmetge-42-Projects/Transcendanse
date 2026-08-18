@@ -29,7 +29,7 @@ export default function Email() {
         setIsSubmit(true);
         try {
             await api.post("/auth/Email", data);
-            router.push("/profile");
+            router.push("/myProfile");
         } catch {
             setInvalide("Erreur lors de la modification, réessayez.");
         } finally {

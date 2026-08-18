@@ -36,7 +36,7 @@ export default function Login() {
 		try{
 			const res = await api.post("/auth/login", data);
 			localStorage.setItem('token', res.data.access_token);
-			router.push("/profile");
+			router.push("/myProfile");
 		}
 		catch {
 			setInvalide("Email ou mot de passe incorrect.");

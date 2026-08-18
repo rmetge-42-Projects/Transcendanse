@@ -26,7 +26,7 @@ export default function Navigation()
                 {/* Message */}
             </Link>
             <Link
-                href="/profile"
+                href="/myProfile"
                 className="text-white"
             >
                 <CircleUser />

@@ -1,10 +1,12 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+
 //page de politiqued de confidentialité (liens vers "accuille")
 export default function PrivacyPage() {
   return (
     // Fond blanc pur pour un look "papier" officiel
     <main className="bg-white min-h-screen text-black font-sans">
-     
-
+      
       {/* Contenu principal centré */}
       <article className="max-w-4xl mx-auto p-6 md:p-12">
         
