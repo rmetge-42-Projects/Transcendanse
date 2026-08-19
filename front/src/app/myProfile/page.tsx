@@ -1,6 +1,6 @@
 'use client'
 import Menu from "@/src/composant/profile/menu";
-import EditProfile from "@/src/composant/profile/editProfile";
+import ProfileCard from "@/src/composant/profile/ProfileCard";
 import IfIsLoading from "@/src/composant/profile/ifIsLoaging";
 import IfIsError from "@/src/composant/profile/ifIsError";
 import { useUser } from "@/src/hook/useUser";
@@ -42,7 +42,7 @@ export default function Profile() {
   }
 
   return (
-			<EditProfile>
+			<ProfileCard>
 					<Menu/>
           {/* Nom & Email */}
           <h1 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">
@@ -80,6 +80,6 @@ export default function Profile() {
               </p>
             </div>
           </div>
-			</EditProfile>
+			</ProfileCard>
   );
 }

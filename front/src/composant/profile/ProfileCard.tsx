@@ -2,7 +2,7 @@ import Bottom from "../../display/bottom";
 import Navigation from "../../display/navigation";
 import { User } from "lucide-react";
 
-export default function EditProfile({children} : { children:React.ReactNode}){
+export default function ProfileCard({children} : { children:React.ReactNode}){
     return (
       <Bottom>
       {/* Conteneur large pour écran Web */}
