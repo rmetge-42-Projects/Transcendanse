@@ -1,11 +1,10 @@
 'use client'
-import Bottom from "@/src/component/display/bottom"
-import Footer from "@/src/component/footer"
+import Bottom from "@/src/display/bottom"
+import Footer from "@/src/display/footer"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from 'react-hook-form';
 import { api } from '@/src/lib/axios';
-import { register } from "module"
 //page de creation de compte où on rentre toute les info personnel
 
 type ProfileFormValues = {
@@ -22,11 +21,19 @@ export  default function CreateAccount()
 	const router = useRouter();
 	const [invalide, setInvalide] = useState('');
 	const [isSumit, setIsSumbit] = useState(false);
+	const today = new Date().toISOString().split("T")[0];
+
+	// // 1. On crée la date d'aujourd'hui
+	// const maxDateObj = new Date();
+	// // 2. On retire 18 ans à l'année actuelle
+	// maxDateObj.setFullYear(maxDateObj.getFullYear() - 18);
+	// // 3. On formate au format YYYY-MM-DD
+	// const dateMin = maxDateObj.toISOString().split("T")[0];
+
 
 	const {
 		register,
 		handleSubmit,
-		reset,
 		formState: { errors },
 	} = useForm<ProfileFormValues>();
 
@@ -34,22 +41,9 @@ export  default function CreateAccount()
 	{
 		setInvalide('');
 		setIsSumbit(true);
-		data.name;
-		data.username;
-		data.birthday;
-		data.kind;
-		data.orientation;
-		data.biography;
 		try {
-			const token = localStorage.getItem('token');
-			if (token)
-			{
-				const res = await api.post("/auth/createProfile", data);
-				router.push("/profile");
-			}
-			else 
-				setInvalide("Utilisateur non connecter");
-
+			const res = await api.post("/users/createProfile", data);
+			router.push("/profile");
 		}
 		catch(error)
 		{
@@ -64,7 +58,7 @@ export  default function CreateAccount()
 		<Bottom>
 			<div className="flex flex-col iten:centers justify-center min-h-[70vh] px-4 ">
 				<h1 className="text-blue-950 text-3xl md:text-6xl font-black text-center">
-					Create Profile
+					Creation du profile
 				</h1>
 				<form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md mx-auto flex flex-col gap-4 mt-6">
 					<p className="text-black mt-2  text-center">
@@ -72,7 +66,7 @@ export  default function CreateAccount()
 					</p>
 					<div className="flex flex-col gap-2">
 						<label className="text-sm font-semibold text-gray-700">
-							Name
+							Nom
 						</label>
 						<input
 							type="text"
@@ -83,7 +77,7 @@ export  default function CreateAccount()
 						{errors.name && <p className="bg-red-600 text-white text-sm mt-1">{errors.name.message}</p>}
 						<label 
 							className="text-sm font-semibold text-gray-700">
-							Username
+							Nom d'utilisateur
 						</label>
 						<input
 							type="text"
@@ -93,49 +87,50 @@ export  default function CreateAccount()
 						/>
 						{errors.username && <p className="bg-red-600 text-white text-sm mt-1">{errors.username.message}</p>}
 						<label className="text-sm font-semibold text-gray-700">
-							Birthday
+							Date de naissance
 						</label>
 						<input
 							type="date"
+							max={today}
 							{...register("birthday", {required: "La date d'anniversaire est obligatoire"})}
 							className="rounded px-3 py-2 w-full bg-white border "
 						/>
 						{errors.birthday && <p className="bg-red-600 text-white text-sm mt-1">{errors.birthday.message}</p>}
 						<label className="text-sm font-semibold text-gray-700">
-							Kind
+							Genre
 						</label>
 						<select
 							{...register("kind", {required: "Le genre est obligatoire"})}
 							className="rounded px-3 py-2 w-full bg-white border "
 						>
 							<option disabled hidden>
-								Select an option
+								Choisi une option
 							</option>
-							<option value="man">Man</option>
-							<option value="woman">Woman</option>
-							<option value="non_binary">Non-binary</option>
+							<option value="man">Homme</option>
+							<option value="woman">Femme</option>
+							<option value="non_binary">Non-binaire</option>
 						</select>
 						{errors.kind && <p className="bg-red-600 text-white text-sm mt-1">{errors.kind.message}</p>}
 						<label className="text-sm font-semibold text-gray-700">
-							Sexual Orientation
+							Orientation sexuelle
 						</label>
 						<select
 							{...register("orientation", {required: "L'orientation sexuelle est obligatoire"})}
 							className="rounded px-3 py-2 w-full bg-white border "
 						>
 							<option disabled hidden>
-								Select an option
+								Choisi une option
 							</option>
-							<option value="Men">Men</option>
-							<option value="Woman">Weman</option>
-							<option value="All">All</option>
+							<option value="Men">Homme</option>
+							<option value="Woman">Femme</option>
+							<option value="All">N'importe</option>
 						</select>
 						{errors.orientation && <p className="bg-red-600 text-white text-sm mt-1">{errors.orientation.message}</p>}
 						<label className="text-sm font-semibold text-gray-700">
-							Biography
+							Biographie
 						</label>
-						<input
-							type="text"
+						<textarea
+							rows={3}
 							placeholder="j'aime les fleures ......"
 							{...register("biography")}
 							className="rounded  px-3 py-2 w-full bg-white border "
@@ -147,7 +142,7 @@ export  default function CreateAccount()
 						disabled={isSumit}
 						className="bg-blue-950 text-white rounded p-2 mt-4"
 					>
-						{isSumit ? "Connexion..." : "Submit"}
+						{isSumit ? "Connexion..." : "Connexion"}
 					</button>
 				</form>
 			</div>

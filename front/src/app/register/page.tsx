@@ -1,11 +1,10 @@
 'use client'
-import Bottom from "@/src/component/display/bottom"
-import Link from "next/link"
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Footer from "@/src/component/footer";
 import { useForm } from 'react-hook-form';
 import { api } from '@/src/lib/axios';
+import { Eye, EyeOff } from "lucide-react";
+import Connextion from "@/src/composant/connection/connection";
 //page register pour cree son compte
 
 type	RegisterFormValues = {
@@ -18,6 +17,8 @@ export default function NewAccount(){
 	const	router = useRouter();
 	const	[invalide, setInvalide] = useState('');
 	const	[isLoading, setIsLoading] = useState(false);
+	const	[showPassword, setShowPassword] = useState(false);
+	const	[showVerifPassword, setShowVerifPassword] = useState(false);
 
 	const {
 			register,
@@ -53,18 +54,7 @@ export default function NewAccount(){
 		}
 	}
 	return(
-		<Bottom>
-			<div className="w-full px-6 border-gray-200 py-4">
-				<Link 
-					href="/" 
-					className="text-sm text-gray-600 hover:text-black flex items-center gap-1 transition"
-				>
-					← Retour à l'accueil
-				</Link>
-			</div>
-
-			<div className="bg-white p-8 flex flex-col items-center rounded-xl shadow-lg w-full max-w-md max-w-2xl mx-auto my-auto">
-				<h1 className="text-center text-2xl font-bold text-blue-950 mb-6">Create Account</h1>
+		<Connextion title="S'inscrire" >
 				<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
 					<label>Email</label>
 					<input 
@@ -72,41 +62,71 @@ export default function NewAccount(){
 						placeholder="ex: test@test.com" 
 						{...register("email", {required: "L\'email est obligatoire"})}
 						className="rounded px-3 py-2 w-full border "
-					/>
+						/>
 					{errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
-					<label>Password</label>
-					<input 
-						type="password" 
-						placeholder="ex: Password.123" 
-						{...register("password", {required: "Le mot de passe est obligatoire"})}
-						className="rounded px-3 py-2 w-full border "
-					/>
+					<label>Mot de passe</label>
+					<div className="relative w-full">
+						<input 
+							// type="password" 
+							
+							type={showPassword ? 'text' : 'password'}
+							placeholder="ex: Password.123" 
+							{...register("password", {required: "Le mot de passe est obligatoire"})}
+							className="rounded px-3 py-2 w-full border "
+							/>
+						<button
+                    	    type="button"
+                    	    onClick={() => setShowPassword(!showPassword)}
+                    	    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer rounded-full focus:outline-none"
+                    	    aria-label={showPassword ? "Masquer" : "Afficher"}
+							>
+                    	    {showPassword ? (
+								<EyeOff />
+                    	    ) : (
+								<Eye />
+                    	    )}
+                    	</button>
+					</div>
 					{errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
-					<label>Validate password</label>
-					<input 
-						type="password" 
-						placeholder="ex: Password.123"
-						{...register("validatePassword", {required: "La validation de mot de passe est obligatoire"})} 
-						className="rounded px-3 py-2 w-full border "
-					/>
+					<label>Validation mot de passe</label>
+					<div className="relative w-full">
+
+						<input 
+							// type="password" 
+							type={showVerifPassword ? 'text' : 'password'}
+							placeholder="ex: Password.123"
+							{...register("validatePassword", {required: "La validation de mot de passe est obligatoire"})} 
+							className="rounded px-3 py-2 w-full border "
+							/>
+						<button
+                    	    type="button"
+                    	    onClick={() => setShowVerifPassword(!showVerifPassword)}
+                    	    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer rounded-full focus:outline-none"
+                    	    aria-label={showVerifPassword ? "Masquer" : "Afficher"}
+							>
+                    	    {showVerifPassword ? (
+								<EyeOff />
+                    	    ) : (
+								<Eye />
+                    	    )}
+                    	</button>
+					</div>
 					{errors.validatePassword && <p className="text-red-500 text-sm mt-1">{errors.validatePassword.message}</p>}
 					{invalide && <p className="text-red-500">{invalide}</p>}
 					<button 
 						type="submit"
 						disabled={isLoading}
 						className="bg-blue-600 text-white rounded p-2 mt-4"
-					>
-						{isLoading ? "Connexion..." : "Submit"}
+						>
+						{isLoading ? "Connexion..." : "S'inscrire"}
 					</button>
 				</form>
 				<button 
 					className="bg-gray-600 text-white rounded p-2 mt-4" 
 					onClick={loginRedirect}
-				>
-					Back to login
+					>
+					J'ai deja un compte
 				</button>
-			</div>
-			<Footer/>
-		</Bottom>
+		</Connextion>
 	)
 }

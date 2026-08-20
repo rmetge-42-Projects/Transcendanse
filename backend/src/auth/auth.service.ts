@@ -1,10 +1,12 @@
 // verifie, creer le user et genere le token JWT
 
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { PasswordDto } from './dto/password.dto';
+import { EmailDto } from './dto/email.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,7 +15,8 @@ export class AuthService {
     private prisma: PrismaService,
     ) {}
 
-    async validateUser(email: string, pass: string)
+    //verifie si l'utilisateur existe
+    async   validateUser(email: string, pass: string)
     {
         const user = await this.prisma.user.findUnique({
             where: { email: email },
@@ -41,7 +44,8 @@ export class AuthService {
         };
     }
 
-    async registerUser(email: string, pass: string, validPass: string)
+    //cree un nouvelle utilisateur
+    async   registerUser(email: string, pass: string, validPass: string)
     {
         if (pass !== validPass)
         {
@@ -76,11 +80,26 @@ export class AuthService {
         };
     }
 
-    async   createProfile(name: string, username: string, birthday: Date, kind: string, orientation: string, biography: string)
+    //l'utilisateur modify le mot de passe
+    async   password(passwordDto: PasswordDto)
     {
-        return {
-            success: true,
-            message: "Profile Create !"
-        }
+        if (passwordDto.newPass === passwordDto.verifNewPass && passwordDto.newPass !== passwordDto.lastPass)
+            return {
+                success: true,
+                message: "Password Modify"
+            }
+        throw new BadRequestException("Incorrect Password");
     }
+
+    //l'utilisateur modify le mot de passe
+    async   email(emailDto: EmailDto)
+    {
+        if (emailDto.newEmail !== emailDto.lastEmail)
+            return {
+                success: true,
+                message: "Email Modify"
+            }
+        throw new BadRequestException("Incorrect Password");
+    }
+
 }
