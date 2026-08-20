@@ -4,7 +4,6 @@ import { getOrientationLabel, getKindLabel } from "@/src/constant/user"
 export default function MatchProfile({user} : {user:UserType})
 {
 	return (
-
 		<>
 			<h1 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">
     	  {user.username}
@@ -23,7 +22,7 @@ export default function MatchProfile({user} : {user:UserType})
 				)}
 				</div>
 			)}
-			
+
 			{/* Zone de biographie */}
 			<div className="w-full max-w-2xl mt-10 pt-8 border-t border-gray-100 text-left">
     	  <span className="text-xs md:text-sm font-extrabold text-gray-400 uppercase tracking-widest block mb-3">
