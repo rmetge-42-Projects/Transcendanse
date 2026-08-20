@@ -18,18 +18,14 @@ services:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
     volumes:
       - vol_back:/app/uploads
-    ports:
-      # (Temporaire) Expose le port 3000 pour tes tests locaux
-      - "3000:3000"
+
   frontend:
     build:
       context: ./front
     depends_on:
       - backend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3000
-    ports:
-      - "3001:3000"
+      NEXT_PUBLIC_API_URL: http://transcendance42.fr
 
   vault:
     image: hashicorp/vault:1.13
@@ -41,6 +37,14 @@ services:
       - vol_vault:/vault/file
     cap_add:
       - IPC_LOCK
+
+  nginx:
+    build:
+      context: ./nginx
+    restart: always 
+    ports:
+      - "443:443"
+      - "80:80"
 
 volumes:
     vol_data:
