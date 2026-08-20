@@ -1,3 +1,5 @@
+// verifie, creer le user et genere le token JWT
+
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
