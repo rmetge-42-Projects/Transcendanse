@@ -21,12 +21,4 @@ export function otherUser() {
       return res.data;
     },
   });
-  // return useQuery({
-  //   queryKey: ['otherUser'],
-  //   queryFn: async () => {
-  //     const res = await api.get('/users/other');
-  //     return res.data;
-  //   },
-  // });
 }
-//modifier pour les frofile

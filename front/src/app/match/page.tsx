@@ -39,7 +39,8 @@ export default function Match() {
         userId: userId,
         status: "reject",
       });
-      nextProfile();
+      // nextProfile();
+      await handleNext();
     } catch {
       setInvalide("Une erreur est survenue, veuillez réessayer.");
     }
@@ -52,50 +53,62 @@ export default function Match() {
         userId: userId,
         status: "like",
       });
-      nextProfile();
+      // nextProfile();
+      await handleNext();
     } catch {
       setInvalide("Une erreur est survenue, veuillez réessayer.");
     }
   };
 
-  const handleReload = async () => {
-    reset();
-    setInvalide("");
-    await refetch();
+  const handleNext = async () => {
+    // S'il ne reste plus de profil après celui-ci (c'était le dernier)
+    if (index + 2 >= profiles.length) {
+      reset();         // 1. Remet l'index à 0
+      await refetch(); // 2. Recharge automatiquement de nouveaux profils !
+    } else {
+      nextProfile();   // Sinon, passe simplement au profil suivant
+    }
   };
 
-  // Si tous les profils de la file ont été traités
-  if (!currentProfile) {
-    return (
-      <ProfileCard>
-        <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-gray-800 mb-3">
-            Plus aucun profil disponible
-          </h2>
-          <p className="text-gray-500 max-w-md mb-8">
-            Vous avez vu tous les profils de cette session. Revenez plus tard ou rechargez pour revoir de nouveaux profils !
-          </p>
-          <button
-            type="button"
-            onClick={handleReload}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-950 text-white font-semibold rounded-full shadow-lg hover:bg-blue-900 active:scale-95 transition-all cursor-pointer"
-          >
-            <RotateCcw className="w-5 h-5" />
-            <span>Recharger les profils</span>
-          </button>
-        </div>
-      </ProfileCard>
-    );
-  }
+
+  // const handleReload = async () => {
+  //   reset();
+  //   setInvalide("");
+  //   await refetch();
+  // };
+
+  // // Si tous les profils de la file ont été traités
+  // if (!currentProfile) {
+  //   return (
+  //     <ProfileCard>
+  //       <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+  //         <h2 className="text-2xl md:text-3xl font-extrabold text-gray-800 mb-3">
+  //           Plus aucun profil disponible
+  //         </h2>
+  //         <p className="text-gray-500 max-w-md mb-8">
+  //           Vous avez vu tous les profils de cette session. Revenez plus tard ou rechargez pour revoir de nouveaux profils !
+  //         </p>
+  //         <button
+  //           type="button"
+  //           onClick={handleReload}
+  //           className="flex items-center gap-2 px-6 py-3 bg-blue-950 text-white font-semibold rounded-full shadow-lg hover:bg-blue-900 active:scale-95 transition-all cursor-pointer"
+  //         >
+  //           <RotateCcw className="w-5 h-5" />
+  //           <span>Recharger les profils</span>
+  //         </button>
+  //       </div>
+  //     </ProfileCard>
+  //   );
+  // }
 
   return (
     <>
       <ProfileCard>
         <div className="w-full flex flex-col items-center pb-14">
           {/* Indicateur de progression */}
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+          {/* <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
             Profil {index + 1} sur {profiles.length}
-          </div>
+          </div> */}
 
           <MatchProfile user={currentProfile} />
 
