@@ -6,27 +6,32 @@ import ProfileCard from "@/src/composant/profile/ProfileCard";
 import IfIsError from "@/src/composant/profile/ifIsError";
 import IfIsLoading from "@/src/composant/profile/ifIsLoaging";
 import MatchProfile from "@/src/composant/profile/matchProfile";
-import { Heart, X } from "lucide-react";
+import { Heart, X, RotateCcw } from "lucide-react";
 import { api } from "@/src/lib/axios";
 import { useState } from "react";
+import { useMatch } from "@/src/constant/matchStore"; 
 
 export default function Match() {
   const router = useRouter();
   const [invalide, setInvalide] = useState("");
 
-  //hook pour les donne(attendre que les donner soit la)
-  const { data: userMatch, isLoading, isError } = otherUser();
+  const { data: profiles, isLoading, isError, refetch } = otherUser();  
+  const index = useMatch((state) => state.currentIndex);
+  const nextProfile = useMatch((state) => state.nextProfile);
 
-  // État de chargement grand format
+  const reset = useMatch((state) => state.resetProfiles);
+
+
+  // 3. Gestion des états de chargement et d'erreur
   if (isLoading) {
     return <IfIsLoading />;
   }
-
-  // État d'erreur grand format
-  if (isError || !userMatch) {
+  if (isError || !profiles) {
     return <IfIsError />;
   }
-
+  // 4. Le profil actuel
+  const currentProfile = profiles[index];
+  
   const rejected = async (userId: number) => {
     setInvalide("");
     try {
@@ -34,10 +39,9 @@ export default function Match() {
         userId: userId,
         status: "reject",
       });
-      localStorage.setItem("token", res.data.access_token);
-      // router.push("/myProfile");// mettre un nouveau profile
+      nextProfile();
     } catch {
-      setInvalide("Reesayer");
+      setInvalide("Une erreur est survenue, veuillez réessayer.");
     }
   };
 
@@ -48,37 +52,85 @@ export default function Match() {
         userId: userId,
         status: "like",
       });
-      localStorage.setItem("token", res.data.access_token);
-      // router.push("/createProfi");// mettre un nouveau profile
+      nextProfile();
     } catch {
-      setInvalide("Reesayer");
+      setInvalide("Une erreur est survenue, veuillez réessayer.");
     }
   };
 
+  const handleReload = async () => {
+    reset();
+    setInvalide("");
+    await refetch();
+  };
+
+  // Si tous les profils de la file ont été traités
+  if (!currentProfile) {
+    return (
+      <ProfileCard>
+        <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-gray-800 mb-3">
+            Plus aucun profil disponible
+          </h2>
+          <p className="text-gray-500 max-w-md mb-8">
+            Vous avez vu tous les profils de cette session. Revenez plus tard ou rechargez pour revoir de nouveaux profils !
+          </p>
+          <button
+            type="button"
+            onClick={handleReload}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-950 text-white font-semibold rounded-full shadow-lg hover:bg-blue-900 active:scale-95 transition-all cursor-pointer"
+          >
+            <RotateCcw className="w-5 h-5" />
+            <span>Recharger les profils</span>
+          </button>
+        </div>
+      </ProfileCard>
+    );
+  }
+
   return (
-    <ProfileCard>
-      <MatchProfile user={userMatch} />
-      <div className="w-full flex justify-between mt-6 px-4">
-        {/* Bouton de gauche (Orange / Refuser) */}
+    <>
+      <ProfileCard>
+        <div className="w-full flex flex-col items-center pb-14">
+          {/* Indicateur de progression */}
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Profil {index + 1} sur {profiles.length}
+          </div>
+
+          <MatchProfile user={currentProfile} />
+
+          {invalide && (
+            <p className="text-red-500 text-sm mt-3 font-medium">{invalide}</p>
+          )}
+        </div>
+      </ProfileCard>
+
+      {/* Boutons d'action flottants (100% fixes en bas de l'écran, au-dessus de la navbar) */}
+      <div className="fixed bottom-20 md:bottom-22 left-1/2 -translate-x-1/2 w-full max-w-xs md:max-w-sm flex justify-between px-4 z-40 pointer-events-none">
+        {/* Bouton Refuser (Orange / Croix) */}
         <button
           type="button"
-          onClick={() => rejected(userMatch.id)}
+          onClick={() => rejected(currentProfile.id)}
           style={{ backgroundColor: "#f97316", color: "#ffffff" }}
-          className="flex items-center justify-center w-12 h-12 rounded-full shadow-xl active:scale-95 cursor-pointer hover:opacity-90 transition-all"
+          className="flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl active:scale-90 hover:scale-105 transition-all cursor-pointer pointer-events-auto border-4 border-white"
+          title="Refuser"
+          aria-label="Refuser"
         >
-          <X className="w-6 h-6 stroke-[2.5]" />
+          <X className="w-7 h-7 md:w-8 md:h-8 stroke-[2.5]" />
         </button>
 
-        {/* Bouton de droite (Rose / Like) */}
+        {/* Bouton Like (Rose / Cœur) */}
         <button
           type="button"
-          onClick={() => like(userMatch.id)}
+          onClick={() => like(currentProfile.id)}
           style={{ backgroundColor: "#f43f5e", color: "#ffffff" }}
-          className="flex items-center justify-center w-12 h-12 rounded-full shadow-xl active:scale-95 cursor-pointer hover:opacity-90 transition-all"
+          className="flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl active:scale-90 hover:scale-105 transition-all cursor-pointer pointer-events-auto border-4 border-white"
+          title="Liker"
+          aria-label="Liker"
         >
-          <Heart className="w-6 h-6 fill-white text-white" />
+          <Heart className="w-7 h-7 md:w-8 md:h-8 fill-white text-white" />
         </button>
       </div>
-    </ProfileCard>
+    </>
   );
 }

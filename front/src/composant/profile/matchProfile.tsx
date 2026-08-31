@@ -23,12 +23,12 @@ export default function MatchProfile({user} : {user:UserType})
 				</div>
 			)}
 
-			{/* Zone de biographie */}
-			<div className="w-full max-w-2xl mt-10 pt-8 border-t border-gray-100 text-left">
-    	  <span className="text-xs md:text-sm font-extrabold text-gray-400 uppercase tracking-widest block mb-3">
+			{/* Zone de biographie avec hauteur stable */}
+			<div className="w-full max-w-2xl mt-8 pt-6 border-t border-gray-100 text-left">
+    	  <span className="text-xs md:text-sm font-extrabold text-gray-400 uppercase tracking-widest block mb-2">
     	    À propos de moi
     	  </span>
-    	  <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-100">
+    	  <div className="bg-gray-50/80 p-5 rounded-2xl border border-gray-100 min-h-[90px] max-h-[120px] overflow-y-auto">
     	    <p className="text-gray-800 text-base md:text-lg leading-relaxed">
     	      {user.biography || "Aucune biographie pour le moment."}
     	    </p>
