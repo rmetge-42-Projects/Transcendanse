@@ -17,8 +17,9 @@ export function otherUser() {
   return useQuery<UserType[]>({
     queryKey: ['otherUsers'],
     queryFn: async () => {
-      const res = await api.get<UserType[]>('/users/other');
+      const res = await api.get<UserType[]>('/match/other');
       return res.data;
     },
   });
 }
+

@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { otherUser, useUser } from "@/src/hook/useUser";
+// import { useRouter } from "next/navigation";
+import { otherUser } from "@/src/hook/useUser";
 import ProfileCard from "@/src/composant/profile/ProfileCard";
 import IfIsError from "@/src/composant/profile/ifIsError";
 import IfIsLoading from "@/src/composant/profile/ifIsLoaging";
@@ -12,7 +12,7 @@ import { useState } from "react";
 import { useMatch } from "@/src/constant/matchStore"; 
 
 export default function Match() {
-  const router = useRouter();
+  // const router = useRouter();
   const [invalide, setInvalide] = useState("");
 
   const { data: profiles, isLoading, isError, refetch } = otherUser();  

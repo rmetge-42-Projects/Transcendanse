@@ -29,8 +29,8 @@ export class UsersController {
   }
 
   //recupere les profile d'autre personne
-  @Get('other')
-  getOther() {
-    return this.usersService.getOtherProfile();
-  }
+  // @Get('other')
+  // getOther() {
+  //   return this.usersService.getOtherProfile();
+  // }
 }

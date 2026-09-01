@@ -37,44 +37,44 @@ export class UsersService {
     };
   }
 
-  //envoie les infos des profil des match
-  getOtherProfile() {
-    return [
-      {
-        id: 12,
-        username: 'Sophie',
-        kind: 'woman',
-        orientation: 'man',
-        biography: 'Passionnée de danse contemporaine, de voyages et de bon café !',
-      },
-      {
-        id: 13,
-        username: 'Alexandre',
-        kind: 'man',
-        orientation: 'woman',
-        biography: 'Danseur de salsa et grand amateur de musique électronique.',
-      },
-      {
-        id: 14,
-        username: 'Camille',
-        kind: 'other',
-        orientation: 'all',
-        biography: 'Toujours partant pour tester de nouvelles chorégraphies et sorties.',
-      },
-      {
-        id: 15,
-        username: 'Lucas',
-        kind: 'man',
-        orientation: 'all',
-        biography: 'Étudiant à 42, aime le tango, les échecs et le code propre.',
-      },
-      {
-        id: 16,
-        username: 'Léa',
-        kind: 'woman',
-        orientation: 'all',
-        biography: 'Fan de hip-hop, de cuisine italienne et de randonnée.',
-      },
-    ];
-  }
+  // //envoie les infos des profil des match
+  // getOtherProfile() {
+  //   return [
+  //     {
+  //       id: 12,
+  //       username: 'Sophie',
+  //       kind: 'woman',
+  //       orientation: 'man',
+  //       biography: 'Passionnée de danse contemporaine, de voyages et de bon café !',
+  //     },
+  //     {
+  //       id: 13,
+  //       username: 'Alexandre',
+  //       kind: 'man',
+  //       orientation: 'woman',
+  //       biography: 'Danseur de salsa et grand amateur de musique électronique.',
+  //     },
+  //     {
+  //       id: 14,
+  //       username: 'Camille',
+  //       kind: 'other',
+  //       orientation: 'all',
+  //       biography: 'Toujours partant pour tester de nouvelles chorégraphies et sorties.',
+  //     },
+  //     {
+  //       id: 15,
+  //       username: 'Lucas',
+  //       kind: 'man',
+  //       orientation: 'all',
+  //       biography: 'Étudiant à 42, aime le tango, les échecs et le code propre.',
+  //     },
+  //     {
+  //       id: 16,
+  //       username: 'Léa',
+  //       kind: 'woman',
+  //       orientation: 'all',
+  //       biography: 'Fan de hip-hop, de cuisine italienne et de randonnée.',
+  //     },
+  //   ];
+  // }
 }

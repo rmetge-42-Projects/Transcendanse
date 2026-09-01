@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { MatchService } from './match.service';
 import { ValideteDto } from './dto/validate.dto';
-import { Post, Body } from '@nestjs/common';
+import { Post, Body, Get } from '@nestjs/common';
 
 @Controller('match')
 export class MatchController {
@@ -10,5 +10,10 @@ export class MatchController {
   @Post('validete')
   async rejected(@Body() valideteDto: ValideteDto) {
     return this.matchService.rejected(valideteDto);
+  }
+
+  @Get('other')
+  getOther() {
+    return this.matchService.getOtherProfile();
   }
 }
