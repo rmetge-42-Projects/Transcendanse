@@ -1,7 +1,7 @@
 "use client";
 
 // import { useRouter } from "next/navigation";
-import { otherUser } from "@/src/hook/useUser";
+import { useOtherUser } from "@/src/hook/useUser";
 import ProfileCard from "@/src/composant/profile/ProfileCard";
 import IfIsError from "@/src/composant/profile/ifIsError";
 import IfIsLoading from "@/src/composant/profile/ifIsLoaging";
@@ -15,7 +15,7 @@ export default function Match() {
   // const router = useRouter();
   const [invalide, setInvalide] = useState("");
 
-  const { data: profiles, isLoading, isError, refetch } = otherUser();  
+  const { data: profiles, isLoading, isError, refetch } = useOtherUser();  
   const index = useMatch((state) => state.currentIndex);
   const nextProfile = useMatch((state) => state.nextProfile);
 

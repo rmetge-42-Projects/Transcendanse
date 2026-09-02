@@ -6,14 +6,15 @@ import { Get } from '@nestjs/common';
 export class MessageController {
     constructor(private readonly messageService: MessageService) {}
     
+    //envoie les differente pessonne avec qui je discute
     @Get('conversation')
     async conversation(){
         return this.messageService.conversation();
     }
 
-
-    //   @Post('validete')
-    //   async rejected(@Body() valideteDto: ValideteDto) {
-    //     return this.matchService.rejected(valideteDto);
-    //   }
+    //envoie mes echange avec la personne
+    @Get('message')
+    async message(){
+        return this.messageService.message();
+    }
 }

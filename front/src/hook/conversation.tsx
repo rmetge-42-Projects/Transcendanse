@@ -1,13 +1,34 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
-import { ConversationType } from '../type/conversation';
+import { UserConversationType, MessageType } from '../type/conversation';
 
-export function conversation() {
-  return useQuery({
-    queryKey: ['conversation'],
+export function useConversation() {
+  return useQuery<UserConversationType[]>({
+    queryKey: ['messagerie'],
     queryFn: async () => {
-      const res = await api.get('/message/conversation');
+      const res = await api.get<UserConversationType[]>('/message/conversation');
       return res.data;
     },
+  });
+}
+
+// export function message() {
+//   return useQuery<MessageType[]>({
+//     queryKey: ['message'],
+//     queryFn: async () => {
+//       const res = await api.get<MessageType[]>('/message/message');
+//       return res.data;
+//     },
+//   });
+// }
+
+export function useMessages(userId?: number) {
+  return useQuery<MessageType[]>({
+    queryKey: ['messages', userId],
+    queryFn: async () => {
+      const res = await api.get<MessageType[]>(`/message/${userId}`);
+      return res.data;
+    },
+    enabled: !!userId, // Ne lance la requête que si un userId est fourni
   });
 }

@@ -13,7 +13,7 @@ export function useUser() {
   });
 }
 
-export function otherUser() {
+export function useOtherUser() {
   return useQuery<UserType[]>({
     queryKey: ['otherUsers'],
     queryFn: async () => {
