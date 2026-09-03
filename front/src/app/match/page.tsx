@@ -3,35 +3,34 @@
 // import { useRouter } from "next/navigation";
 import { useOtherUser } from "@/src/hook/useUser";
 import ProfileCard from "@/src/composant/profile/ProfileCard";
-import IfIsError from "@/src/composant/profile/ifIsError";
-import IfIsLoading from "@/src/composant/profile/ifIsLoaging";
-import MatchProfile from "@/src/composant/profile/matchProfile";
+import IfIsError from "@/src/constant/ifIsError";
+import IfIsLoading from "@/src/constant/ifIsLoaging";
+import MatchProfile from "@/src/composant/match/matchProfile";
 import { Heart, X, RotateCcw } from "lucide-react";
 import { api } from "@/src/lib/axios";
 import { useState } from "react";
-import { useMatch } from "@/src/constant/matchStore"; 
+import { useMatch } from "@/src/composant/match/matchStore";
 
 export default function Match() {
   // const router = useRouter();
   const [invalide, setInvalide] = useState("");
 
-  const { data: profiles, isLoading, isError, refetch } = useOtherUser();  
+  const { data: profiles, isLoading, isError, refetch } = useOtherUser();
   const index = useMatch((state) => state.currentIndex);
   const nextProfile = useMatch((state) => state.nextProfile);
 
   const reset = useMatch((state) => state.resetProfiles);
 
-
   // 3. Gestion des états de chargement et d'erreur
   if (isLoading) {
-    return <IfIsLoading />;
+    return <IfIsLoading>Chargement du profil...</IfIsLoading>;
   }
   if (isError || !profiles) {
-    return <IfIsError />;
+    return <IfIsError> Erreur : impossible de charger le profil. </IfIsError>;
   }
   // 4. Le profil actuel
   const currentProfile = profiles[index];
-  
+
   const rejected = async (userId: number) => {
     setInvalide("");
     try {
@@ -63,13 +62,12 @@ export default function Match() {
   const handleNext = async () => {
     // S'il ne reste plus de profil après celui-ci (c'était le dernier)
     if (index + 2 >= profiles.length) {
-      reset();         // 1. Remet l'index à 0
+      reset(); // 1. Remet l'index à 0
       await refetch(); // 2. Recharge automatiquement de nouveaux profils !
     } else {
-      nextProfile();   // Sinon, passe simplement au profil suivant
+      nextProfile(); // Sinon, passe simplement au profil suivant
     }
   };
-
 
   // const handleReload = async () => {
   //   reset();
