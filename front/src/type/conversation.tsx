@@ -8,7 +8,7 @@ export interface UserConversationType {
 
 export interface MessageType {
   id: number;
-  senderId: string;
+  senderId: number;
   message: string;
   messageDate: string;
 }

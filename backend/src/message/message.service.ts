@@ -6,7 +6,7 @@ export class MessageService {
         return[
             {
               "userId": 12,
-              "usernName": "Sophie",
+              "userName": "Sophie",
               "lastMessage": "Salut ! Tu danses ce soir ?",
               "lastMessageDate": "14:32",
               "unreadCount": 1
@@ -21,20 +21,37 @@ export class MessageService {
         ]
     }
 
-    async message(){
-        return[
+    // async message(){
+    //     return[
+    //         {
+    //           "id": 101,
+    //           "senderId": 12,
+    //           "content": "Salut ! Trop cool ton profil.",
+    //           "createdAt": "14:30"
+    //         },
+    //         {
+    //           "id": 102,
+    //           "senderId": 42,
+    //           "content": "Merci Sophie ! Tu aimes la salsa ?",
+    //           "createdAt": "14:32"
+    //         }
+    //     ]
+    // }
+
+      async message(userId?: number) {
+        return [
             {
-              "id": 101,
-              "senderId": 12,
-              "content": "Salut ! Trop cool ton profil.",
-              "createdAt": "14:30"
+              id: 101,
+              senderId: 12,
+              message: "Salut ! Trop cool ton profil.",
+              messageDate: new Date().toISOString()
             },
             {
-              "id": 102,
-              "senderId": 42,
-              "content": "Merci Sophie ! Tu aimes la salsa ?",
-              "createdAt": "14:32"
+              id: 102,
+              senderId: 42,
+              message: "Merci Sophie ! Tu aimes la salsa ?",
+              messageDate: new Date().toISOString()
             }
-        ]
+        ];
     }
 }

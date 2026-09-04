@@ -1,6 +1,5 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { MessageService } from './message.service';
-import { Get } from '@nestjs/common';
 
 @Controller('message')
 export class MessageController {
@@ -13,8 +12,12 @@ export class MessageController {
     }
 
     //envoie mes echange avec la personne
-    @Get('message')
-    async message(){
-        return this.messageService.message();
+    // @Get('message')
+    // async message(){
+    //     return this.messageService.message();
+    // }
+     @Get(':userId')
+    async message(@Param('userId') userId: string) {
+        return this.messageService.message(+userId);
     }
 }

@@ -10,6 +10,7 @@ import { Heart, X, RotateCcw } from "lucide-react";
 import { api } from "@/src/lib/axios";
 import { useState } from "react";
 import { useMatch } from "@/src/composant/match/matchStore";
+import Bottom from "@/src/display/bottom";
 
 export default function Match() {
   // const router = useRouter();
@@ -23,7 +24,10 @@ export default function Match() {
 
   // 3. Gestion des états de chargement et d'erreur
   if (isLoading) {
-    return <IfIsLoading>Chargement du profil...</IfIsLoading>;
+    return (
+      <Bottom>
+        <IfIsLoading>Chargement du profil...</IfIsLoading>
+      </Bottom>);
   }
   if (isError || !profiles) {
     return <IfIsError> Erreur : impossible de charger le profil. </IfIsError>;
@@ -68,36 +72,6 @@ export default function Match() {
       nextProfile(); // Sinon, passe simplement au profil suivant
     }
   };
-
-  // const handleReload = async () => {
-  //   reset();
-  //   setInvalide("");
-  //   await refetch();
-  // };
-
-  // // Si tous les profils de la file ont été traités
-  // if (!currentProfile) {
-  //   return (
-  //     <ProfileCard>
-  //       <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-  //         <h2 className="text-2xl md:text-3xl font-extrabold text-gray-800 mb-3">
-  //           Plus aucun profil disponible
-  //         </h2>
-  //         <p className="text-gray-500 max-w-md mb-8">
-  //           Vous avez vu tous les profils de cette session. Revenez plus tard ou rechargez pour revoir de nouveaux profils !
-  //         </p>
-  //         <button
-  //           type="button"
-  //           onClick={handleReload}
-  //           className="flex items-center gap-2 px-6 py-3 bg-blue-950 text-white font-semibold rounded-full shadow-lg hover:bg-blue-900 active:scale-95 transition-all cursor-pointer"
-  //         >
-  //           <RotateCcw className="w-5 h-5" />
-  //           <span>Recharger les profils</span>
-  //         </button>
-  //       </div>
-  //     </ProfileCard>
-  //   );
-  // }
 
   return (
     <>

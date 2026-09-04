@@ -8,6 +8,7 @@ import { getKindLabel, getOrientationLabel } from "@/src/constant/user";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import Bottom from "@/src/display/bottom";
 
 export default function Profile() {
   const router = useRouter();
@@ -27,7 +28,11 @@ export default function Profile() {
 
   // État de chargement grand format
   if (isLoading) {
-    return <IfIsLoading>Chargement du profil...</IfIsLoading>;
+    return (
+      <Bottom>
+        <IfIsLoading>Chargement du profil...</IfIsLoading>;
+      </Bottom>
+    );
   }
   if (isError || !user) {
     return <IfIsError> Erreur : impossible de charger le profil. </IfIsError>;
