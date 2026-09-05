@@ -16,6 +16,8 @@ services:
       - database
     environment:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 3000
     volumes:
       - vol_back:/app/uploads
 
