@@ -9,7 +9,7 @@ generator client {
 //donne le type de base et ladresse de la base
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

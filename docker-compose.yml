@@ -1,0 +1,52 @@
+services:
+  database:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - vol_data:/var/lib/postgresql/data
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      - database
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
+    volumes:
+      - vol_back:/app/uploads
+
+  frontend:
+    build:
+      context: ./front
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://transcendance42.fr
+
+  vault:
+    image: hashicorp/vault:1.13
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_TOKEN}
+    volumes:
+      - vol_vault:/vault/file
+    cap_add:
+      - IPC_LOCK
+
+  nginx:
+    build:
+      context: ./nginx
+    restart: always 
+    ports:
+      - "443:443"
+      - "80:80"
+
+volumes:
+    vol_data:
+    vol_back:
+    vol_vault:
