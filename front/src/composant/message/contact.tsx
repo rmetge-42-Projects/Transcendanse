@@ -34,7 +34,7 @@ export default function Contact({
           Messages
         </div>
         <div className="flex-1 overflow-y-auto">
-          {users?.map((user) => (
+          	{users?.map((user) => (
             <div
               key={user.userId}
               onClick={() => setSelectedUser(user)}

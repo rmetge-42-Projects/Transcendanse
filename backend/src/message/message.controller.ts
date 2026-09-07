@@ -1,5 +1,6 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body } from '@nestjs/common';
 import { MessageService } from './message.service';
+import { SendMessageDto } from './dto/sendMessage.dto';
 
 @Controller('message')
 export class MessageController {
@@ -12,12 +13,14 @@ export class MessageController {
     }
 
     //envoie mes echange avec la personne
-    // @Get('message')
-    // async message(){
-    //     return this.messageService.message();
-    // }
-     @Get(':userId')
-    async message(@Param('userId') userId: string) {
-        return this.messageService.message(+userId);
+    @Get(':userId')
+    async discution(@Param('userId') userId: string) {
+        return this.messageService.discution(+userId);
+    }
+
+    //recupere le message envoyer et j'enregiste dans la db
+    @Post('sendMessage')
+    async sendMessage(@Body() sendMessageDto:SendMessageDto){
+        return this.messageService.sendMessage(sendMessageDto);
     }
 }
