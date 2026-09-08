@@ -38,10 +38,17 @@ export class MessageService {
 	//     ]
 	// }
 	async discution(userId?: number) {
+		if (!userId)
+		{
+			return{
+				success: false,
+				message: "Un probleme avec les contact"
+			}
+		}
 		return [
 			{
 			id: 1,
-	receiveId: 13,
+			receiveId: 13,
 			senderId: 12,
 			message: "Salut ! Trop cool ton profil.",
 			// messageDate: "test"
@@ -49,20 +56,21 @@ export class MessageService {
 			},
 			{
 			id: 2,
-	receiveId: 12,
+			receiveId: 12,
 			senderId: 13,
 			message: "Merci Sophie ! Tu aimes la salsa ?",
 			messageDate: new Date().toISOString()
 			},
-	{
+			{
 			id: 3,
-	receiveId: 12,
+			receiveId: 12,
 			senderId: 13,
 			message: "???",
 			messageDate: new Date().toISOString()
 			}
 		];
 	}
+
 	async sendMessage(sendMessageDto : SendMessageDto){
 
 		if (!sendMessageDto.message){
@@ -75,5 +83,19 @@ export class MessageService {
 			success: true,
 			message: "Message envoyer !",
 		};
+	}
+
+	async deleteMatch(userId?: number) {
+		if (!userId)
+		{
+			return{
+				success: false,
+				message: "Un probleme avec la supression du match"
+			}
+		}
+		return{
+			success: true,
+			message: "Match supprimer"
+		}
 	}
 }

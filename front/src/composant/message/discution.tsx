@@ -1,22 +1,23 @@
 import { UserConversationType } from "@/src/type/conversation";
-import { User } from "lucide-react";
-import { Send } from "lucide-react";
+import { User, Send, Trash } from "lucide-react";
 import IfIsLoading from "@/src/constant/ifIsLoaging";
 import { api } from "@/src/lib/axios";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 import { useMessages } from "@/src/hook/conversation";
 
 interface ContactProps {
   selectedUser: UserConversationType | null;
-  setSelectedUser: (user: UserConversationType) => void;
+  setSelectedUser: (user: UserConversationType | null) => void;
 }
 export default function Duiscution({ selectedUser, setSelectedUser }: ContactProps){
 
 	const queryClient = useQueryClient(); 
 	const [messageText, setMessageText] = useState("");
 	const [invalide, setInvalide] = useState("");
+	const router = useRouter();
 
   const { data: messages, isLoading} = useMessages(
     selectedUser?.userId,
@@ -54,6 +55,21 @@ export default function Duiscution({ selectedUser, setSelectedUser }: ContactPro
 		}
 	};
 	
+	const deleteMatch = async (userId: number) => {
+  	const confirmLogout = window.confirm("Es-tu sûr de vouloir supprimer ce match  ?");
+  	if (confirmLogout) {
+  	  try {
+				const res = await api.delete(`/message/${userId}`);
+				queryClient.invalidateQueries({ queryKey: ['messages', userId] });
+      	queryClient.invalidateQueries({ queryKey: ['messagerie'] });
+				setSelectedUser(null);
+				router.push("/message");
+			} catch {
+				setInvalide("Une erreur est survenue, le match n'a pas etais supprimer");
+			}
+		}	
+  }
+
   return (
 		<div className="flex-1 flex flex-col bg-white">
 			{/* Entête du chat */}
@@ -64,6 +80,13 @@ export default function Duiscution({ selectedUser, setSelectedUser }: ContactPro
 				<span className="font-bold text-gray-800">
 					{selectedUser.userName}
 				</span>
+				<button
+					className="ml-auto p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition"
+    			title="Supprimer le match"
+					onClick={() => deleteMatch(selectedUser.userId)}
+				>
+					<Trash />
+				</button>
 			</div>
 			<div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
     		{messages && messages.length > 0 ? (
