@@ -43,15 +43,17 @@ export default function Profile() {
         setInvalide('');
         setIsSubmit(true);
         try {
-            await api.post("/users/modifyProfile", data);
+            await api.put('/users/updateProfile', data);
+            // alert("Profil mis à jour avec succès !");
             await queryClient.invalidateQueries({ queryKey: ['userMe'] });
-            router.push("/mprofile");
+            router.push("/myProfile");
         } catch {
-            setInvalide("Erreur lors de la modification, réessayez.");
+            setInvalide("Erreur lors de la mise à jour, réessayez.");
         } finally {
             setIsSubmit(false);
         }
     };
+
 
     return (
         <EditCard title="Information du profil">

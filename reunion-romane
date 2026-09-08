@@ -99,3 +99,10 @@ Avantages : Très facile à mettre en place avec vos outils actuels (axios + use
 Une connexion permanente reste ouverte entre le navigateur et NestJS (@nestjs/websockets).
 Dès que Sophie clique sur envoyer, le backend transmet instantanément le message à votre écran en 0 milliseconde.
 Avantages : Idéal pour un chat instantané et les jeux multijoueurs (comme votre Chi-Fou-Mi).
+
+
+
+
+status en ligne
+websocket
+match..
