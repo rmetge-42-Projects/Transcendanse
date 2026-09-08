@@ -21,5 +21,3 @@ app/modifyProfile/page.tsx : les infos que l'on peut modifier (user, email, pass
 axios = faire un base de requette http, avec l'adresse et le header -> lib
 
 React Query(useQuery) = permet de garder les donner recuperé dans le back pendant 5min pour evité les requete inutile, si il y a un probleme il essaye une nouvelle fois avant d'envoyer un message d'error (il utilise avec axios au moment d'envoyer les requettes)
-
-icon react lucide

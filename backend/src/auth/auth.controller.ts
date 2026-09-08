@@ -6,6 +6,8 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { PasswordDto } from './dto/password.dto';
 import { EmailDto } from './dto/email.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -18,7 +20,7 @@ export class AuthController {
 		return this.authService.validateUser(loginDto.email, loginDto.password);
 	}
 
-	//requette post pour s'inscrire et commencer a cree sont profile
+	//requette post pour s'inscrire et commencer a creer son profil
 	//front = register
 	@Post('register')
 	async register(@Body() registerDto: RegisterDto){
@@ -27,6 +29,7 @@ export class AuthController {
 
 	//requette pour modifier le mdp
 	//front = composant/password
+	@UseGuards(JwtAuthGuard)
 	@Post('password')
 	async modifyPassword(@Body() passwordDto: PasswordDto)
 	{
@@ -35,10 +38,10 @@ export class AuthController {
 
 	//requette pour modifier l'email
 	//front = composant/email
+	@UseGuards(JwtAuthGuard)
 	@Post('email')
 	async modifyEmail(@Body() emailDto: EmailDto)
 	{
 		return this.authService.email(emailDto);
 	}
-
 }

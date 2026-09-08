@@ -24,32 +24,32 @@ export class AuthService {
 
     if (!user)
         {
-            throw new UnauthorizedException("Email ou mot de passe incorrect.");
+            throw new UnauthorizedException("Incorrect email or password.");
         }
 
         const passwordMatches = await bcrypt.compare(pass, user.password);
 
         if (!passwordMatches)
         {
-            throw new UnauthorizedException("Email ou mot de passe incorrect.");
+            throw new UnauthorizedException("Incorrect email or password.");
         }
 
-        const playload = { id: user.id, email: user.email };
-        const token = await this.jwtService.signAsync(playload);
+        const payload = { id: user.id, email: user.email };
+        const token = await this.jwtService.signAsync(payload);
 
         return {
             success: true,
-            message: "Connexion réussie !",
+            message: "Login successful !",
             access_token: token,
         };
     }
 
-    //cree un nouvelle utilisateur
+    //cree un nouvel utilisateur
     async   registerUser(email: string, pass: string, validPass: string)
     {
         if (pass !== validPass)
         {
-            throw new UnauthorizedException("Les mots de passe ne correspondent pas.");
+            throw new UnauthorizedException("The passwords do not match.");
         }
 
         const existingUser = await this.prisma.user.findUnique({
@@ -58,7 +58,7 @@ export class AuthService {
 
         if (existingUser)
         {
-            throw new UnauthorizedException("Un compte existe déjà avec cet email.");
+            throw new UnauthorizedException("An account already exists with this email.");
         }
 
         const hashedPassword = await bcrypt.hash(pass, 10);
@@ -70,36 +70,36 @@ export class AuthService {
             },
         });
 
-        const playload = { id: newUser.id, email: newUser.email };
-        const token = await this.jwtService.signAsync(playload);
+        const payload = { id: newUser.id, email: newUser.email };
+        const token = await this.jwtService.signAsync(payload);
 
         return {
             success: true,
-            message: "Inscription réussie !",
+            message: "Registration successful !",
             access_token: token,
         };
     }
 
-    //l'utilisateur modify le mot de passe
+    //l'utilisateur modifie le mot de passe
     async   password(passwordDto: PasswordDto)
     {
         if (passwordDto.newPass === passwordDto.verifNewPass && passwordDto.newPass !== passwordDto.lastPass)
             return {
                 success: true,
-                message: "Password Modify"
+                message: "The password has been changed."
             }
-        throw new BadRequestException("Incorrect Password");
+        throw new BadRequestException("Incorrect password.");
     }
 
-    //l'utilisateur modify le mot de passe
+    //l'utilisateur modifie le mot de passe
     async   email(emailDto: EmailDto)
     {
         if (emailDto.newEmail !== emailDto.lastEmail)
             return {
                 success: true,
-                message: "Email Modify"
+                message: "The email has been changed."
             }
-        throw new BadRequestException("Incorrect Password");
+        throw new BadRequestException("Incorrect email.");
     }
 
 }
