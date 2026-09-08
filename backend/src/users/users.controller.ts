@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Put, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Req, UseGuards, Patch } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateDto } from './dto/createProfile.dto';
 // import { ModifyProfileDto } from './dto/modifyProfile.dto';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { StatusDto } from './dto/status.dto';
 
 @Controller('users')
 export class UsersController {
@@ -15,13 +16,6 @@ export class UsersController {
   async createProfile(@Body() createDto: CreateDto){
     return this.usersService.createProfile(createDto);
   }
-  
-  //requette pour modifier les info du profile
-  //front = modifyProfile
-  // @Post('modifyProfile')
-  // async modifyProfile(@Body() modifyProfileDto: ModifyProfileDto){
-  //   return this.usersService.modifyProfile(modifyProfileDto);
-  // }
 
   //recupere les info de l'user
   //front = profile
@@ -40,4 +34,13 @@ export class UsersController {
         //a modifier, c'etais juste pour le test => const userId = req.user.id
         return this.usersService.updateProfile(userId, updateProfileDto);
     }
+
+  @Patch('status')
+    async status(@Body() statusDto : StatusDto){
+      return this.usersService.status(statusDto.isOnline);
+    }
+
 }
+
+
+// await api.patch('/users/status', { isOnline: false });

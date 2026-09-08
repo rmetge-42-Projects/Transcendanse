@@ -4,6 +4,7 @@ export interface UserConversationType {
   lastMessage: string;
   lastMessageDate: string;
   isRead: boolean;
+  isOnline?: boolean;
 }
 
 export interface MessageType {

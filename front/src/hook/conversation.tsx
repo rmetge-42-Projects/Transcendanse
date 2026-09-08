@@ -12,16 +12,6 @@ export function useConversation() {
   });
 }
 
-// export function message() {
-//   return useQuery<MessageType[]>({
-//     queryKey: ['message'],
-//     queryFn: async () => {
-//       const res = await api.get<MessageType[]>('/message/message');
-//       return res.data;
-//     },
-//   });
-// }
-
 export function useMessages(userId?: number) {
   return useQuery<MessageType[]>({
     queryKey: ['messages', userId],

@@ -38,4 +38,12 @@ export class UsersService {
     };
   }
 
+  //mettre onLine a false
+  status(status: boolean) {
+    return {
+      success: true,
+      message: "Status hors ligne"
+    }
+  }
+
 }

@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import Bottom from "@/src/display/bottom";
+import { api } from "@/src/lib/axios";
 
 export default function Profile() {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function Profile() {
   if (!user.username || !user.birthday || !user.kind || !user.orientation) {
     <IfIsLoading>Chargement du profil..</IfIsLoading>;
   }
+
 
   return (
     <ProfileCard>

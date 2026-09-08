@@ -10,33 +10,20 @@ export class MessageService {
 			"userName": "Sophie",
 			"lastMessage": "Salut ! Tu danses ce soir ?",
 			"lastMessageDate": "14:32",
-			"unreadCount": 1
+			"unreadCount": 1,
+      "isOnline": true
 			},
 			{
 			"userId": 13,
 			"userName": "Alexandre",
 			"lastMessage": "À demain !",
 			"lastMessageDate": "Hier",
-			"unreadCount": 0
+			"unreadCount": 0,
+      "isOnline": false
 			}
 		]
 	}
-	// async message(){
-	//     return[
-	//         {
-	//           "id": 101,
-	//           "senderId": 12,
-	//           "content": "Salut ! Trop cool ton profil.",
-	//           "createdAt": "14:30"
-	//         },
-	//         {
-	//           "id": 102,
-	//           "senderId": 42,
-	//           "content": "Merci Sophie ! Tu aimes la salsa ?",
-	//           "createdAt": "14:32"
-	//         }
-	//     ]
-	// }
+
 	async discution(userId?: number) {
 		if (!userId)
 		{
