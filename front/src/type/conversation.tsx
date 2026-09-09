@@ -3,7 +3,7 @@ export interface UserConversationType {
   userName: string;
   lastMessage: string;
   lastMessageDate: string;
-  isRead: boolean;
+  unreadCount: number;
   isOnline?: boolean;
 }
 

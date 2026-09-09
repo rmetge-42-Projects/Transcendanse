@@ -25,7 +25,8 @@ export class UsersService {
     }
   }
 
-  //envoie les info de l'utilisateur
+  //envoie mes info
+  //sert a afficher ton profile
   getProfile() {
     return {
       id: 42,
@@ -38,7 +39,21 @@ export class UsersService {
     };
   }
 
-  //mettre onLine a false
+  //envoie les info de l'utilisateur (userId)
+  //sert a afficher le profile du match
+  myMatchProfile(userId : number){
+    return {
+      id: userId,
+      username: 'sophie',
+      email: 'norminet@student.42.fr',
+      birthday: 12/12/2005,
+      kind: 'man',
+      orientation: 'all',
+      biography: 'Étudiant à 42 en plein sur Transcendence !',
+    };
+  }
+
+  //mettre onLine a false (ou true)
   status(status: boolean) {
     return {
       success: true,

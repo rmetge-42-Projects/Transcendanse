@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Req, UseGuards, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Req, UseGuards, Patch, Param } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateDto } from './dto/createProfile.dto';
 // import { ModifyProfileDto } from './dto/modifyProfile.dto';
@@ -13,16 +13,23 @@ export class UsersController {
   //requette post, remplissage des info du profile pour le creation de compte
   //front = createProfile
   @Post('createProfile')
-  async createProfile(@Body() createDto: CreateDto){
-    return this.usersService.createProfile(createDto);
-  }
+    async createProfile(@Body() createDto: CreateDto){
+      return this.usersService.createProfile(createDto);
+    }
 
   //recupere les info de l'user
   //front = profile
   @Get('me')
-  getMe() {
-    return this.usersService.getProfile();
-  }
+    getMe() {
+      return this.usersService.getProfile();
+    }
+
+  //envoie les info du match
+  @Get(':userId')
+    myMatcProfile(@Param('userId') userId : string ) {
+      return this.usersService.myMatchProfile(+userId);
+    }
+
 
   //pour apres modifier le profile en une seule fois
   //front = updateProfile
@@ -35,6 +42,7 @@ export class UsersController {
         return this.usersService.updateProfile(userId, updateProfileDto);
     }
 
+  //enlever le status en ligne ou le mettre en fonction du satsus reçu
   @Patch('status')
     async status(@Body() statusDto : StatusDto){
       return this.usersService.status(statusDto.isOnline);

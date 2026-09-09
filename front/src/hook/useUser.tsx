@@ -23,3 +23,12 @@ export function useOtherUser() {
   });
 }
 
+export function useMyMatch(userId?: number) {
+  return useQuery({
+    queryKey: ['userMyMatch', userId],
+    queryFn: async () => {
+      const res = await api.get(`/users/${userId}`);
+      return res.data;
+    },
+  });
+}
