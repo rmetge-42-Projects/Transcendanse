@@ -71,9 +71,7 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
                 </span>
 
                 {user.unreadCount > 0 && (
-                  <span className=" flex items-center justify-center w-2 h-2 bg-orange-500 rounded-full ">
-
-                  </span>
+                  <span className=" flex items-center justify-center w-2 h-2 bg-orange-500 rounded-full "/>
                 )}
               </div>
             </div>

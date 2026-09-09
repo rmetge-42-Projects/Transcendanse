@@ -36,6 +36,8 @@ export class UsersService {
       kind: 'man',
       orientation: 'all',
       biography: 'Étudiant à 42 en plein sur Transcendence !',
+      // les message non lu
+      newMessage: 3
     };
   }
 

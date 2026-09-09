@@ -9,12 +9,22 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import Bottom from "@/src/display/bottom";
-import { api } from "@/src/lib/axios";
+// import { api } from "@/src/lib/axios";
+import { useMessageStore } from "@/src/constant/newMessage";
 
 export default function Profile() {
   const router = useRouter();
   const { data: user, isLoading, isError } = useUser();
   const queryClient = useQueryClient();
+  const setMessageCount = useMessageStore((state) => state.setMessageCount);
+  // const messageCount = useMessageStore((state) => state.messageCount);
+
+  useEffect(() => {
+    if (user?.newMessage !== undefined) {
+      setMessageCount(user.newMessage);
+    }
+  }, [user?.newMessage, setMessageCount]);
+
 
   useEffect(() => {
     if (
@@ -43,6 +53,7 @@ export default function Profile() {
     <IfIsLoading>Chargement du profil..</IfIsLoading>;
   }
 
+  // setMessageCount(user.newMessage)
 
   return (
     <ProfileCard>
