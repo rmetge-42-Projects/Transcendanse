@@ -105,8 +105,13 @@ Avantages : Idéal pour un chat instantané et les jeux multijoueurs (comme votr
 
 status en ligne
 websocket
-match..
+vu message
+(recherche match)
+photo
+page code double authentification
+notif a ce rensegner
 
+2
 
 
 websocket
@@ -174,3 +179,10 @@ socket.on("newMessage", (nouveauMessage) => {
     // Ajoute automatiquement le message dans la liste affichée
     setMessages((prev) => [...prev, nouveauMessage]);
 });
+
+
+
+vu message 
+photo
+websocket
+page code verif
