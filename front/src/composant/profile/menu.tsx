@@ -32,7 +32,7 @@ export default function Menu()
           </button>
 
           {isOpen && (
-              <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 p-2 flex flex-col gap-1 text-base">
+            <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 p-2 flex flex-col gap-1 text-base">
               <Link 
                 href="/modifyProfile"
                 className="px-4 py-3 rounded-xl hover:bg-gray-100 font-semibold text-gray-800 transition-colors flex items-center gap-3"
