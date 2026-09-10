@@ -13,6 +13,8 @@ le back et le front sont lancer en meme temps sur 2 terminal
 
 navigateur: http://localhost:3000
 
-npm install lucide-react => icon pour le front
+cd front:
+    npm install lucide-react => icon pour le front
+    npm install zustand =>zustand, memoir pour des profile dans la page de match
 
 vider le cache = rm -rf .next

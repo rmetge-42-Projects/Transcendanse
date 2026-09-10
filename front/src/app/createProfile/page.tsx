@@ -21,14 +21,14 @@ export  default function CreateAccount()
 	const router = useRouter();
 	const [invalide, setInvalide] = useState('');
 	const [isSumit, setIsSumbit] = useState(false);
-	const today = new Date().toISOString().split("T")[0];
+	// const today = new Date().toISOString().split("T")[0];
 
-	// // 1. On crée la date d'aujourd'hui
-	// const maxDateObj = new Date();
-	// // 2. On retire 18 ans à l'année actuelle
-	// maxDateObj.setFullYear(maxDateObj.getFullYear() - 18);
-	// // 3. On formate au format YYYY-MM-DD
-	// const dateMin = maxDateObj.toISOString().split("T")[0];
+	// 1. On crée la date d'aujourd'hui
+	const maxDateObj = new Date();
+	// 2. On retire 18 ans à l'année actuelle
+	maxDateObj.setFullYear(maxDateObj.getFullYear() - 18);
+	// 3. On formate au format YYYY-MM-DD
+	const dateMin = maxDateObj.toISOString().split("T")[0];
 
 
 	const {
@@ -91,7 +91,8 @@ export  default function CreateAccount()
 						</label>
 						<input
 							type="date"
-							max={today}
+							// max={today}
+							max={dateMin}
 							{...register("birthday", {required: "La date d'anniversaire est obligatoire"})}
 							className="rounded px-3 py-2 w-full bg-white border "
 						/>

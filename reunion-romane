@@ -1,0 +1,101 @@
+biography : obligatoir
+date de naissance majeur
+photo : pas pour le moment (apres photo ou avatar)
+devop
+
+
+icone au lieu des emogie et des svg
+
+homme work
+
+zustand
+react query
+
+
+
+pour les message 
+1. La structure des données (À quoi ressemble un message ?)
+Dans votre base de données, un message a besoin d'informations très simples :
+
+json
+{
+  "id": 1,
+  "senderId": 42,           // L'ID de celui qui envoie (ex: moi)
+  "receiverId": 12,         // L'ID du destinataire (ex: Sophie)
+  "content": "Salut ! Tu danses ce soir ?",
+  "createdAt": "2026-09-01T14:32:00Z",
+  "isRead": false           // Le message a-t-il été lu ?
+}
+2. Les 3 requêtes HTTP (API REST) indispensables
+Pour faire fonctionner la page, vous avez besoin de seulement 3 routes backend :
+
+┌─────────────────────────────────────────────────────────────┐
+│                       VOTRE BACKEND                         │
+│                                                             │
+│  1. GET  /messages/conversations ──> Liste des contacts     │
+│  2. GET  /messages/:userId       ──> Historique des messages│
+│  3. POST /messages/send          ──> Envoyer un message     │
+└─────────────────────────────────────────────────────────────┘
+📌 Requête 1 : Récupérer la liste des conversations (Pour la colonne de gauche)
+Méthode : GET /messages/conversations
+Quand la faire ? Dès que l'utilisateur arrive sur la page /message.
+Ce que le Frontend envoie : Rien (juste le token dans le header).
+Ce que le Backend renvoie (Exemple de réponse JSON) :
+json
+[
+  {
+    "userId": 12,
+    "username": "Sophie",
+    "lastMessage": "Salut ! Tu danses ce soir ?",
+    "lastMessageDate": "14:32",
+    "unreadCount": 1
+  },
+  {
+    "userId": 13,
+    "username": "Alexandre",
+    "lastMessage": "À demain !",
+    "lastMessageDate": "Hier",
+    "unreadCount": 0
+  }
+]
+📌 Requête 2 : Récupérer l'historique d'une discussion (Pour la zone de droite)
+Méthode : GET /messages/12 (où 12 est l'ID de Sophie).
+Quand la faire ? Quand l'utilisateur clique sur "Sophie" dans la colonne de gauche.
+Ce que le Backend renvoie : La liste chronologique de tous les messages échangés entre vous et Sophie.
+json
+[
+  {
+    "id": 101,
+    "senderId": 12,
+    "content": "Salut ! Trop cool ton profil.",
+    "createdAt": "14:30"
+  },
+  {
+    "id": 102,
+    "senderId": 42,
+    "content": "Merci Sophie ! Tu aimes la salsa ?",
+    "createdAt": "14:32"
+  }
+]
+(Le Frontend sait ainsi que si senderId === monId, la bulle de message s'affiche à droite en rose, et si senderId !== monId, elle s'affiche à gauche en gris).
+
+📌 Requête 3 : Envoyer un message
+Méthode : POST /messages/send
+Quand la faire ? Quand l'utilisateur tape un texte et clique sur l'icône de l'avion en papier (Envoyer).
+Ce que le Frontend envoie (Body) :
+json
+{
+  "receiverId": 12,
+  "content": "Carrément, on se fait une partie de Chi-Fou-Mi ?"
+}
+Ce que le Backend renvoie : Le message confirmé avec son id et son heure d'enregistrement dans la base de données.
+3. Deux approches pour recevoir les messages en direct
+Comment votre page sait-elle que Sophie vient de vous répondre sans recharger toute la page ?
+
+🔹 Option A : Le "Polling" (Le plus simple au début)
+Grâce à React Query, le Frontend demande discrètement au Backend : "Y a-t-il de nouveaux messages ?" toutes les 2 ou 3 secondes (refetchInterval: 3000).
+Avantages : Très facile à mettre en place avec vos outils actuels (axios + useQuery).
+🔹 Option B : Les WebSockets / Socket.io (Le vrai temps réel)
+Une connexion permanente reste ouverte entre le navigateur et NestJS (@nestjs/websockets).
+Dès que Sophie clique sur envoyer, le backend transmet instantanément le message à votre écran en 0 milliseconde.
+Avantages : Idéal pour un chat instantané et les jeux multijoueurs (comme votre Chi-Fou-Mi).
