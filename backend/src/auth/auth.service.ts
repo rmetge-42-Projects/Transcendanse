@@ -91,7 +91,7 @@ export class AuthService {
         throw new BadRequestException("Incorrect password.");
     }
 
-    //l'utilisateur modifie le mot de passe
+    //l'utilisateur modifie mail
     async   email(emailDto: EmailDto)
     {
         if (emailDto.newEmail !== emailDto.lastEmail)

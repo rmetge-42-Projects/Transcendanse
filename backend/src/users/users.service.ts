@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { CreateDto } from './dto/createProfile.dto';
 import { ModifyProfileDto } from './dto/modifyProfile.dto';
+import { UnauthorizedException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 
 @Injectable()
 export class UsersService {
 
-  
+    constructor(
+    private prisma: PrismaService,
+    ) {}
   //implemente les info du nouvelle utilisateur dans la db
   async   createProfile(createDto: CreateDto)
   {
@@ -25,17 +29,18 @@ export class UsersService {
   }
 
   //envoie les info de l'utilisateur
-  getProfile() {
-    return {
-      id: 42,
-      username: 'name test',
-      email: 'norminet@student.42.fr',
-      birthday: 12/12/2005,
-      kind: 'man',
-      orientation: 'all',
-      biography: 'Étudiant à 42 en plein sur Transcendence !',
-    };
-  }
+  async getProfile(userId: number) {
+      const user = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { id: true, email: true, createdAt: true },
+      });
+
+      if (!user) {
+          throw new UnauthorizedException("Utilisateur introuvable.");
+      }
+
+      return user;
+}
 
   //envoie les infos des profil des match
   getOtherProfile() {
