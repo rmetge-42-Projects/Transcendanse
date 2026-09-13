@@ -12,16 +12,20 @@ export class UsersController {
 
   //requette post, remplissage des infos du profil pour la creation de compte
   //front = createProfile
+  @UseGuards(JwtAuthGuard)
   @Post('createProfile')
-  async createProfile(@Body() createDto: CreateDto){
-    return this.usersService.createProfile(createDto);
+  async createProfile(@Body() createDto: CreateDto, @Req() req: Request) {
+      const userId = (req.user as { id: number }).id;
+      return this.usersService.createProfile(userId, createDto);
   }
   
   //requette pour modifier les infos du profil
   //front = modifyProfile
+  @UseGuards(JwtAuthGuard)
   @Post('modifyProfile')
-  async modifyProfile(@Body() modifyProfileDto: ModifyProfileDto){
-    return this.usersService.modifyProfile(modifyProfileDto);
+  async modifyProfile(@Body() modifyProfileDto: ModifyProfileDto, @Req() req: Request){
+      const userId = (req.user as { id: number }).id;
+      return this.usersService.modifyProfile(userId, modifyProfileDto,);
   }
 
   //recupere les infos de l'user
@@ -34,8 +38,10 @@ export class UsersController {
   }
 
   //recupere les profils d'autres personnes
+  @UseGuards(JwtAuthGuard)
   @Get('other')
-  getOther() {
-    return this.usersService.getOtherProfile();
+  async getOther(@Req() req: Request) {
+    const userId = (req.user as { id: number }).id;
+   return this.usersService.getOtherProfile(userId);
   }
 }
