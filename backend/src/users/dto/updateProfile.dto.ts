@@ -1,17 +1,17 @@
-import {IsNotEmpty, IsString, IsOptional } from "class-validator";
+import { IsString, IsOptional } from "class-validator";
 
-export class ModifyProfileDto{
+export class UpdateProfileDto{
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     username!: string;
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     kind!: string
     
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     orientation!: string
     
     @IsString()

@@ -1,34 +1,100 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateDto } from './dto/createProfile.dto';
-import { ModifyProfileDto } from './dto/modifyProfile.dto';
-
+import { UpdateProfileDto } from './dto/updateProfile.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
 
-  
+    constructor(
+    private prisma: PrismaService,
+    ) {}
+
   //implemente les info du nouvelle utilisateur dans la db
-  async   createProfile(createDto: CreateDto)
-  {
-    return {
-      success: true,
-      message: "Profile Create !"
-    }
-  }
-  //modifier les info du profile (ex: username, bio ...) dans la db
-  async   modifyProfile(modifyProfileDto: ModifyProfileDto)
-  {
-    return {
-      success: true,
-      message: "Profile Modify"
-    }
+  async createProfile(userId: number, createDto: CreateDto) {
+      const updatedUser = await this.prisma.user.update({
+          where: { id: userId },
+          select: { id: true, email: true, createdAt: true },
+          data: {
+              name: createDto.name,
+              username: createDto.username,
+              birthday: createDto.birthday,
+              kind: createDto.kind,
+              orientation: createDto.orientation,
+              biography: createDto.biography,
+          },
+      });
+      return updatedUser;
   }
 
-  //envoie les info de l'utilisateur
-  getProfile() {
+  //modifier les info du profile (ex: username, bio ...) dans la db
+  async modifyProfile(userId: number, updateProfileDto: UpdateProfileDto)
+  {
+      const updatedUser = await this.prisma.user.update({
+          where: { id: userId },
+          select: { id: true, email: true, createdAt: true },
+          data: {
+              username: updateProfileDto.username,
+              kind: updateProfileDto.kind,
+              orientation: updateProfileDto.orientation,
+              biography: updateProfileDto.biography,
+          },
+      });
+      return updatedUser;
+  }
+
+  //envoie les infos de l'utilisateur
+  async getProfile(userId: number) {
+      const user = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { id: true, email: true, createdAt: true },
+      });
+
+      if (!user) {
+          throw new UnauthorizedException("Utilisateur introuvable.");
+      }
+
+      return user;
+  }
+
+  //envoie les infos des profils des matchs
+  async getOtherProfile(userId: number) {
+      const currentUser = await this.prisma.user.findUnique({
+          where: { id: userId },
+      });
+
+      if (!currentUser) {
+          throw new UnauthorizedException("Utilisateur introuvable.");
+      }
+
+      let others;
+
+      if (currentUser.orientation === 'all') {
+          others = await this.prisma.user.findMany({
+              where: {
+                  id: { not: userId },
+              },
+              select: { id: true, name: true, username: true, createdAt: true, kind: true, orientation: true, birthday: true, biography: true },
+          });
+      } else {
+          others = await this.prisma.user.findMany({
+              where: {
+                  id: { not: userId },
+                  kind: currentUser.orientation,
+              },
+              select: { id: true, name: true, username: true, createdAt: true, kind: true, orientation: true, birthday: true, biography: true },
+          });
+      }
+
+      return others;
+  }
+
+  //envoie les info de l'utilisateur (userId) - sert a afficher le profile du match
+  //PAS ENCORE CONNECTE A PRISMA - a faire ensemble prochainement
+  myMatchProfile(userId: number){
     return {
-      id: 42,
-      username: 'name test',
+      id: userId,
+      username: 'sophie',
       email: 'norminet@student.42.fr',
       birthday: 12/12/2005,
       kind: 'man',
@@ -37,44 +103,20 @@ export class UsersService {
     };
   }
 
-  // //envoie les infos des profil des match
-  // getOtherProfile() {
-  //   return [
-  //     {
-  //       id: 12,
-  //       username: 'Sophie',
-  //       kind: 'woman',
-  //       orientation: 'man',
-  //       biography: 'Passionnée de danse contemporaine, de voyages et de bon café !',
-  //     },
-  //     {
-  //       id: 13,
-  //       username: 'Alexandre',
-  //       kind: 'man',
-  //       orientation: 'woman',
-  //       biography: 'Danseur de salsa et grand amateur de musique électronique.',
-  //     },
-  //     {
-  //       id: 14,
-  //       username: 'Camille',
-  //       kind: 'other',
-  //       orientation: 'all',
-  //       biography: 'Toujours partant pour tester de nouvelles chorégraphies et sorties.',
-  //     },
-  //     {
-  //       id: 15,
-  //       username: 'Lucas',
-  //       kind: 'man',
-  //       orientation: 'all',
-  //       biography: 'Étudiant à 42, aime le tango, les échecs et le code propre.',
-  //     },
-  //     {
-  //       id: 16,
-  //       username: 'Léa',
-  //       kind: 'woman',
-  //       orientation: 'all',
-  //       biography: 'Fan de hip-hop, de cuisine italienne et de randonnée.',
-  //     },
-  //   ];
-  // }
+  //met a jour le profil en une seule fois
+  //PAS ENCORE CONNECTE A PRISMA - a faire ensemble prochainement, probablement redondant avec modifyProfile
+  async updateProfile(userId: number, updateProfileDto: UpdateProfileDto) {
+    return {
+      success: true,
+      message: "Profile updated (simulation)"
+    };
+  }
+
+  //mettre onLine a false (ou true)
+  status(status: boolean) {
+    return {
+      success: true,
+      message: "Status hors ligne"
+    }
+  }
 }

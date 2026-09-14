@@ -16,8 +16,14 @@ datasource db {
 //utilisateur type
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
+  id          Int       @id @default(autoincrement())
+  email       String    @unique
+  password    String
+  createdAt   DateTime  @default(now())
+  name        String?
+  username    String?   @unique
+  birthday    DateTime?
+  kind        String?
+  orientation String?
+  biography   String?
 }

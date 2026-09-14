@@ -4,7 +4,7 @@ import { UserConversationType, MessageType } from '../type/conversation';
 
 export function useConversation() {
   return useQuery<UserConversationType[]>({
-    queryKey: ['messagerie'],
+    queryKey: ['conversation'],
     queryFn: async () => {
       const res = await api.get<UserConversationType[]>('/message/conversation');
       return res.data;
@@ -12,19 +12,9 @@ export function useConversation() {
   });
 }
 
-// export function message() {
-//   return useQuery<MessageType[]>({
-//     queryKey: ['message'],
-//     queryFn: async () => {
-//       const res = await api.get<MessageType[]>('/message/message');
-//       return res.data;
-//     },
-//   });
-// }
-
 export function useMessages(userId?: number) {
   return useQuery<MessageType[]>({
-    queryKey: ['messages', userId],
+    queryKey: ['discution', userId],
     queryFn: async () => {
       const res = await api.get<MessageType[]>(`/message/${userId}`);
       return res.data;
