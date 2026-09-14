@@ -24,6 +24,7 @@ export class MessageController {
         return this.messageService.sendMessage(sendMessageDto);
     }
 
+    //supprimer le match
     @Delete(':userId')
     async deleteMatch(@Param('userId') userId: string){
         return this.messageService.deleteMatch(+userId);

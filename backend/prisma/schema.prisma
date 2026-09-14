@@ -16,23 +16,36 @@ datasource db {
 //utilisateur type
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  profile   Profile?
+  id          Int       @id @default(autoincrement())
+  email       String    @unique
+  password    String
+  createdAt   DateTime  @default(now())
+  name        String?
+  username    String?   @unique
+  birthday    DateTime?
+  kind        String?
+  orientation String?
+  biography   String?
 }
 
+//model User {
+//  id        Int      @id @default(autoincrement())
+//  email     String   @unique
+//  password  String
+//  createdAt DateTime @default(now())
+//  profile   Profile?
+//}
 
-model Profile {
-  id            Int @id @default(autoincrement()) re r 
-  userId        Int @unique
-  user          User @relation(fields: [userId], references: [id])
-  name          String
-  username      String
-  birthday      DateTime
-  kind          String
-  orientation   String
-  biography     String?
-
-}
+ 
+//model Profile {
+//  id            Int @id @default(autoincrement()) re r 
+//  userId        Int @unique
+//  user          User @relation(fields: [userId], references: [id])
+//  name          String
+//  username      String
+//  birthday      DateTime
+//  kind          String
+//  orientation   String
+//  biography     String?
+//
+//}
