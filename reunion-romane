@@ -1,0 +1,176 @@
+biography : obligatoir
+date de naissance majeur
+photo : pas pour le moment (apres photo ou avatar)
+devop
+
+
+icone au lieu des emogie et des svg
+
+homme work
+
+zustand
+react query
+
+
+
+pour les message 
+1. La structure des données (À quoi ressemble un message ?)
+Dans votre base de données, un message a besoin d'informations très simples :
+
+json
+{
+  "id": 1,
+  "senderId": 42,           // L'ID de celui qui envoie (ex: moi)
+  "receiverId": 12,         // L'ID du destinataire (ex: Sophie)
+  "content": "Salut ! Tu danses ce soir ?",
+  "createdAt": "2026-09-01T14:32:00Z",
+  "isRead": false           // Le message a-t-il été lu ?
+}
+2. Les 3 requêtes HTTP (API REST) indispensables
+Pour faire fonctionner la page, vous avez besoin de seulement 3 routes backend :
+
+┌─────────────────────────────────────────────────────────────┐
+│                       VOTRE BACKEND                         │
+│                                                             │
+│  1. GET  /messages/conversations ──> Liste des contacts     │
+│  2. GET  /messages/:userId       ──> Historique des messages│
+│  3. POST /messages/send          ──> Envoyer un message     │
+└─────────────────────────────────────────────────────────────┘
+📌 Requête 1 : Récupérer la liste des conversations (Pour la colonne de gauche)
+Méthode : GET /messages/conversations
+Quand la faire ? Dès que l'utilisateur arrive sur la page /message.
+Ce que le Frontend envoie : Rien (juste le token dans le header).
+Ce que le Backend renvoie (Exemple de réponse JSON) :
+json
+[
+  {
+    "userId": 12,
+    "username": "Sophie",
+    "lastMessage": "Salut ! Tu danses ce soir ?",
+    "lastMessageDate": "14:32",
+    "unreadCount": 1
+  },
+  {
+    "userId": 13,
+    "username": "Alexandre",
+    "lastMessage": "À demain !",
+    "lastMessageDate": "Hier",
+    "unreadCount": 0
+  }
+]
+📌 Requête 2 : Récupérer l'historique d'une discussion (Pour la zone de droite)
+Méthode : GET /messages/12 (où 12 est l'ID de Sophie).
+Quand la faire ? Quand l'utilisateur clique sur "Sophie" dans la colonne de gauche.
+Ce que le Backend renvoie : La liste chronologique de tous les messages échangés entre vous et Sophie.
+json
+[
+  {
+    "id": 101,
+    "senderId": 12,
+    "content": "Salut ! Trop cool ton profil.",
+    "createdAt": "14:30"
+  },
+  {
+    "id": 102,
+    "senderId": 42,
+    "content": "Merci Sophie ! Tu aimes la salsa ?",
+    "createdAt": "14:32"
+  }
+]
+(Le Frontend sait ainsi que si senderId === monId, la bulle de message s'affiche à droite en rose, et si senderId !== monId, elle s'affiche à gauche en gris).
+
+📌 Requête 3 : Envoyer un message
+Méthode : POST /messages/send
+Quand la faire ? Quand l'utilisateur tape un texte et clique sur l'icône de l'avion en papier (Envoyer).
+Ce que le Frontend envoie (Body) :
+json
+{
+  "receiverId": 12,
+  "content": "Carrément, on se fait une partie de Chi-Fou-Mi ?"
+}
+Ce que le Backend renvoie : Le message confirmé avec son id et son heure d'enregistrement dans la base de données.
+3. Deux approches pour recevoir les messages en direct
+Comment votre page sait-elle que Sophie vient de vous répondre sans recharger toute la page ?
+
+🔹 Option A : Le "Polling" (Le plus simple au début)
+Grâce à React Query, le Frontend demande discrètement au Backend : "Y a-t-il de nouveaux messages ?" toutes les 2 ou 3 secondes (refetchInterval: 3000).
+Avantages : Très facile à mettre en place avec vos outils actuels (axios + useQuery).
+🔹 Option B : Les WebSockets / Socket.io (Le vrai temps réel)
+Une connexion permanente reste ouverte entre le navigateur et NestJS (@nestjs/websockets).
+Dès que Sophie clique sur envoyer, le backend transmet instantanément le message à votre écran en 0 milliseconde.
+Avantages : Idéal pour un chat instantané et les jeux multijoueurs (comme votre Chi-Fou-Mi).
+
+
+
+
+status en ligne
+websocket
+match..
+
+
+
+websocket
+
+1. Qu'est-ce qu'un WebSocket ? (L'analogie)
+Pour bien comprendre, comparons HTTP (ce que vous utilisez actuellement) et WebSocket :
+
+Protocole	Analogie	Comment ça fonctionne
+HTTP classique (REST)	✉️ Le courrier postal	Le client demande : "Y a-t-il de nouveaux messages ?". Le serveur répond "Non". La connexion se ferme. Le serveur ne peut pas contacter le client tout seul.
+WebSocket	📞 L'appel téléphonique	Vous décrochez une ligne qui reste ouverte en continu 24h/24 dans les deux sens (Full-Duplex). Dès que quelqu'un parle, l'autre l'entend instantanément (quelques millisecondes).
+2. Le problème sans WebSocket (Pourquoi HTTP ne suffit pas pour un Chat ?)
+Avec HTTP, si Sophie vous envoie un message :
+
+Votre navigateur ne le sait pas !
+Pour voir son message, vous seriez obligé de :
+Rafraîchir la page manuellement (F5).
+Ou faire du "Polling" (demander au serveur toutes les 2 secondes s'il y a du nouveau, ce qui surcharge le serveur inutilement).
+👉 Avec un WebSocket : Dès que Sophie clique sur Envoyer, le serveur pousse directement le message sur votre écran en temps réel sans que vous ayez rien à demander.
+
+3. Schéma du fonctionnement en temps réel
+mermaid
+sequenceDiagram
+    autonumber
+    actor Alice as Sophie (Front)
+    participant Server as Backend (NestJS Gateway)
+    participant DB as Base de données (Prisma)
+    actor Bob as Vous (Front)
+    Note over Alice,Bob: Les deux sont connectés au WebSocket (Ligne ouverte)
+    Alice->>Server: socket.emit("sendMessage", { receiveId: 42, text: "Salut !" })
+    Server->>DB: Sauvegarde le message en BDD
+    Server-->>Bob: server.to("user_42").emit("newMessage", { message: "Salut !" })
+    Note over Bob: Le message apparaît instantanément à l'écran !
+4. Quels packages doit-on utiliser ?
+Dans l'écosystème Node.js / NestJS et Next.js, le standard absolu est Socket.IO :
+
+Côté Backend (NestJS) :
+NestJS gère les WebSockets grâce au concept de Gateway (passerelle) :
+
+@nestjs/websockets
+@nestjs/platform-socket.io
+socket.io
+Côté Frontend (Next.js / React) :
+socket.io-client
+5. Comment ça s'organise techniquement ?
+A. Le concept de "Gateway" côté Backend
+Au lieu d'un @Controller(), on crée une @WebSocketGateway() :
+
+@SubscribeMessage('sendMessage') : Écoute les messages envoyés par les clients.
+@WebSocketServer() : Permet au serveur de diffuser (broadcast) un message à un utilisateur précis.
+B. Le concept de "Rooms" (Salons privés)
+Pour éviter que les messages de Sophie soient envoyés à tous les utilisateurs du site :
+
+Chaque utilisateur rejoint sa propre "chambre privée" lors de sa connexion (ex: socket.join("user_12")).
+Quand un message est envoyé à l'utilisateur 12, le serveur l'émet uniquement dans le salon user_12.
+6. Le cycle d'un message en 3 étapes :
+Sophie tape son message et clique sur Envoyer :
+ts
+socket.emit("sendMessage", { receiveId: 12, message: "Tu danses ce soir ?" });
+Le serveur NestJS intercepte l'événement :
+Il enregistre le message dans la base de données.
+Il cible la room de l'utilisateur concerné et lui transmet l'événement newMessage.
+Votre Frontend écoute en direct :
+ts
+socket.on("newMessage", (nouveauMessage) => {
+    // Ajoute automatiquement le message dans la liste affichée
+    setMessages((prev) => [...prev, nouveauMessage]);
+});

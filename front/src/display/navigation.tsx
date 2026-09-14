@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { Send, CircleUser, Heart } from "lucide-react";
+import { useMessageStore } from "../constant/newMessage";
 
 //bandeau pour naviger entre les page
 export default function Navigation()
 {
+    const messageCount = useMessageStore((state) => state.messageCount);
+
     return(
         // <div className="">
         //     test
@@ -20,9 +23,14 @@ export default function Navigation()
             </Link>
             <Link
                 href="/message"
-                className="text-white"
+                className="relative inline-flex items-center text-white p-1"
             >
                 <Send />
+                {messageCount > 0 && (
+                  <span className="absolute -top-3 -right-3 flex items-center justify-center w-6.5 h-6.5 px-1 text-[10px] font-bold text-white bg-orange-500 rounded-full border-2 border-black">
+                    {messageCount > 99 ? "99+" : messageCount}
+                  </span>
+                )}
                 {/* Message */}
             </Link>
             <Link

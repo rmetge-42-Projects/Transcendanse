@@ -45,3 +45,5 @@ export class AuthController {
 		return this.authService.email(emailDto);
 	}
 }
+
+///lors de la connection pensé a mettre le statue en ligne

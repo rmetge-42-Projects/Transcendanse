@@ -1,9 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateDto } from './dto/createProfile.dto';
-import { ModifyProfileDto } from './dto/modifyProfile.dto';
-import { UnauthorizedException } from '@nestjs/common';
+import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { PrismaService } from '../prisma/prisma.service';
-
 
 @Injectable()
 export class UsersService {
@@ -11,6 +9,7 @@ export class UsersService {
     constructor(
     private prisma: PrismaService,
     ) {}
+
   //implemente les info du nouvelle utilisateur dans la db
   async createProfile(userId: number, createDto: CreateDto) {
       const updatedUser = await this.prisma.user.update({
@@ -29,16 +28,16 @@ export class UsersService {
   }
 
   //modifier les info du profile (ex: username, bio ...) dans la db
-  async   modifyProfile(userId: number, modifyProfileDto: ModifyProfileDto)
+  async modifyProfile(userId: number, updateProfileDto: UpdateProfileDto)
   {
       const updatedUser = await this.prisma.user.update({
           where: { id: userId },
           select: { id: true, email: true, createdAt: true },
           data: {
-              username: modifyProfileDto.username,
-              kind: modifyProfileDto.kind,
-              orientation: modifyProfileDto.orientation,
-              biography: modifyProfileDto.biography,
+              username: updateProfileDto.username,
+              kind: updateProfileDto.kind,
+              orientation: updateProfileDto.orientation,
+              biography: updateProfileDto.biography,
           },
       });
       return updatedUser;
@@ -88,5 +87,36 @@ export class UsersService {
       }
 
       return others;
+  }
+
+  //envoie les info de l'utilisateur (userId) - sert a afficher le profile du match
+  //PAS ENCORE CONNECTE A PRISMA - a faire ensemble prochainement
+  myMatchProfile(userId: number){
+    return {
+      id: userId,
+      username: 'sophie',
+      email: 'norminet@student.42.fr',
+      birthday: 12/12/2005,
+      kind: 'man',
+      orientation: 'all',
+      biography: 'Étudiant à 42 en plein sur Transcendence !',
+    };
+  }
+
+  //met a jour le profil en une seule fois
+  //PAS ENCORE CONNECTE A PRISMA - a faire ensemble prochainement, probablement redondant avec modifyProfile
+  async updateProfile(userId: number, updateProfileDto: UpdateProfileDto) {
+    return {
+      success: true,
+      message: "Profile updated (simulation)"
+    };
+  }
+
+  //mettre onLine a false (ou true)
+  status(status: boolean) {
+    return {
+      success: true,
+      message: "Status hors ligne"
+    }
   }
 }

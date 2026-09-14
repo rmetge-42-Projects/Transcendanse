@@ -16,35 +16,37 @@ export class AuthService {
     ) {}
 
     //verifie si l'utilisateur existe
+    //mettre le status en ligne
     async   validateUser(email: string, pass: string)
     {
         const user = await this.prisma.user.findUnique({
             where: { email: email },
-    });
+        });
 
-    if (!user)
-        {
-            throw new UnauthorizedException("Incorrect email or password.");
-        }
+        if (!user)
+            {
+                throw new UnauthorizedException("Incorrect email or password.");
+            }
 
-        const passwordMatches = await bcrypt.compare(pass, user.password);
+            const passwordMatches = await bcrypt.compare(pass, user.password);
 
-        if (!passwordMatches)
-        {
-            throw new UnauthorizedException("Incorrect email or password.");
-        }
+            if (!passwordMatches)
+            {
+                throw new UnauthorizedException("Incorrect email or password.");
+            }
 
-        const payload = { id: user.id, email: user.email };
-        const token = await this.jwtService.signAsync(payload);
+            const payload = { id: user.id, email: user.email };
+            const token = await this.jwtService.signAsync(payload);
 
-        return {
-            success: true,
-            message: "Login successful !",
-            access_token: token,
-        };
+            return {
+                success: true,
+                message: "Login successful !",
+                access_token: token,
+            };
     }
 
-    //cree un nouvel utilisateur
+    //cree un nouvel utilisateur avec ses infos
+    //mettre le status en ligne a ce moment (je pense , il faudra tester si ca marche bien)
     async   registerUser(email: string, pass: string, validPass: string)
     {
         if (pass !== validPass)
@@ -91,7 +93,8 @@ export class AuthService {
         throw new BadRequestException("Incorrect password.");
     }
 
-    //l'utilisateur modifie mail
+
+    //l'utilisateur modifie l'adresse email
     async   email(emailDto: EmailDto)
     {
         if (emailDto.newEmail !== emailDto.lastEmail)
