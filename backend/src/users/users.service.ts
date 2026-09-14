@@ -10,7 +10,7 @@ export class UsersService {
     private prisma: PrismaService,
     ) {}
 
-  //implemente les info du nouvelle utilisateur dans la db
+  //implemente les infos du nouvel utilisateur dans la db
   async createProfile(userId: number, createDto: CreateDto) {
       const updatedUser = await this.prisma.user.update({
           where: { id: userId },
@@ -27,7 +27,7 @@ export class UsersService {
       return updatedUser;
   }
 
-  //modifier les info du profile (ex: username, bio ...) dans la db
+  //modifier les info du profil (ex: username, bio ...) dans la db
   async modifyProfile(userId: number, updateProfileDto: UpdateProfileDto)
   {
       const updatedUser = await this.prisma.user.update({

@@ -1,81 +1,56 @@
 import { Injectable } from '@nestjs/common';
 import { SendMessageDto } from './dto/sendMessage.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class MessageService {
+	constructor(
+    	private prisma: PrismaService,
+	) {}
+
+	//envoie tout les message eu avec userId
+	//mettre les message comme lu	(unreadCount = 0)
+	async discution(myId: number, otherUserId: number) {
+    	const messages = await this.prisma.message.findMany({
+        	where: {
+        	    OR: [
+        	        { senderId: myId, receiverId: otherUserId },
+        	        { senderId: otherUserId, receiverId: myId },
+        	    ],
+    			},
+			orderBy: {
+        		createdAt: 'asc',
+        	},
+    	});
+    	return messages;
+	}
 
 	//envoyer toute les personne avec les quel je discute
-	async conversation(){
-		return[
-			{
-			"userId": 12,
-			"userName": "Sophie",
-			"lastMessage": "Salut ! Tu danses ce soir ?",
-			"lastMessageDate": "14:32",
-			"unreadCount": 0,
-			"isOnline": true
-			},
-			{
-			"userId": 13,
-			"userName": "Alexandre",
-			"lastMessage": "À demain !",
-			"lastMessageDate": "Hier",
-			"unreadCount": 3,
-			"isOnline": false
-			}
-		]
+	async conversation(userId: number){
+		const list = await this.prisma.message.findMany({
+        	where: {
+        	    OR: [
+        	        { senderId: userId},
+        	        { receiverId: userId},
+        	    ],
+    			},
+			orderBy: {
+        		createdAt: 'asc',
+        	},
+    	});
+    	return list;
 	}
 
-	//envoie tout les message eu avec userId (dans l'ordre le preference)
-	//normalement une fonction existe pour les envoyer dans l'ordre cronolagique
-	//mettre les message comme lu	(unreadCount = 0)
-	async discution(userId?: number) {
-		if (!userId)
-		{
-			return{
-				success: false,
-				message: "Un probleme avec les contact"
-			}
-		}
-		return [
-			{
-			id: 1,
-			receiveId: 13,
-			senderId: 12,
-			message: "Salut ! Trop cool ton profil.",
-			// messageDate: "test"
-			messageDate: new Date('2026-09-07T14:30:00').toISOString()
-			},
-			{
-			id: 2,
-			receiveId: 12,
-			senderId: 13,
-			message: "Merci Sophie ! Tu aimes la salsa ?",
-			messageDate: new Date().toISOString()
-			},
-			{
-			id: 3,
-			receiveId: 12,
-			senderId: 13,
-			message: "???",
-			messageDate: new Date().toISOString()
-			}
-		];
-	}
-
-	//j'envoie un message (enregistrer dans la db)
-	async sendMessage(sendMessageDto : SendMessageDto){
-
-		if (!sendMessageDto.message){
-			return {
-				success: false,
-				message: "Probleme avec le message!",
-			};
-		}
-		return {
-			success: true,
-			message: "Message envoyer !",
-		};
+	//j'envoie un message
+	async sendMessage(userId: number, sendMessageDto: SendMessageDto) {
+    	const newMessage = await this.prisma.message.create({
+        	data: {
+            	senderId: userId,
+            	receiverId: sendMessageDto.receiveId,
+            	content: sendMessageDto.message,
+        	},
+    	});
+    	return newMessage;
 	}
 
 	//supprimer le userId de les match
