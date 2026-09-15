@@ -17,7 +17,7 @@ export class MessageController {
         return this.messageService.conversation(userId);
     }
 
-        //envoie mes echange avec la personne
+    //envoie mes echange avec la personne
     @UseGuards(JwtAuthGuard)
     @Get(':userId')
     async discution(@Param('userId') userId: string, @Req() req: Request) {
@@ -32,9 +32,23 @@ export class MessageController {
         return this.messageService.sendMessage(userId, sendMessageDto);
     }
 
-    //supprimer le match
-    @Delete(':userId')
-    async deleteMatch(@Param('userId') userId: string){
-        return this.messageService.deleteMatch(+userId);
+    //Pour ROMANE a rajouter dans le front
+    //supprimer un message
+    @UseGuards(JwtAuthGuard)
+    @Delete('message/:messageId')
+    async deleteMessage(@Param('messageId') messageId: string, @Req() req: Request) {
+        const userId = (req.user as { id: number }).id;
+        return this.messageService.deleteMessage(userId, +messageId);
     }
+
+
+    //Pour ROMANE a rajouter dans le front
+    //supprimer une conversation
+    @UseGuards(JwtAuthGuard)
+    @Delete('conversation/:userId')
+    async deleteDiscution(@Param('userId') userId: string, @Req() req: Request) {
+        const myId = (req.user as { id: number }).id;
+        return this.messageService.deleteDiscution(myId, +userId);
+    }
+
 }

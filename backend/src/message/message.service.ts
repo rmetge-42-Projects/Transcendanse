@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SendMessageDto } from './dto/sendMessage.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
 export class MessageService {
@@ -11,6 +12,16 @@ export class MessageService {
 	//envoie tout les message eu avec userId
 	//mettre les message comme lu	(unreadCount = 0)
 	async discution(myId: number, otherUserId: number) {
+    	await this.prisma.message.updateMany({
+        	where: {
+            	senderId: otherUserId,
+            	receiverId: myId,
+        	},
+        	data: {
+            	isRead: true,
+        	},
+    	});
+
     	const messages = await this.prisma.message.findMany({
         	where: {
         	    OR: [
@@ -42,6 +53,8 @@ export class MessageService {
 	}
 
 	//j'envoie un message
+	// TODO: une fois match.service.ts fait par Emma, 
+	// vérifier qu'un match accepté existe entre userId et sendMessageDto.receiveId avant d'autoriser l'envoi
 	async sendMessage(userId: number, sendMessageDto: SendMessageDto) {
     	const newMessage = await this.prisma.message.create({
         	data: {
@@ -53,18 +66,31 @@ export class MessageService {
     	return newMessage;
 	}
 
-	//supprimer le userId de les match
-	async deleteMatch(userId?: number) {
-		if (!userId)
-		{
-			return{
-				success: false,
-				message: "Un probleme avec la supression du match"
-			}
-		}
-		return{
-			success: true,
-			message: "Match supprimer"
-		}
+	//supprimer un msg
+	async deleteMessage(userId: number, messageId: number) {
+    	const message = await this.prisma.message.findUnique({
+        	where: { id: messageId },
+    	});
+
+    	if (!message || (message.senderId !== userId && message.receiverId !== userId)) {
+        	throw new UnauthorizedException("Message introuvable.");
+    	}
+
+    	const sup = await this.prisma.message.delete({
+        	where: { id: messageId },
+    	});
+    	return sup;
+	}
+
+	async deleteDiscution(myId: number, otherUserId: number) {
+    	const messages = await this.prisma.message.deleteMany({
+        	where: {
+        	    OR: [
+        	        { senderId: myId, receiverId: otherUserId },
+        	        { senderId: otherUserId, receiverId: myId },
+        	    ],
+        	},
+    	});
+    	return messages;
 	}
 }
