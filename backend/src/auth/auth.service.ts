@@ -93,6 +93,7 @@ export class AuthService {
         throw new BadRequestException("Incorrect password.");
     }
 
+
     //l'utilisateur modifie l'adresse email
     async   email(emailDto: EmailDto)
     {

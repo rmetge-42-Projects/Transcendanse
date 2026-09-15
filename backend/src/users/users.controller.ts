@@ -1,54 +1,69 @@
 import { Controller, Get, Post, Body, Put, Req, UseGuards, Patch, Param } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateDto } from './dto/createProfile.dto';
-// import { ModifyProfileDto } from './dto/modifyProfile.dto';
-import { UpdateProfileDto } from './dto/updateProfile.dto';
+import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { StatusDto } from './dto/status.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  //requette post, remplissage des info du profile pour le creation de compte
+  //requette post, remplissage des infos du profil pour la creation de compte
   //front = createProfile
+  @UseGuards(JwtAuthGuard)
   @Post('createProfile')
-    async createProfile(@Body() createDto: CreateDto){
-      return this.usersService.createProfile(createDto);
-    }
+  async createProfile(@Body() createDto: CreateDto, @Req() req: Request) {
+      const userId = (req.user as { id: number }).id;
+      return this.usersService.createProfile(userId, createDto);
+  }
 
-  //recupere les info de l'user
-  //front = profile
+  //requette pour modifier les infos du profil
+  //front = modifyProfile
+  @UseGuards(JwtAuthGuard)
+  @Post('modifyProfile')
+  async modifyProfile(@Body() updateProfileDto: UpdateProfileDto, @Req() req: Request){
+      const userId = (req.user as { id: number }).id;
+      return this.usersService.modifyProfile(userId, updateProfileDto);
+  }
+
+  //recupere les infos de l'user
+  //front = profil
+  @UseGuards(JwtAuthGuard)
   @Get('me')
-    getMe() {
-      return this.usersService.getProfile();
-    }
+  async getMe(@Req() req: Request) {
+    const userId = (req.user as { id: number }).id;
+    return this.usersService.getProfile(userId);
+  }
+
+  //recupere les profils d'autres personnes
+  @UseGuards(JwtAuthGuard)
+  @Get('other')
+  async getOther(@Req() req: Request) {
+    const userId = (req.user as { id: number }).id;
+    return this.usersService.getOtherProfile(userId);
+  }
 
   //envoie les info du match
   @Get(':userId')
-    myMatcProfile(@Param('userId') userId : string ) {
-      return this.usersService.myMatchProfile(+userId);
-    }
-
+  myMatcProfile(@Param('userId') userId : string ) {
+    return this.usersService.myMatchProfile(+userId);
+  }
 
   //pour apres modifier le profile en une seule fois
   //front = updateProfile
-  // @UseGuards(JwtAuthGuard) // ⚠️ INDISPENSABLE pour que req.user existe ! 
-  //jsp ce que c'est mais apparament c'est important
+  @UseGuards(JwtAuthGuard)
   @Put('updateProfile')
-    async updateProfile(@Req() req: any, @Body() updateProfileDto: UpdateProfileDto) {
-        const userId = req.user?.id || 42; // Récupère l'ID de l'utilisateur connecté via le token
-        //a modifier, c'etais juste pour le test => const userId = req.user.id
-        return this.usersService.updateProfile(userId, updateProfileDto);
-    }
+  async updateProfile(@Req() req: Request, @Body() updateProfileDto: UpdateProfileDto) {
+    const userId = (req.user as { id: number }).id;
+    return this.usersService.updateProfile(userId, updateProfileDto);
+  }
 
-  //enlever le status en ligne ou le mettre en fonction du satsus reçu
+  //enlever le status en ligne ou le mettre en fonction du satsus recu
+  @UseGuards(JwtAuthGuard)
   @Patch('status')
-    async status(@Body() statusDto : StatusDto){
-      return this.usersService.status(statusDto.isOnline);
-    }
-
+  async status(@Body() statusDto : StatusDto){
+    return this.usersService.status(statusDto.isOnline);
+  }
 }
-
-
-// await api.patch('/users/status', { isOnline: false });
