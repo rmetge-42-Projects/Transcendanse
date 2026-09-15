@@ -55,4 +55,12 @@ export class AuthController {
     	const userId = (req.user as { id: number }).id;
     	return this.authService.generateTwoFactorSecret(userId);
 	}
+
+	//regarde si le user veux la 2fa
+	@UseGuards(JwtAuthGuard)
+	@Post('2fa/confirm')
+		async confirmTwoFactor(@Body() body: { token: string }, @Req() req: Request) {
+		const userId = (req.user as { id: number }).id;
+    	return this.authService.confirmTwoFactor(userId, body.token);
+	}
 }

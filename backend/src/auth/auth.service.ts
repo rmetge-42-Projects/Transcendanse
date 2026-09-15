@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { PasswordDto } from './dto/password.dto';
 import { EmailDto } from './dto/email.dto';
-import { generateSecret, generateURI } from 'otplib';
+import { generateSecret, generateURI, verify } from 'otplib';
 import * as qrcode from 'qrcode';
 
 @Injectable()
@@ -107,6 +107,7 @@ export class AuthService {
         throw new BadRequestException("Incorrect email.");
     }
 
+    //Genere le code de la double authentifictaion
     //A rajouter dans le front Romane
     async generateTwoFactorSecret(userId: number) 
     {
@@ -127,5 +128,34 @@ export class AuthService {
         const qrCodeImage = await qrcode.toDataURL(otpauthUrl);
 
         return { qrCodeImage };
+    }
+
+    //verifie si la double authentification est activee
+    //A rajouter dans le front Romane
+    async confirmTwoFactor(userId: number, token: string)
+    {
+        const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        });
+
+        if (!user)
+            throw new BadRequestException("User not found");
+
+        if (!user.twoFactorSecret)
+            throw new BadRequestException("2FA not yet initialized for this user.");
+
+        const result = await verify({ secret: user.twoFactorSecret, token });
+
+        if (result.valid)
+        {
+            const updatedUser = await this.prisma.user.update({
+                where: { id: userId },
+                select: { id: true },
+                data: { twoFactorEnabled: true},
+            });
+            return true;
+        }
+        else
+            throw new BadRequestException("Incorrect secret code.");
     }
 }
