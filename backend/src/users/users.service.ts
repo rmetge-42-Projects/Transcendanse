@@ -45,17 +45,27 @@ export class UsersService {
 
   //envoie les infos de l'utilisateur
   async getProfile(userId: number) {
-      const user = await this.prisma.user.findUnique({
-          where: { id: userId },
-          select: { id: true, email: true, createdAt: true },
-      });
+    const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+            id: true,
+            email: true,
+            createdAt: true,
+            name: true,
+            username: true,
+            birthday: true,
+            kind: true,
+            orientation: true,
+            biography: true,
+        },
+    });
 
-      if (!user) {
-          throw new UnauthorizedException("Utilisateur introuvable.");
-      }
+    if (!user) {
+        throw new UnauthorizedException("Utilisateur introuvable.");
+    }
 
-      return user;
-  }
+        return user;
+    }
 
   //envoie les infos des profils des matchs
   async getOtherProfile(userId: number) {
