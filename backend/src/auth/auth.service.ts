@@ -7,6 +7,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { PasswordDto } from './dto/password.dto';
 import { EmailDto } from './dto/email.dto';
+import { generateSecret, generateURI } from 'otplib';
+import * as qrcode from 'qrcode';
 
 @Injectable()
 export class AuthService {
@@ -105,4 +107,25 @@ export class AuthService {
         throw new BadRequestException("Incorrect email.");
     }
 
+    //A rajouter dans le front Romane
+    async generateTwoFactorSecret(userId: number) 
+    {
+        const secret = generateSecret();
+
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            select: { id: true },
+            data: { twoFactorSecret: secret },
+        });
+
+        const otpauthUrl = generateURI({
+            issuer: 'ChiFouMi',
+            label: String(userId),
+            secret: secret,
+            });
+    
+        const qrCodeImage = await qrcode.toDataURL(otpauthUrl);
+
+        return { qrCodeImage };
+    }
 }
