@@ -37,8 +37,9 @@ export class UsersController {
   }
 
   //envoie les info du match
+  @UseGuards(JwtAuthGuard)
   @Get(':userId')
-  myMatcProfile(@Param('userId') userId : string ) {
+  async myMatchProfile(@Param('userId') userId : string) {
     return this.usersService.myMatchProfile(+userId);
   }
 

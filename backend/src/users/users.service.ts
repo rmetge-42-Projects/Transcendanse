@@ -99,17 +99,27 @@ export class UsersService {
         return others;
     }
 
-    //envoie les info de l'utilisateur (userId) - sert a afficher le profile du matcht
-    myMatchProfile(userId: number){
-        return {
-            id: userId,
-            username: 'sophie',
-            email: 'norminet@student.42.fr',
-            birthday: 12/12/2005,
-            kind: 'man',
-            orientation: 'all',
-            biography: 'Étudiant à 42 en plein sur Transcendence !',
-        };
+    //envoie les info de l'utilisateur (userId) - sert a afficher le profil du match
+    async myMatchProfile(userId: number){
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                createdAt: true,
+                name: true,
+                username: true,
+                birthday: true,
+                kind: true,
+                orientation: true,
+                biography: true,
+            },
+        });
+
+        if (!user) {
+            throw new UnauthorizedException("Utilisateur introuvable.");
+        }
+        return user;
     }
 
     //met a jour le profil en une seule fois
