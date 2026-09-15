@@ -19,15 +19,6 @@ export class UsersController {
       return this.usersService.createProfile(userId, createDto);
   }
 
-  //requette pour modifier les infos du profil
-  //front = modifyProfile
-  @UseGuards(JwtAuthGuard)
-  @Post('modifyProfile')
-  async modifyProfile(@Body() updateProfileDto: UpdateProfileDto, @Req() req: Request){
-      const userId = (req.user as { id: number }).id;
-      return this.usersService.modifyProfile(userId, updateProfileDto);
-  }
-
   //recupere les infos de l'user
   //front = profil
   @UseGuards(JwtAuthGuard)
