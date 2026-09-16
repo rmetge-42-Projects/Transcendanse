@@ -39,7 +39,7 @@ export default function Match() {
   const rejected = async (userId: number) => {
     setInvalide("");
     try {
-      const res = await api.post("/match/validete", {
+      const res = await api.post("/match/validate", {
         userId: userId,
         status: "reject",
       });
@@ -54,7 +54,7 @@ export default function Match() {
     setInvalide("");
     // setIsMatch(false);
     try {
-      const {data} = await api.post("/match/validete", {
+      const {data} = await api.post("/match/validate", {
         userId: userId,
         status: "like",
       });
