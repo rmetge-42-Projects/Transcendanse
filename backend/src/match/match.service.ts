@@ -134,4 +134,19 @@ export class MatchService {
       },
     ];
   }
+
+  //supprimer le userId de les match
+	async deleteMatch(userId?: number) {
+		if (!userId)
+		{
+			return{
+				success: false,
+				message: "Un probleme avec la supression du match"
+			}
+		}
+		return{
+			success: true,
+			message: "Match supprimer"
+		}
+	}
 }

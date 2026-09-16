@@ -1,8 +1,9 @@
-import { Controller, UseGuards } from '@nestjs/common';
 import { MatchService } from './match.service';
 import { ValidateDto } from './dto/validate.dto';
-import { Post, Body, Get, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Controller, Get, Param, Post, Body, Delete, UseGuards, Req } from '@nestjs/common';
+
+
 
 @Controller('match')
 export class MatchController {
@@ -27,4 +28,10 @@ export class MatchController {
   getOther() {
     return this.matchService.getOtherProfile();
   }
+
+    //supprimer le match
+    @Delete(':userId')
+    async deleteMatch(@Param('userId') userId: string){
+        return this.matchService.deleteMatch(+userId);
+    }
 }

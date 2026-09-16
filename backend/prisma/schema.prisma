@@ -32,6 +32,25 @@ model User {
 
   matchesAsUser1 Match[] @relation("MatchesAsUser1")
   matchesAsUser2 Match[] @relation("MatchesAsUser2")
+
+  twoFactorSecret  String? 
+  twoFactorEnabled Boolean  @default(false)
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+//Message
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  content    String
+  createdAt  DateTime @default(now())
+  isRead     Boolean  @default(false)
+
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
 }
 
 model Like {
