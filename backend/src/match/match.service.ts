@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ValidateDto } from './dto/validate.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -20,6 +20,13 @@ export class MatchService {
       //est ce que le user que j'ai like est moi?
       if (currentUserId === validateDto.userId) {
         throw new BadRequestException('Vous ne pouvez pas liker votre propre profil');
+      }
+
+
+      const targetUser = await this.prisma.user.findUnique({where: {id: validateDto.userId,},});
+
+      if (!targetUser) {
+        throw new NotFoundException('Utilisateur introuvable');
       }
       //est ce que j'ai deja like ce profil?
       const existingLike = await this.prisma.like.findUnique({where: {fromUserId_toUserId: {fromUserId: currentUserId,toUserId: validateDto.userId}}});
@@ -135,18 +142,46 @@ export class MatchService {
     ];
   }
 
-  //supprimer le userId de les match
-	async deleteMatch(userId?: number) {
-		if (!userId)
-		{
-			return{
-				success: false,
-				message: "Un probleme avec la supression du match"
-			}
-		}
+  //supprimer un match
+	async deleteMatch(currentUserId: number, otherUserId: number) {
+
+    const user1Id = Math.min(currentUserId, otherUserId);
+    const user2Id = Math.max(currentUserId, otherUserId);
+
+    const existingMatch = await this.prisma.match.findUnique({where: {user1Id_user2Id: {user1Id: user1Id, user2Id: user2Id}}});
+		
+    if (!existingMatch) {
+        throw new NotFoundException('Match introuvable');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.match.delete({
+        where: {
+          user1Id_user2Id: {
+            user1Id: user1Id,
+            user2Id: user2Id,
+          },
+        },
+      }),
+      this.prisma.like.deleteMany({
+        where: {
+          OR: [
+            {
+              fromUserId: currentUserId,
+              toUserId: otherUserId,
+            },
+            {
+              fromUserId: otherUserId,
+              toUserId: currentUserId,
+            },
+          ],
+        },
+      }),
+    ]);
+
 		return{
 			success: true,
-			message: "Match supprimer"
+			message: "Match supprime"
 		}
 	}
 }
