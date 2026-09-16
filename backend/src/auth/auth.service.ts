@@ -37,6 +37,14 @@ export class AuthService {
                 throw new UnauthorizedException("Incorrect email or password.");
             }
 
+            if (user.twoFactorEnabled)
+            {
+                return {
+                    success: false,
+                    message: "2FA required",
+                };
+            }
+
             const payload = { id: user.id, email: user.email };
             const token = await this.jwtService.signAsync(payload);
 
@@ -107,8 +115,8 @@ export class AuthService {
         throw new BadRequestException("Incorrect email.");
     }
 
-    //Genere le code de la double authentifictaion
-    //A rajouter dans le front Romane
+    //genere la double authentification pour la premiere fois
+    //A rajouter dans le front voir validate.User Romane
     async generateTwoFactorSecret(userId: number) 
     {
         const secret = generateSecret();
@@ -130,8 +138,8 @@ export class AuthService {
         return { qrCodeImage };
     }
 
-    //verifie si la double authentification est activee
-    //A rajouter dans le front Romane
+    //regarde si le user veux la 2fa
+    //A rajouter dans le front voir validate.User Romane
     async confirmTwoFactor(userId: number, token: string)
     {
         const user = await this.prisma.user.findUnique({
@@ -157,5 +165,36 @@ export class AuthService {
         }
         else
             throw new BadRequestException("Incorrect secret code.");
+    }
+
+    //genere la 2fa pour les connexions
+    //A rajouter dans le front voir validate.User Romane
+    async verifyTwoFactorLogin(email: string, token: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { email: email },
+        });
+
+        if (!user) {
+            throw new UnauthorizedException("Incorrect email or password.");
+        }
+
+        if (!user.twoFactorSecret) {
+            throw new BadRequestException("2FA not enabled for this user.");
+        }
+
+        const result = await verify({ secret: user.twoFactorSecret, token });
+
+        if (!result.valid) {
+            throw new BadRequestException("Incorrect secret code.");
+        }
+
+        const payload = { id: user.id, email: user.email };
+        const JWTtoken = await this.jwtService.signAsync(payload);
+
+        return {
+            success: true,
+            message: "Login successful !",
+            access_token: JWTtoken,
+        };
     }
 }

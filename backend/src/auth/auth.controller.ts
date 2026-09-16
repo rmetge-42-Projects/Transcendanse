@@ -48,7 +48,7 @@ export class AuthController {
 		return this.authService.email(emailDto);
 	}
 
-	//genere la double authentification
+	//genere la double authentification pour la premiere fois
 	@UseGuards(JwtAuthGuard)
 	@Post('2fa/generate')
 	async generateTwoFactor(@Req() req: Request) {
@@ -59,8 +59,14 @@ export class AuthController {
 	//regarde si le user veux la 2fa
 	@UseGuards(JwtAuthGuard)
 	@Post('2fa/confirm')
-		async confirmTwoFactor(@Body() body: { token: string }, @Req() req: Request) {
+	async confirmTwoFactor(@Body() body: { token: string }, @Req() req: Request) {
 		const userId = (req.user as { id: number }).id;
     	return this.authService.confirmTwoFactor(userId, body.token);
 	}
+
+	//genere la 2fa pour les connexion
+	@Post('2fa/verify-login')
+	async verifyTwoFactorLogin(@Body() body: { email: string; token: string }) {
+    	return this.authService.verifyTwoFactorLogin(body.email, body.token);
+}
 }
