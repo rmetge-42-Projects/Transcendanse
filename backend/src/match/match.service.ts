@@ -102,44 +102,55 @@ export class MatchService {
   //envoie les infos des profil des match
   //faire une pres selection (orientation sexuel ...)
   //pour faire les carte de match
-  getOtherProfile() {
-    return [
-      {
-        id: 12,
-        username: 'Sophie',
-        kind: 'woman',
-        orientation: 'man',
-        biography: 'Passionnée de danse contemporaine, de voyages et de bon café !',
+  async getOtherProfile(currentUserId: number) {
+
+    const currentUser = await this.prisma.user.findUnique({where: { id: currentUserId }});
+
+    if (!currentUser) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+
+    if (!currentUser.kind || !currentUser.orientation) {
+      throw new BadRequestException('Profil incomplet');
+    }
+
+    let kindFilter;
+    if (currentUser.orientation == 'all') {
+      kindFilter = {not: null};
+    }
+    else  {
+      kindFilter = currentUser.orientation;
+    }
+
+    const sentLikes = await this.prisma.like.findMany({where: {fromUserId: currentUserId}, select: {toUserId: true}});
+    const likedUserIds = sentLikes.map((like) => like.toUserId);
+
+    //je regarde si c'est pas moi, je regarde si c'est mon genre , et je regarde si je suis son genre ou si il est all
+    const compatibleUser = await this.prisma.user.findMany({
+      where: {
+        id: {
+          not: currentUserId,
+          notIn: likedUserIds,
+        },
+        kind: kindFilter,
+        OR: [
+          {
+            orientation: currentUser.kind,
+          },
+          {
+            orientation: 'all',
+          },
+        ],
       },
-      {
-        id: 13,
-        username: 'Alexandre',
-        kind: 'man',
-        orientation: 'woman',
-        biography: 'Danseur de salsa et grand amateur de musique électronique.',
+      select: {
+        id: true,
+        username: true,
+        kind: true,
+        orientation: true,
+        biography: true,
       },
-      {
-        id: 14,
-        username: 'Camille',
-        kind: 'other',
-        orientation: 'all',
-        biography: 'Toujours partant pour tester de nouvelles chorégraphies et sorties.',
-      },
-      {
-        id: 15,
-        username: 'Lucas',
-        kind: 'man',
-        orientation: 'all',
-        biography: 'Étudiant à 42, aime le tango, les échecs et le code propre.',
-      },
-      {
-        id: 16,
-        username: 'Léa',
-        kind: 'woman',
-        orientation: 'all',
-        biography: 'Fan de hip-hop, de cuisine italienne et de randonnée.',
-      },
-    ];
+    });
+    return compatibleUser;
   }
 
   //supprimer un match
@@ -185,3 +196,42 @@ export class MatchService {
 		}
 	}
 }
+
+
+// return [
+    //   {
+    //     id: 12,
+    //     username: 'Sophie',
+    //     kind: 'woman',
+    //     orientation: 'man',
+    //     biography: 'Passionnée de danse contemporaine, de voyages et de bon café !',
+    //   },
+    //   {
+    //     id: 13,
+    //     username: 'Alexandre',
+    //     kind: 'man',
+    //     orientation: 'woman',
+    //     biography: 'Danseur de salsa et grand amateur de musique électronique.',
+    //   },
+    //   {
+    //     id: 14,
+    //     username: 'Camille',
+    //     kind: 'other',
+    //     orientation: 'all',
+    //     biography: 'Toujours partant pour tester de nouvelles chorégraphies et sorties.',
+    //   },
+    //   {
+    //     id: 15,
+    //     username: 'Lucas',
+    //     kind: 'man',
+    //     orientation: 'all',
+    //     biography: 'Étudiant à 42, aime le tango, les échecs et le code propre.',
+    //   },
+    //   {
+    //     id: 16,
+    //     username: 'Léa',
+    //     kind: 'woman',
+    //     orientation: 'all',
+    //     biography: 'Fan de hip-hop, de cuisine italienne et de randonnée.',
+    //   },
+    // ];

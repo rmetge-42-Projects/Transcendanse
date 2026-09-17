@@ -3,8 +3,6 @@ import { ValidateDto } from './dto/validate.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Controller, Get, Param, Post, Body, Delete, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
 
-
-
 @Controller('match')
 export class MatchController {
   constructor(private readonly matchService: MatchService) {}
@@ -24,9 +22,10 @@ export class MatchController {
   }
 
   //recupere les info du profile
+  @UseGuards(JwtAuthGuard)
   @Get('other')
-  getOther() {
-    return this.matchService.getOtherProfile();
+  getOther(@Req() request) {
+    return this.matchService.getOtherProfile(request.user.id);
   }
 
   //supprimer le match
