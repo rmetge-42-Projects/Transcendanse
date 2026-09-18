@@ -13,13 +13,16 @@ services:
     build:
       context: ./backend
     depends_on:
-      - database
+      database:
+        condition: service_started
+      vault:
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
-      JWT_SECRET: ${JWT_SECRET}
+      VAULT_ADDR: http://vault:8200
       PORT: 3000
     volumes:
       - vol_back:/app/uploads
+      - vol_vault:/vault/secrets:ro
 
   frontend:
     build:
@@ -27,26 +30,43 @@ services:
     depends_on:
       - backend
     environment:
-      NEXT_PUBLIC_API_URL: http://transcendance42.fr
+      NEXT_PUBLIC_API_URL: https://transcendance42.fr:8443
 
   vault:
     image: hashicorp/vault:1.13
     ports:
       - "8200:8200"
+    env_file:
+      - .env
     environment:
-      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_TOKEN}
+      VAULT_ADDR: http://127.0.0.1:8200
     volumes:
       - vol_vault:/vault/file
+      - ./Vault/vault.conf:/vault/config/vault.conf
+      - ./vault-init.sh:/vault-init.sh 
     cap_add:
       - IPC_LOCK
+    command: sh /vault-init.sh
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   nginx:
     build:
       context: ./nginx
     restart: always 
     ports:
-      - "443:443"
-      - "80:80"
+      - "8443:443"
+      - "8080:80"
+    environment:
+      MODSEC_RULE_ENGINE: on
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k -f https://localhost:443 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
     vol_data:
