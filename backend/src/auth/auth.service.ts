@@ -7,6 +7,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { PasswordDto } from './dto/password.dto';
 import { EmailDto } from './dto/email.dto';
+import { generateSecret, generateURI, verify } from 'otplib';
+import * as qrcode from 'qrcode';
 
 @Injectable()
 export class AuthService {
@@ -33,6 +35,14 @@ export class AuthService {
             if (!passwordMatches)
             {
                 throw new UnauthorizedException("Incorrect email or password.");
+            }
+
+            if (user.twoFactorEnabled)
+            {
+                return {
+                    success: false,
+                    message: "2FA required",
+                };
             }
 
             const payload = { id: user.id, email: user.email };
@@ -105,4 +115,86 @@ export class AuthService {
         throw new BadRequestException("Incorrect email.");
     }
 
+    //genere la double authentification pour la premiere fois
+    //A rajouter dans le front voir validate.User Romane
+    async generateTwoFactorSecret(userId: number) 
+    {
+        const secret = generateSecret();
+
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            select: { id: true },
+            data: { twoFactorSecret: secret },
+        });
+
+        const otpauthUrl = generateURI({
+            issuer: 'ChiFouMi',
+            label: String(userId),
+            secret: secret,
+            });
+    
+        const qrCodeImage = await qrcode.toDataURL(otpauthUrl);
+
+        return { qrCodeImage };
+    }
+
+    //regarde si le user veux la 2fa
+    //A rajouter dans le front voir validate.User Romane
+    async confirmTwoFactor(userId: number, token: string)
+    {
+        const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        });
+
+        if (!user)
+            throw new BadRequestException("User not found");
+
+        if (!user.twoFactorSecret)
+            throw new BadRequestException("2FA not yet initialized for this user.");
+
+        const result = await verify({ secret: user.twoFactorSecret, token });
+
+        if (result.valid)
+        {
+            const updatedUser = await this.prisma.user.update({
+                where: { id: userId },
+                select: { id: true },
+                data: { twoFactorEnabled: true},
+            });
+            return true;
+        }
+        else
+            throw new BadRequestException("Incorrect secret code.");
+    }
+
+    //genere la 2fa pour les connexions
+    //A rajouter dans le front voir validate.User Romane
+    async verifyTwoFactorLogin(email: string, token: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { email: email },
+        });
+
+        if (!user) {
+            throw new UnauthorizedException("Incorrect email or password.");
+        }
+
+        if (!user.twoFactorSecret) {
+            throw new BadRequestException("2FA not enabled for this user.");
+        }
+
+        const result = await verify({ secret: user.twoFactorSecret, token });
+
+        if (!result.valid) {
+            throw new BadRequestException("Incorrect secret code.");
+        }
+
+        const payload = { id: user.id, email: user.email };
+        const JWTtoken = await this.jwtService.signAsync(payload);
+
+        return {
+            success: true,
+            message: "Login successful !",
+            access_token: JWTtoken,
+        };
+    }
 }
