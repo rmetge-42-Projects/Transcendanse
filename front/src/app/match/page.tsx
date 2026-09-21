@@ -27,11 +27,11 @@ export default function Match() {
   if (isLoading) {
     return (
       <Bottom>
-        <IfIsLoading>Chargement du profil...</IfIsLoading>
+        <IfIsLoading>Chargement des profiles...</IfIsLoading>
       </Bottom>);
   }
   if (isError || !profiles) {
-    return <IfIsError> Erreur : impossible de charger le profil. </IfIsError>;
+    return <IfIsError> Erreur : impossible de charger les profiles. </IfIsError>;
   }
   // 4. Le profil actuel
   const currentProfile = profiles[index];
