@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: 'https://localhost:3000/api', // L'URL où tourne ton backend NestJS
+  baseURL: 'https://localhost:8443/api', // nginx (docker-compose) expose le 443 du conteneur sur le 8443 du host
   headers: {
     'Content-Type': 'application/json',
   },
