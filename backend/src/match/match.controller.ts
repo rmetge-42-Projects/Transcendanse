@@ -18,9 +18,9 @@ export class MatchController {
     return this.matchService.getOtherProfile();
   }
 
-    //supprimer le match
-    @Delete(':userId')
-    async deleteMatch(@Param('userId') userId: string){
-        return this.matchService.deleteMatch(+userId);
-    }
+  //supprimer le match
+  @Delete(':userId')
+  async deleteMatch(@Param('userId') userId: string){
+      return this.matchService.deleteMatch(+userId);
+  }
 }

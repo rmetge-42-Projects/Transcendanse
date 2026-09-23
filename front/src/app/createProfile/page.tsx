@@ -14,6 +14,7 @@ type ProfileFormValues = {
 	kind: string;
 	orientation: string;
 	biography: string;
+	photo?: FileList;
 };
 
 export  default function CreateAccount()
@@ -22,6 +23,7 @@ export  default function CreateAccount()
 	const [invalide, setInvalide] = useState('');
 	const [isSumit, setIsSumbit] = useState(false);
 	// const today = new Date().toISOString().split("T")[0];
+	const [preview, setPreview] = useState<string | null>(null);
 
 	// 1. On crée la date d'aujourd'hui
 	const maxDateObj = new Date();
@@ -36,6 +38,15 @@ export  default function CreateAccount()
 		handleSubmit,
 		formState: { errors },
 	} = useForm<ProfileFormValues>();
+
+	// Gestionnaire pour l'aperçu de l'unique photo
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setPreview(URL.createObjectURL(file));
+        }
+    };
+
 
 	const onSubmit = async (data: ProfileFormValues) => 
 	{
@@ -65,6 +76,40 @@ export  default function CreateAccount()
 						Remplis tes informations pour personnaliser ton compte.
 					</p>
 					<div className="flex flex-col gap-2">
+
+						{/* CHAMP PHOTO UNIQUE */}
+                        <div className="flex flex-col items-center gap-3 mb-2">
+                            {/* APERÇU STYLE AVATAR */}
+                            {preview ? (
+                                <img
+                                    src={preview}
+                                    alt="Aperçu du profil"
+                                    className="w-28 h-28 rounded-full object-cover border-2 border-blue-950 shadow-md"
+                                />
+                            ) : (
+                                <div className="w-28 h-28 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center text-gray-500 text-xs font-semibold text-center px-2">
+                                    Aucune photo
+                                </div>
+                            )}
+
+                            <div className="w-full">
+                                <label className="text-sm font-semibold text-gray-700 block mb-1">
+                                    Photo de profil
+                                </label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    {...register("photo", {
+                                        onChange: handleImageChange,
+                                    })}
+                                    className="rounded px-3 py-2 w-full bg-white border text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-950 file:text-white hover:file:bg-blue-900 cursor-pointer"
+                                />
+                                {errors.photo && <p className="bg-red-600 text-white text-sm px-2 py-1 rounded mt-1">{errors.photo.message}</p>}
+                            </div>
+                        </div>
+
+
+
 						<label className="text-sm font-semibold text-gray-700">
 							Nom
 						</label>

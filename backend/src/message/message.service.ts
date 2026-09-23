@@ -67,6 +67,7 @@ export class MessageService {
 	}
 
 	//supprimer un msg
+	//a voir, ca rique d'etre conplique : romane
 	async deleteMessage(userId: number, messageId: number) {
     	const message = await this.prisma.message.findUnique({
         	where: { id: messageId },
@@ -82,6 +83,7 @@ export class MessageService {
     	return sup;
 	}
 
+	//jsp si c'est utile : romane
 	async deleteDiscution(myId: number, otherUserId: number) {
     	const messages = await this.prisma.message.deleteMany({
         	where: {

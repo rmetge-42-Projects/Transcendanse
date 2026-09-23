@@ -51,7 +51,9 @@ export default function Login() {
 		router.push("/register");
 	};
 
-	
+	const handle42Login = () => {
+  		window.location.href = "https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-7d7112e78e52600621561a9fca6b7e0a81a5fe8d40e753c405c28d4f2b5a68d7&redirect_uri=https%3A%2F%2Flocalhost%3A8443%2Flogin42&response_type=code";
+	};
 
 	return (
 		<Connextion title="Se connecter" >
@@ -104,6 +106,12 @@ export default function Login() {
 						{isLoading ? 'Connexion...' : 'Se connecter'}
 					</button>
 				</form>
+				<button 
+    			  className="bg-black hover:bg-gray-800 text-white font-medium rounded p-2 mt-4 w-full transition flex items-center justify-center gap-2" 
+    			  onClick={handle42Login}
+    			>
+    			  Se connecter avec 42
+    			</button>
 				<button 
 					className="bg-gray-600 hover:bg-gray-700 text-white rounded p-2 mt-4 w-full transition" 
 					onClick={registerRedirect}
