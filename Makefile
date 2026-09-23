@@ -7,15 +7,37 @@
 # ==============================================================================
 BACKEND_DEPS := prisma@6 @prisma/client@6 bcrypt @types/bcrypt \
                 @nestjs/passport passport passport-jwt @types/passport-jwt \
-                otplib qrcode
+                otplib qrcode \
+                @nestjs/websockets@11 @nestjs/platform-socket.io@11 socket.io
 
 FRONTEND_DEPS := lucide-react
+
+# ==============================================================================
+# VERIFICATION DES PREREQUIS SYSTEME
+# ==============================================================================
+check-docker:
+	@if ! command -v docker &> /dev/null; then \
+		echo ""; \
+		echo "ERREUR : Docker n'est pas installe sur cette machine."; \
+		echo "-> Installe Docker Desktop depuis : https://www.docker.com/products/docker-desktop/"; \
+		echo "-> Une fois installe et lance, relance : make install"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@if ! docker info &> /dev/null; then \
+		echo ""; \
+		echo "ERREUR : Docker est installe mais ne semble pas demarre."; \
+		echo "-> Lance l'application Docker Desktop, attends qu'elle soit prete, puis relance : make install"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@echo "-> Docker est installe et demarre, on continue."
 
 # ==============================================================================
 # INSTALLATION COMPLETE — a lancer en premier, sur une machine qui n'a jamais
 # vu le projet
 # ==============================================================================
-install:
+install: check-docker
 	@echo "== Verification du fichier .env =="
 	@if [ ! -f .env ]; then \
 		cp .env.example .env; \
@@ -43,13 +65,13 @@ install:
 # ==============================================================================
 
 # Demarre tous les services (en arriere-plan), sans reconstruire ni reinstaller
-up:
+up: check-docker
 	docker compose up -d
 
 # Reconstruit tout : installe TOUTES les dependances listees ci-dessus dans les
 # conteneurs, sauvegarde package.json/lock sur le disque, puis reconstruit les
 # images proprement. A utiliser a chaque fois qu'on ajoute une dependance.
-build:
+build: check-docker
 	docker compose up -d
 	@echo "== Installation des dependances backend =="
 	docker compose exec backend npm install $(BACKEND_DEPS)
@@ -94,14 +116,14 @@ logs-frontend:
 # Pense aussi a l'ajouter dans BACKEND_DEPS en haut de ce fichier, pour qu'elle
 # survive aux prochains "make build" faits par toute l'equipe.
 # ==============================================================================
-install-backend:
+install-backend: check-docker
 	docker compose up -d
 	docker compose exec backend npm install $(pkg)
 	docker compose cp backend:/app/package.json ./backend/package.json
 	docker compose cp backend:/app/package-lock.json ./backend/package-lock.json
 	$(MAKE) build
 
-install-frontend:
+install-frontend: check-docker
 	docker compose up -d
 	docker compose exec frontend npm install $(pkg)
 	docker compose cp frontend:/app/package.json ./front/package.json
@@ -143,4 +165,4 @@ shell-frontend:
 clean:
 	docker compose down -v
 
-.PHONY: install up build down restart ps logs logs-backend logs-frontend install-backend install-frontend migrate reset-db studio shell-backend shell-frontend db-shell clean
+.PHONY: check-docker install up build down restart ps logs logs-backend logs-frontend install-backend install-frontend migrate reset-db studio shell-backend shell-frontend db-shell clean
