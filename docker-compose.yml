@@ -33,6 +33,18 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: https://transcendance42.fr:8443
 
+  status_page:
+    build:
+      context: ./status_page
+    depends_on:
+      - database
+      - frontend
+      - backend
+    environment: 
+      PGHOST: database
+      PGUSER: ${DB_USER}
+      PGPASSWORD: ${DB_PASSWORD}
+      PGDATABASE: ${DB_NAME}
   vault:
     image: hashicorp/vault:1.13
     ports:
