@@ -23,6 +23,7 @@ services:
     volumes:
       - vol_back:/app/uploads
       - vol_vault:/vault/secrets:ro
+    command: sh entrypoint.sh
 
   frontend:
     build:
@@ -43,7 +44,7 @@ services:
     volumes:
       - vol_vault:/vault/file
       - ./Vault/vault.conf:/vault/config/vault.conf
-      - ./vault-init.sh:/vault-init.sh 
+      - ./vault-init.sh:/vault-init.sh
     cap_add:
       - IPC_LOCK
     command: sh /vault-init.sh
@@ -56,7 +57,7 @@ services:
   nginx:
     build:
       context: ./nginx
-    restart: always 
+    restart: always
     ports:
       - "8443:443"
       - "8080:80"
@@ -68,7 +69,23 @@ services:
       timeout: 5s
       retries: 3
 
+  backup_monitor:
+      image: postgres:15
+      depends_on:
+        database:
+          condition: service_started
+      environment:
+        PGHOST: database
+        PGUSER: ${DB_USER}
+        PGPASSWORD: ${DB_PASSWORD}
+        PGDATABASE: ${DB_NAME}
+      volumes:
+        - vol_backup:/backups
+        - ./backup.sh:/backup.sh:ro
+      command: sh /backup.sh
+
 volumes:
-    vol_data:
-    vol_back:
-    vol_vault:
+  vol_data:
+  vol_back:
+  vol_vault:
+  vol_backup:
