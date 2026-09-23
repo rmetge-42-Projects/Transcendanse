@@ -1,4 +1,4 @@
-import { useConversation } from "@/src/hook/conversation";
+import { useConversation, useMatches } from "@/src/hook/conversation";
 import { User } from "lucide-react";
 import IfIsError from "@/src/constant/ifIsError";
 import IfIsLoading from "@/src/constant/ifIsLoaging";
@@ -11,7 +11,7 @@ interface ContactProps {
 }
 
 export default function Contact({ selectedUser, setSelectedUser }: ContactProps) {
-  const { data: users, isLoading, isError } = useConversation();
+  const { data: users, isLoading, isError } = useMatches();
 
   if (isLoading) {
     return (
@@ -33,11 +33,21 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
         <div className="flex-1 overflow-y-auto">
           {users?.map((user) => (
           <div
-            key={user.userId}
-            onClick={() => setSelectedUser(user)}
+            key={user.id}
+            // onClick={() => setSelectedUser(user)}
+
+            onClick={() =>
+              setSelectedUser({
+                userId: user.id,
+                userName: user.username,
+                lastMessage: "",
+                lastMessageDate: "",
+                unreadCount: 0,
+              })
+            }
             // 3. Applique la couleur si c'est l'utilisateur sélectionné
             className={`p-4 border-b border-gray-100 flex items-center gap-3 cursor-pointer transition ${
-              selectedUser?.userId === user.userId
+              selectedUser?.userId === user.id
                 ? "bg-gray-200/60"
                 : "hover:bg-gray-100/80"
             }`}
@@ -46,16 +56,16 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
 							<div className="w-10 h-10 rounded-full bg-blue-950 flex items-center justify-center text-white font-b             old">
 								<User className="w-5 h-5" />
 							</div>
-					    {user.isOnline && (
+					    {/* {user.isOnline && (
 								<span className="w-3 h-3 bg-green-500 rounded-full border-2 border-white absolute bottom-0 right-0" />
-              )}
+              )} */}
             </div>
              <div className="flex flex-col overflow-hidden">
               <span className="font-semibold text-gray-800">
-                {user.userName}
+                {user.username}
               </span>
              
-              {/* attention pas de sisteme de vu de message pour le moment */}
+              {/* attention pas de sisteme de vu de message pour le moment
               <div className="flex items-center justify-between gap-2 w-full mt-0.5">
             
                 <span
@@ -73,7 +83,10 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
                 {user.unreadCount > 0 && (
                   <span className=" flex items-center justify-center w-2 h-2 bg-orange-500 rounded-full "/>
                 )}
-              </div>
+              </div> */}
+              <span className="text-sm text-gray-400">
+                  Match
+              </span>
             </div>
           </div>
           ))}
