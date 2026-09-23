@@ -51,53 +51,53 @@ export class UsersService {
     }
 
     //envoie les infos des profils des matchs
-    async getOtherProfile(userId: number) {
-        const currentUser = await this.prisma.user.findUnique({
-            where: { id: userId },
-        });
+    // async getOtherProfile(userId: number) {
+    //     const currentUser = await this.prisma.user.findUnique({
+    //         where: { id: userId },
+    //     });
 
-        if (!currentUser) {
-            throw new UnauthorizedException("Utilisateur introuvable.");
-        }
+    //     if (!currentUser) {
+    //         throw new UnauthorizedException("Utilisateur introuvable.");
+    //     }
 
-        let others;
+    //     let others;
 
-        if (currentUser.orientation === 'all') {
-            others = await this.prisma.user.findMany({
-                where: {
-                    id: { not: userId },
-                },
-                select: { 
-                    id: true,
-                    name: true,
-                    username: true,
-                    createdAt: true,
-                    kind: true,
-                    orientation: true,
-                    birthday: true,
-                    biography: true
-                },
-            });
-        } else {
-            others = await this.prisma.user.findMany({
-                where: {
-                    id: { not: userId },
-                    kind: currentUser.orientation,
-                },
-                select: {
-                    id: true,
-                    name: true,
-                    username: true,
-                    createdAt: true,
-                    kind: true,
-                    orientation: true,
-                    birthday: true,
-                    biography: true
-                },
-            });
-        }
-        return others;
-    }
+    //     if (currentUser.orientation === 'all') {
+    //         others = await this.prisma.user.findMany({
+    //             where: {
+    //                 id: { not: userId },
+    //             },
+    //             select: { 
+    //                 id: true,
+    //                 name: true,
+    //                 username: true,
+    //                 createdAt: true,
+    //                 kind: true,
+    //                 orientation: true,
+    //                 birthday: true,
+    //                 biography: true
+    //             },
+    //         });
+    //     } else {
+    //         others = await this.prisma.user.findMany({
+    //             where: {
+    //                 id: { not: userId },
+    //                 kind: currentUser.orientation,
+    //             },
+    //             select: {
+    //                 id: true,
+    //                 name: true,
+    //                 username: true,
+    //                 createdAt: true,
+    //                 kind: true,
+    //                 orientation: true,
+    //                 birthday: true,
+    //                 biography: true
+    //             },
+    //         });
+    //     }
+    //     return others;
+    // }
 
     //envoie les info de l'utilisateur (userId) - sert a afficher le profil du match
     async myMatchProfile(userId: number){

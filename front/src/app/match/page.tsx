@@ -33,13 +33,25 @@ export default function Match() {
   if (isError || !profiles) {
     return <IfIsError> Erreur : impossible de charger le profil. </IfIsError>;
   }
+
+  if (profiles.length === 0) {
+    return (
+      <Bottom>
+        <div>Aucun profil disponible pour le moment.</div>
+        <Navigation />
+      </Bottom>);
+  }
+
   // 4. Le profil actuel
   const currentProfile = profiles[index];
+
+  //essayer de faire un truc si aucun profil n'est proposer/disponible du genre
+  // un if (profiles.length === 0) 
 
   const rejected = async (userId: number) => {
     setInvalide("");
     try {
-      const res = await api.post("/match/validete", {
+      const res = await api.post("/match/validate", {
         userId: userId,
         status: "reject",
       });
@@ -54,7 +66,7 @@ export default function Match() {
     setInvalide("");
     // setIsMatch(false);
     try {
-      const {data} = await api.post("/match/validete", {
+      const {data} = await api.post("/match/validate", {
         userId: userId,
         status: "like",
       });

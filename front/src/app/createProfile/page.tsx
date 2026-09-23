@@ -122,9 +122,9 @@ export  default function CreateAccount()
 							<option disabled hidden>
 								Choisi une option
 							</option>
-							<option value="Men">Homme</option>
-							<option value="Woman">Femme</option>
-							<option value="All">N'importe</option>
+							<option value="man">Homme</option>
+							<option value="woman">Femme</option>
+							<option value="all">N'importe</option>
 						</select>
 						{errors.orientation && <p className="bg-red-600 text-white text-sm mt-1">{errors.orientation.message}</p>}
 						<label className="text-sm font-semibold text-gray-700">

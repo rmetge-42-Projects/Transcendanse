@@ -48,7 +48,7 @@ export default function Duiscution({
         message: messageText,
       });
       setMessageText("");
-      queryClient.invalidateQueries({ queryKey: ["messages", userId] });
+      queryClient.invalidateQueries({ queryKey: ["discution", userId] });
     } catch {
       if (messageText)
         setInvalide("Une erreur est survenue, veuillez réessayer.");
@@ -113,21 +113,21 @@ export default function Duiscution({
                     : "bg-gray-100 text-gray-800 self-start rounded-bl-none"
                 }`}
               >
-                <p>{msg.message}</p>
+                <p>{msg.content}</p>
                 <span
                   className={`text-[10px] block mt-1 text-right ${
                     isMe ? "text-gray-300" : "text-gray-400"
                   }`}
                 >
                   {(() => {
-                    const d = new Date(msg.messageDate);
+                    const d = new Date(msg.createdAt);
                     // Si la date est valide, on formate l'heure, sinon on affiche le texte tel quel
                     return !isNaN(d.getTime())
                       ? d.toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit",
                         })
-                      : msg.messageDate;
+                      : msg.createdAt;
                   })()}
                 </span>
               </div>

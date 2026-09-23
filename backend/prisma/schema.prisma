@@ -26,6 +26,13 @@ model User {
   kind        String?
   orientation String?
   biography   String?
+
+  likesSent     Like[]  @relation("LikesSent")
+  likesReceived Like[]  @relation("LikesReceived")
+
+  matchesAsUser1 Match[] @relation("MatchesAsUser1")
+  matchesAsUser2 Match[] @relation("MatchesAsUser2")
+
   twoFactorSecret  String?
   twoFactorEnabled Boolean  @default(false)
   sentMessages     Message[] @relation("SentMessages")

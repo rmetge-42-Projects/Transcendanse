@@ -1,7 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { UnauthorizedException } from '@nestjs/common';
 import { SendMessageDto } from './dto/sendMessage.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { UnauthorizedException, ForbiddenException, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class MessageService {
@@ -56,6 +55,15 @@ export class MessageService {
 	// TODO: une fois match.service.ts fait par Emma, 
 	// vérifier qu'un match accepté existe entre userId et sendMessageDto.receiveId avant d'autoriser l'envoi
 	async sendMessage(userId: number, sendMessageDto: SendMessageDto) {
+		const user1Id = Math.min(userId, sendMessageDto.receiveId);
+		const user2Id = Math.max(userId, sendMessageDto.receiveId);
+
+		const existingMatch = await this.prisma.match.findUnique({where: {user1Id_user2Id: {user1Id: user1Id,user2Id: user2Id}}});
+	
+		if (!existingMatch) {
+			throw new ForbiddenException("Vous devez avoir un match pour envoyer un message");
+		}
+
     	const newMessage = await this.prisma.message.create({
         	data: {
             	senderId: userId,
