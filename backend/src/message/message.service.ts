@@ -1,11 +1,13 @@
 import { SendMessageDto } from './dto/sendMessage.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { UnauthorizedException, ForbiddenException, Injectable } from '@nestjs/common';
+import { MessageGateway } from './message.gateway';
 
 @Injectable()
 export class MessageService {
 	constructor(
     	private prisma: PrismaService,
+		private messageGateway: MessageGateway,
 	) {}
 
 	//envoie tout les message eu avec userId
@@ -71,6 +73,8 @@ export class MessageService {
             	content: sendMessageDto.message,
         	},
     	});
+
+		this.messageGateway.sendNewMessage(sendMessageDto.receiveId, newMessage);
     	return newMessage;
 	}
 
