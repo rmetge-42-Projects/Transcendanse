@@ -1,6 +1,7 @@
 // src/hooks/useUser.ts
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
+import { UserType } from '../type/user';
 
 export function useUser() {
   return useQuery({
@@ -12,13 +13,22 @@ export function useUser() {
   });
 }
 
-export function otherUser() {
-  return useQuery({
-    queryKey: ['otherUser'],
+export function useOtherUser() {
+  return useQuery<UserType[]>({
+    queryKey: ['otherUsers'],
     queryFn: async () => {
-      const res = await api.get('/users/other');
+      const res = await api.get<UserType[]>('/match/other');
       return res.data;
     },
   });
 }
-//modifier pour les frofile
+
+export function useMyMatch(userId?: number) {
+  return useQuery({
+    queryKey: ['userMyMatch', userId],
+    queryFn: async () => {
+      const res = await api.get(`/users/${userId}`);
+      return res.data;
+    },
+  });
+}
