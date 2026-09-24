@@ -1,146 +1,31 @@
-# Makefile — Chi-Fou-Mi
-# Usage : tape "make <commande>" a la racine du projet
+NAME = transcendence
 
-# ==============================================================================
-# LISTE CENTRALISEE DE TOUTES LES DEPENDANCES DU PROJET
-# Ajoute ici toute nouvelle dependance : elle sera installee a chaque build
-# ==============================================================================
-BACKEND_DEPS := prisma@6 @prisma/client@6 bcrypt @types/bcrypt \
-                @nestjs/passport passport passport-jwt @types/passport-jwt \
-                otplib qrcode
+# Colors for output
+GREEN = \033[0;32m
+RED = \033[0;31m
+YELLOW = \033[0;33m
+RESET = \033[0m
 
-FRONTEND_DEPS := lucide-react
+all: $(NAME)
 
-# ==============================================================================
-# INSTALLATION COMPLETE — a lancer en premier, sur une machine qui n'a jamais
-# vu le projet
-# ==============================================================================
-install:
-	@echo "== Verification du fichier .env =="
-	@if [ ! -f .env ]; then \
-		cp .env.example .env; \
-		echo "-> .env cree a partir de .env.example."; \
-		echo "-> ATTENTION : ouvre .env et remplace les valeurs par les tiennes avant de continuer."; \
-		echo "-> Relance ensuite : make install"; \
-		exit 1; \
-	else \
-		echo "-> .env existe deja, on continue."; \
-	fi
-	@$(MAKE) build
-	@echo ""
-	@echo "== Attente que la base de donnees soit prete =="
-	@sleep 5
-	@echo ""
-	@echo "== Application des migrations Prisma =="
-	docker compose exec backend npx prisma migrate deploy
-	@echo ""
-	@echo "== C'est pret ! =="
-	@echo "-> Site accessible sur https://localhost (accepter l'avertissement de certificat)"
-	@echo "-> Voir les logs : make logs"
-
-# ==============================================================================
-# GESTION QUOTIDIENNE
-# ==============================================================================
-
-# Demarre tous les services (en arriere-plan), sans reconstruire ni reinstaller
-up:
-	docker compose up -d
-
-# Reconstruit tout : installe TOUTES les dependances listees ci-dessus dans les
-# conteneurs, sauvegarde package.json/lock sur le disque, puis reconstruit les
-# images proprement. A utiliser a chaque fois qu'on ajoute une dependance.
-build:
-	docker compose up -d
-	@echo "== Installation des dependances backend =="
-	docker compose exec backend npm install $(BACKEND_DEPS)
-	docker compose cp backend:/app/package.json ./backend/package.json
-	docker compose cp backend:/app/package-lock.json ./backend/package-lock.json
-	@echo "== Installation des dependances frontend =="
-	docker compose exec frontend npm install $(FRONTEND_DEPS)
-	docker compose cp frontend:/app/package.json ./front/package.json
-	docker compose cp frontend:/app/package-lock.json ./front/package-lock.json
-	@echo "== Reconstruction des images =="
-	docker compose down
+$(NAME):
+	@echo "$(GREEN)Building and starting containers for $(NAME)...$(RESET)"
 	docker compose up --build -d
-	@echo "== Termine =="
+	@echo "$(GREEN)$(NAME) is up and running!$(RESET)"
 
-# Arrete tous les services
 down:
+	@echo "$(YELLOW)Stopping $(NAME) containers...$(RESET)"
 	docker compose down
 
-# Redemarre proprement tout
-restart: down build
+clean: down
+	@echo "$(YELLOW)Cleaning up stopped containers and dangling images...$(RESET)"
+	docker system prune -f
 
-# Affiche l'etat de tous les services
-ps:
-	docker compose ps
+fclean: down
+	@echo "$(RED)Deep clean: Removing project containers, networks, images, and volumes...$(RESET)"
+	docker compose down -v --rmi all
+	@echo "$(GREEN)Project cleanup complete.$(RESET)"
 
-# ==============================================================================
-# LOGS
-# ==============================================================================
+re: fclean all
 
-logs:
-	docker compose logs -f
-
-logs-backend:
-	docker compose logs -f backend
-
-logs-frontend:
-	docker compose logs -f frontend
-
-# ==============================================================================
-# AJOUTER UNE DEPENDANCE PONCTUELLE (en plus de la liste ci-dessus)
-# Usage : make install-backend pkg="nom-du-package"
-# Pense aussi a l'ajouter dans BACKEND_DEPS en haut de ce fichier, pour qu'elle
-# survive aux prochains "make build" faits par toute l'equipe.
-# ==============================================================================
-install-backend:
-	docker compose up -d
-	docker compose exec backend npm install $(pkg)
-	docker compose cp backend:/app/package.json ./backend/package.json
-	docker compose cp backend:/app/package-lock.json ./backend/package-lock.json
-	$(MAKE) build
-
-install-frontend:
-	docker compose up -d
-	docker compose exec frontend npm install $(pkg)
-	docker compose cp frontend:/app/package.json ./front/package.json
-	docker compose cp frontend:/app/package-lock.json ./front/package-lock.json
-	$(MAKE) build
-
-# ==============================================================================
-# BASE DE DONNEES (Prisma)
-# ==============================================================================
-
-# Usage : make migrate name="nom_de_la_migration"
-migrate:
-	docker compose exec backend npx prisma migrate dev --name $(name)
-
-reset-db:
-	docker compose exec backend npx prisma migrate reset
-
-studio:
-	docker compose exec backend npx prisma studio
-
-db-shell:
-	docker compose exec database psql -U $${DB_USER} -d $${DB_NAME}
-
-# ==============================================================================
-# ACCES AUX CONTENEURS
-# ==============================================================================
-
-shell-backend:
-	docker compose exec backend sh
-
-shell-frontend:
-	docker compose exec frontend sh
-
-# ==============================================================================
-# NETTOYAGE
-# ==============================================================================
-
-# Arrete les conteneurs ET supprime les volumes (perte de donnees !)
-clean:
-	docker compose down -v
-
-.PHONY: install up build down restart ps logs logs-backend logs-frontend install-backend install-frontend migrate reset-db studio shell-backend shell-frontend db-shell clean
+.PHONY: all down clean fclean re
