@@ -61,7 +61,7 @@ export default function NewAccount(){
 						type="email" 
 						placeholder="ex: test@test.com" 
 						{...register("email", {required: "L\'email est obligatoire"})}
-						className="rounded px-3 py-2 w-full border "
+						className="rounded px-3 py-2 w-full border text-black "
 						/>
 					{errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
 					<label>Mot de passe</label>
