@@ -10,7 +10,7 @@ BACKEND_DEPS := prisma@6 @prisma/client@6 bcrypt @types/bcrypt \
                 otplib qrcode \
                 @nestjs/websockets@11 @nestjs/platform-socket.io@11 socket.io
 
-FRONTEND_DEPS := lucide-react
+FRONTEND_DEPS := lucide-react socket.io-client
 
 # ==============================================================================
 # VERIFICATION DES PREREQUIS SYSTEME
