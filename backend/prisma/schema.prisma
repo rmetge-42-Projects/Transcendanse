@@ -26,6 +26,7 @@ model User {
   kind        String?
   orientation String?
   biography   String?
+  photo       String?
   twoFactorSecret  String? 
   twoFactorEnabled Boolean  @default(false)
   sentMessages     Message[] @relation("SentMessages")

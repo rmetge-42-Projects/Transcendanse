@@ -1,11 +1,12 @@
-'use client'
-import Bottom from "@/src/display/bottom"
-import Footer from "@/src/display/footer"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+'use client';
+import Bottom from "@/src/display/bottom";
+import Footer from "@/src/display/footer";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from 'react-hook-form';
+import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
-//page de creation de compte où on rentre toute les info personnel
+import AvatarPicker from "@/src/composant/profile/AvatarPicker";
 
 type ProfileFormValues = {
 	name: string;
@@ -14,24 +15,19 @@ type ProfileFormValues = {
 	kind: string;
 	orientation: string;
 	biography: string;
-	photo?: FileList;
 };
 
-export  default function CreateAccount()
-{
+export default function CreateAccount() {
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const [invalide, setInvalide] = useState('');
-	const [isSumit, setIsSumbit] = useState(false);
-	// const today = new Date().toISOString().split("T")[0];
+	const [isSubmit, setIsSubmit] = useState(false);
 	const [preview, setPreview] = useState<string | null>(null);
 
-	// 1. On crée la date d'aujourd'hui
+	// Date maximum (18 ans minimum)
 	const maxDateObj = new Date();
-	// 2. On retire 18 ans à l'année actuelle
 	maxDateObj.setFullYear(maxDateObj.getFullYear() - 18);
-	// 3. On formate au format YYYY-MM-DD
 	const dateMin = maxDateObj.toISOString().split("T")[0];
-
 
 	const {
 		register,
@@ -39,160 +35,167 @@ export  default function CreateAccount()
 		formState: { errors },
 	} = useForm<ProfileFormValues>();
 
-	// Gestionnaire pour l'aperçu de l'unique photo
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setPreview(URL.createObjectURL(file));
-        }
-    };
+	const handlePhotoChange = (_file: File | null, dataUrl: string | null) => {
+		setPreview(dataUrl);
+	};
 
-
-	const onSubmit = async (data: ProfileFormValues) => 
-	{
+	const onSubmit = async (data: ProfileFormValues) => {
 		setInvalide('');
-		setIsSumbit(true);
+		setIsSubmit(true);
 		try {
-			const res = await api.post("/users/createProfile", data);
-			router.push("/myProfile");
-		}
-		catch(error)
-		{
-			setInvalide("Error, reessayer");
-		}
-		finally{
-			setIsSumbit(false);
-		}
-	}
+			const payload = {
+				name: data.name,
+				username: data.username,
+				birthday: new Date(data.birthday),
+				kind: data.kind,
+				orientation: data.orientation,
+				biography: data.biography || '',
+				photo: preview || null,
+			};
 
-	return(
+			await api.post('/users/createProfile', payload);
+			await queryClient.invalidateQueries({ queryKey: ['userMe'] });
+			router.push('/myProfile');
+		} catch (err: any) {
+			const errorMsg = err?.response?.data?.message || "Erreur lors de l'enregistrement du profil. Veuillez réessayer.";
+			setInvalide(Array.isArray(errorMsg) ? errorMsg.join(', ') : errorMsg);
+		} finally {
+			setIsSubmit(false);
+		}
+	};
+
+	return (
 		<Bottom>
-			<div className="flex flex-col iten:centers justify-center min-h-[70vh] px-4 ">
-				<h1 className="text-blue-950 text-3xl md:text-6xl font-black text-center">
-					Creation du profile
+			<div className="flex flex-col items-center justify-center min-h-[70vh] px-4 py-8">
+				<h1 className="text-blue-950 text-3xl md:text-5xl font-black text-center">
+					Création du profil
 				</h1>
 				<form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md mx-auto flex flex-col gap-4 mt-6">
-					<p className="text-black mt-2  text-center">
+					<p className="text-gray-600 text-sm text-center">
 						Remplis tes informations pour personnaliser ton compte.
 					</p>
-					<div className="flex flex-col gap-2">
 
-						{/* CHAMP PHOTO UNIQUE */}
-                        <div className="flex flex-col items-center gap-3 mb-2">
-                            {/* APERÇU STYLE AVATAR */}
-                            {preview ? (
-                                <img
-                                    src={preview}
-                                    alt="Aperçu du profil"
-                                    className="w-28 h-28 rounded-full object-cover border-2 border-blue-950 shadow-md"
-                                />
-                            ) : (
-                                <div className="w-28 h-28 rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center text-gray-500 text-xs font-semibold text-center px-2">
-                                    Aucune photo
-                                </div>
-                            )}
+					<div className="flex flex-col gap-3">
+						{/* CHAMP PHOTO AVEC BOUTON ET MENU D'OPTIONS */}
+						<div className="flex justify-center mb-2">
+							<AvatarPicker
+								value={preview}
+								onChange={handlePhotoChange}
+							/>
+						</div>
 
-                            <div className="w-full">
-                                <label className="text-sm font-semibold text-gray-700 block mb-1">
-                                    Photo de profil
-                                </label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    {...register("photo", {
-                                        onChange: handleImageChange,
-                                    })}
-                                    className="rounded px-3 py-2 w-full bg-white border text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-950 file:text-white hover:file:bg-blue-900 cursor-pointer"
-                                />
-                                {errors.photo && <p className="bg-red-600 text-white text-sm px-2 py-1 rounded mt-1">{errors.photo.message}</p>}
-                            </div>
-                        </div>
+						{/* NOM */}
+						<div>
+							<label className="text-sm font-semibold text-gray-700 block mb-1">
+								Nom
+							</label>
+							<input
+								type="text"
+								placeholder="ex: Alexandre"
+								{...register("name", { required: "Le nom est obligatoire" })}
+								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+							/>
+							{errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+						</div>
 
+						{/* NOM D'UTILISATEUR */}
+						<div>
+							<label className="text-sm font-semibold text-gray-700 block mb-1">
+								Nom d'utilisateur
+							</label>
+							<input
+								type="text"
+								placeholder="ex: alex_dev"
+								{...register("username", { required: "Le nom d'utilisateur est obligatoire" })}
+								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+							/>
+							{errors.username && <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>}
+						</div>
 
+						{/* DATE DE NAISSANCE */}
+						<div>
+							<label className="text-sm font-semibold text-gray-700 block mb-1">
+								Date de naissance
+							</label>
+							<input
+								type="date"
+								max={dateMin}
+								{...register("birthday", { required: "La date de naissance est obligatoire" })}
+								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+							/>
+							{errors.birthday && <p className="text-red-500 text-xs mt-1">{errors.birthday.message}</p>}
+						</div>
 
-						<label className="text-sm font-semibold text-gray-700">
-							Nom
-						</label>
-						<input
-							type="text"
-							placeholder="ex: alexendre"
-							{...register("name", {required: "Le nom est obligatoire"})}
-							className="rounded  px-3 py-2 w-full bg-white border "
-						/>
-						{errors.name && <p className="bg-red-600 text-white text-sm mt-1">{errors.name.message}</p>}
-						<label 
-							className="text-sm font-semibold text-gray-700">
-							Nom d'utilisateur
-						</label>
-						<input
-							type="text"
-							placeholder="ex: alex_dev"
-							{...register("username", {required: "Le nom d'utilisateur est obligatoire"})}
-							className="rounded px-3 py-2 w-full bg-white border "
-						/>
-						{errors.username && <p className="bg-red-600 text-white text-sm mt-1">{errors.username.message}</p>}
-						<label className="text-sm font-semibold text-gray-700">
-							Date de naissance
-						</label>
-						<input
-							type="date"
-							// max={today}
-							max={dateMin}
-							{...register("birthday", {required: "La date d'anniversaire est obligatoire"})}
-							className="rounded px-3 py-2 w-full bg-white border "
-						/>
-						{errors.birthday && <p className="bg-red-600 text-white text-sm mt-1">{errors.birthday.message}</p>}
-						<label className="text-sm font-semibold text-gray-700">
-							Genre
-						</label>
-						<select
-							{...register("kind", {required: "Le genre est obligatoire"})}
-							className="rounded px-3 py-2 w-full bg-white border "
-						>
-							<option disabled hidden>
-								Choisi une option
-							</option>
-							<option value="man">Homme</option>
-							<option value="woman">Femme</option>
-							<option value="non_binary">Non-binaire</option>
-						</select>
-						{errors.kind && <p className="bg-red-600 text-white text-sm mt-1">{errors.kind.message}</p>}
-						<label className="text-sm font-semibold text-gray-700">
-							Orientation sexuelle
-						</label>
-						<select
-							{...register("orientation", {required: "L'orientation sexuelle est obligatoire"})}
-							className="rounded px-3 py-2 w-full bg-white border "
-						>
-							<option disabled hidden>
-								Choisi une option
-							</option>
-							<option value="Men">Homme</option>
-							<option value="Woman">Femme</option>
-							<option value="All">N'importe</option>
-						</select>
-						{errors.orientation && <p className="bg-red-600 text-white text-sm mt-1">{errors.orientation.message}</p>}
-						<label className="text-sm font-semibold text-gray-700">
-							Biographie
-						</label>
-						<textarea
-							rows={3}
-							placeholder="j'aime les fleures ......"
-							{...register("biography")}
-							className="rounded  px-3 py-2 w-full bg-white border "
-						/>
+						{/* GENRE */}
+						<div>
+							<label className="text-sm font-semibold text-gray-700 block mb-1">
+								Genre
+							</label>
+							<select
+								defaultValue=""
+								{...register("kind", { required: "Le genre est obligatoire" })}
+								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+							>
+								<option value="" disabled hidden>
+									Choisis une option
+								</option>
+								<option value="man">Homme</option>
+								<option value="woman">Femme</option>
+								<option value="non_binary">Non-binaire</option>
+							</select>
+							{errors.kind && <p className="text-red-500 text-xs mt-1">{errors.kind.message}</p>}
+						</div>
+
+						{/* ORIENTATION SEXUELLE */}
+						<div>
+							<label className="text-sm font-semibold text-gray-700 block mb-1">
+								Orientation sexuelle
+							</label>
+							<select
+								defaultValue=""
+								{...register("orientation", { required: "L'orientation sexuelle est obligatoire" })}
+								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+							>
+								<option value="" disabled hidden>
+									Choisis une option
+								</option>
+								<option value="man">Homme</option>
+								<option value="woman">Femme</option>
+								<option value="all">N'importe</option>
+							</select>
+							{errors.orientation && <p className="text-red-500 text-xs mt-1">{errors.orientation.message}</p>}
+						</div>
+
+						{/* BIOGRAPHIE */}
+						<div>
+							<label className="text-sm font-semibold text-gray-700 block mb-1">
+								Biographie
+							</label>
+							<textarea
+								rows={3}
+								placeholder="Passionné(e) de danse, voyages..."
+								{...register("biography")}
+								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 resize-none"
+							/>
+						</div>
 					</div>
-					{invalide && <p className="bg-red-600 text-white font-bold px-3 py-1 rounded-lg">{invalide}</p>}
+
+					{invalide && (
+						<div className="bg-red-50 text-red-700 border border-red-200 px-4 py-2.5 rounded-lg text-sm font-medium">
+							{invalide}
+						</div>
+					)}
+
 					<button 
-						type= "submit"
-						disabled={isSumit}
-						className="bg-blue-950 text-white rounded p-2 mt-4"
+						type="submit"
+						disabled={isSubmit}
+						className="bg-blue-950 hover:bg-blue-900 text-white font-medium rounded-lg p-3 mt-2 transition cursor-pointer disabled:bg-gray-400"
 					>
-						{isSumit ? "Connexion..." : "Connexion"}
+						{isSubmit ? "Enregistrement en cours..." : "Valider mon profil"}
 					</button>
 				</form>
 			</div>
 			<Footer/>
 		</Bottom>
-	)
+	);
 }

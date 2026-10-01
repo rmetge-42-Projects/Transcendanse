@@ -62,6 +62,7 @@ export default function Duiscution({
     if (confirmLogout) {
       try {
         const res = await api.delete(`/match/${userId}`);
+	
         queryClient.invalidateQueries({ queryKey: ["messages", userId] });
         queryClient.invalidateQueries({ queryKey: ["messagerie"] });
         setSelectedUser(null);

@@ -116,7 +116,7 @@ export default function Match() {
   
   return (
     <>
-      <ProfileCard>
+      <ProfileCard photo={currentProfile?.photo}>
         <div className="w-full flex flex-col items-center pb-14">
           {/* Indicateur de progression */}
           {/* <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">

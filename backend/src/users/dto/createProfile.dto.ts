@@ -27,4 +27,8 @@ export class CreateDto{
     @IsString()
     @IsOptional()
     biography!: string
+
+    @IsString()
+    @IsOptional()
+    photo?: string;
 }
