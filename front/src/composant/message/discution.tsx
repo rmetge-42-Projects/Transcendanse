@@ -5,6 +5,8 @@ import { api } from "@/src/lib/axios";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { socket } from "@/src/lib/socket";
 
 import { useMessages } from "@/src/hook/conversation";
 import MyMatchProfile from "@/src/app/myMatchProfile/[id]/page";
@@ -23,6 +25,24 @@ export default function Duiscution({
   const router = useRouter();
 
   const { data: messages, isLoading } = useMessages(selectedUser?.userId);
+    useEffect(() => {
+      if (!selectedUser) return; 
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      socket.auth = { token };
+      socket.connect();
+
+      socket.on("newMessage", () => {
+          queryClient.invalidateQueries({ queryKey: ["discution", selectedUser.userId] });
+          queryClient.invalidateQueries({ queryKey: ["messagerie"] });
+      });
+
+      return () => {
+          socket.off("newMessage");
+          socket.disconnect();
+      };
+    }, [selectedUser?.userId]);
 
   if (!selectedUser) {
     return (

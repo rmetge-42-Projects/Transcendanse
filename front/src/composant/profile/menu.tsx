@@ -4,28 +4,31 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/src/lib/axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Menu()
 {
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const [isOpen, setIsOpen] = useState(false);
 
 	function menu() {
     setIsOpen(!isOpen);
   }
 
-  const logout = async () => {
-    const confirmLogout = window.confirm("Es-tu sûr de vouloir te déconnecter ?");
-    if (!confirmLogout) return;
-    try {
-      await api.patch('/users/status', { isOnline: false });
-    } catch (e) {
-      console.error("Erreur lors de la déconnexion", e);
-    } finally {
-      localStorage.removeItem('token');
-      router.push('/');
-    }
-  };
+	const logout = async () => {
+    	const confirmLogout = window.confirm("Es-tu sûr de vouloir te déconnecter ?");
+    	if (!confirmLogout) return;
+    	try {
+        	await api.patch('/users/status', { isOnline: false });
+    	} catch (e) {
+        	console.error("Erreur lors de la déconnexion", e);
+    	} finally {
+        	localStorage.removeItem('token');
+        	queryClient.clear();
+        	router.push('/');
+    	}
+	};
 
 	return(
 		<div className="absolute top-4 right-6 z-50">
