@@ -7,8 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { socket } from "@/src/lib/socket";
-
-import { useMessages } from "@/src/hook/conversation";
+import { useMessages, useMatches } from "@/src/hook/conversation";
 import MyMatchProfile from "@/src/app/myMatchProfile/[id]/page";
 
 interface ContactProps {
@@ -24,6 +23,21 @@ export default function Duiscution({
   const [invalide, setInvalide] = useState("");
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
+
+  const { data: users } = useMatches();
+    useEffect(() => {
+      if (!selectedUser || !users) return;
+
+      const freshUser = users.find((u) => u.id === selectedUser.userId);
+      if (freshUser) {
+        setSelectedUser({
+            ...selectedUser,
+            isBlocked: freshUser.isBlocked,
+            isActive: freshUser.isActive,
+            isOnline: freshUser.isOnline,
+        });
+      }
+  }, [users]);
 
   const { data: messages, isLoading } = useMessages(selectedUser?.userId);
     useEffect(() => {
@@ -76,11 +90,13 @@ export default function Duiscution({
         try {
             await api.delete(`/match/${userId}`);
             queryClient.invalidateQueries({ queryKey: ["matches"] });
+            queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
             setSelectedUser(null);
             router.push("/message");
         } catch (error: any) {
             if (error.response?.status === 404) {
                 queryClient.invalidateQueries({ queryKey: ["matches"] });
+                queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
                 setSelectedUser(null);
                 router.push("/message");
             } else {
@@ -100,6 +116,32 @@ export default function Duiscution({
       } catch {
           setInvalide("Une erreur est survenue, la conversation n'a pas été supprimée.");
       }
+    }
+  };
+
+  const blockUser = async (userId: number) => {
+    const confirmBlock = window.confirm("Es-tu sûr de vouloir bloquer cet utilisateur ?");
+    if (confirmBlock) {
+      try {
+          await api.post(`/match/block/${userId}`);
+          queryClient.invalidateQueries({ queryKey: ["matches"] });
+          queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+          setSelectedUser(null);
+          router.push("/message");
+      } catch {
+          setInvalide("Une erreur est survenue, l'utilisateur n'a pas été bloqué.");
+      }
+    }
+  };
+
+  const unblockUser = async (userId: number) => {
+    try {
+        await api.delete(`/match/block/${userId}`);
+        queryClient.invalidateQueries({ queryKey: ["matches"] });
+        queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+        setShowMenu(false);
+    } catch {
+        setInvalide("Une erreur est survenue, l'utilisateur n'a pas été débloqué.");
     }
   };
 
@@ -142,6 +184,21 @@ export default function Duiscution({
                 >
                     Supprimer le match
                 </button>
+            {selectedUser.isBlocked ? (
+                <button
+                    onClick={() => unblockUser(selectedUser.userId)}
+                    className="text-left px-3 py-2 rounded-lg hover:bg-green-50 text-sm text-green-700 font-semibold"
+                >
+                    Débloquer cet utilisateur
+                </button>
+            ) : (
+                <button
+                    onClick={() => blockUser(selectedUser.userId)}
+                    className="text-left px-3 py-2 rounded-lg hover:bg-red-50 text-sm text-red-700 font-semibold"
+                >
+                    Bloquer cet utilisateur
+                </button>
+            )}
             </div>
         )}
     </div>

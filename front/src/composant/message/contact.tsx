@@ -44,6 +44,7 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
                 lastMessageDate: "",
                 unreadCount: 0,
                 isActive: user.isActive,
+                isBlocked: user.isBlocked,
               })
             }
             // 3. Applique la couleur si c'est l'utilisateur sélectionné

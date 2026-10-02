@@ -35,9 +35,14 @@ model User {
 
   twoFactorSecret  String?
   twoFactorEnabled Boolean  @default(false)
+
   isOnline Boolean @default(false)
+
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
+
+  blocksSent     Block[] @relation("BlocksSent")
+  blocksReceived Block[] @relation("BlocksReceived")
 }
 
 //Message
@@ -80,4 +85,16 @@ model Match {
   user2 User @relation("MatchesAsUser2", fields: [user2Id], references: [id])
 
   @@unique([user1Id, user2Id])
+}
+
+model Block {
+  id          Int      @id @default(autoincrement())
+  blockerId   Int
+  blockedId   Int
+  createdAt   DateTime @default(now())
+
+  blocker User @relation("BlocksSent", fields: [blockerId], references: [id])
+  blocked User @relation("BlocksReceived", fields: [blockedId], references: [id])
+
+  @@unique([blockerId, blockedId])
 }

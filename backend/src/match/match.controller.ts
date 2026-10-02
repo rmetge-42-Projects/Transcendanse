@@ -34,6 +34,20 @@ export class MatchController {
   async deleteMatch(@Req() request, @Param('userId', ParseIntPipe) userId: number){
       return this.matchService.deleteMatch(request.user.id, userId);
   }
+
+  //bloque un user
+  @UseGuards(JwtAuthGuard)
+  @Post('block/:userId')
+  async block(@Param('userId') userId: string, @Req() request) {
+    return this.matchService.blockUser(request.user.id, +userId);
+  }
+
+  //debloque un user
+  @UseGuards(JwtAuthGuard)
+  @Delete('block/:userId')
+  async unblock(@Param('userId') userId: string, @Req() request) {
+    return this.matchService.unblockUser(request.user.id, +userId);
+  }
 }
 
 

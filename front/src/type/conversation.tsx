@@ -6,6 +6,7 @@ export interface UserConversationType {
   unreadCount: number;
   isOnline?: boolean;
   isActive?: boolean;
+  isBlocked?: boolean;
 }
 
 // export interface MessageType {

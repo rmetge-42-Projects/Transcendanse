@@ -20,6 +20,7 @@ export function useOtherUser() {
       const res = await api.get<UserType[]>('/match/other');
       return res.data;
     },
+    refetchInterval: 10000,
   });
 }
 
