@@ -23,6 +23,7 @@ export default function Duiscution({
   const [messageText, setMessageText] = useState("");
   const [invalide, setInvalide] = useState("");
   const router = useRouter();
+  const [showMenu, setShowMenu] = useState(false);
 
   const { data: messages, isLoading } = useMessages(selectedUser?.userId);
     useEffect(() => {
@@ -70,20 +71,34 @@ export default function Duiscution({
   };
 
   const deleteMatch = async (userId: number) => {
-    const confirmLogout = window.confirm(
-      "Es-tu sûr de vouloir supprimer ce match  ?",
-    );
+    const confirmLogout = window.confirm("Es-tu sûr de vouloir supprimer ce match ?");
     if (confirmLogout) {
+        try {
+            await api.delete(`/match/${userId}`);
+            queryClient.invalidateQueries({ queryKey: ["matches"] });
+            setSelectedUser(null);
+            router.push("/message");
+        } catch (error: any) {
+            if (error.response?.status === 404) {
+                queryClient.invalidateQueries({ queryKey: ["matches"] });
+                setSelectedUser(null);
+                router.push("/message");
+            } else {
+                setInvalide("Une erreur est survenue, le match n'a pas été supprimé.");
+            }
+        }
+    }
+  };
+
+  const deleteConversation = async (userId: number) => {
+    const confirm = window.confirm("Es-tu sûr de vouloir supprimer cette conversation ?");
+    if (confirm) {
       try {
-        const res = await api.delete(`/match/${userId}`);
-        queryClient.invalidateQueries({ queryKey: ["messages", userId] });
-        queryClient.invalidateQueries({ queryKey: ["messagerie"] });
-        setSelectedUser(null);
-        router.push("/message");
+          await api.delete(`/message/conversation/${userId}`);
+          queryClient.invalidateQueries({ queryKey: ["discution", userId] });
+          setShowMenu(false);
       } catch {
-        setInvalide(
-          "Une erreur est survenue, le match n'a pas etais supprimer",
-        );
+          setInvalide("Une erreur est survenue, la conversation n'a pas été supprimée.");
       }
     }
   };
@@ -105,13 +120,31 @@ export default function Duiscution({
         >
           {selectedUser.userName}
         </span>
+    <div className="relative ml-auto">
         <button
-          className="ml-auto p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition"
-          title="Supprimer le match"
-          onClick={() => deleteMatch(selectedUser.userId)}
+            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition"
+            title="Options"
+            onClick={() => setShowMenu(!showMenu)}
         >
-          <Trash />
+            <Trash />
         </button>
+        {showMenu && (
+            <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-2 flex flex-col gap-1">
+                <button
+                    onClick={() => deleteConversation(selectedUser.userId)}
+                    className="text-left px-3 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-700"
+                >
+                    Supprimer la conversation
+                </button>
+                <button
+                    onClick={() => deleteMatch(selectedUser.userId)}
+                    className="text-left px-3 py-2 rounded-lg hover:bg-red-50 text-sm text-red-600"
+                >
+                    Supprimer le match
+                </button>
+            </div>
+        )}
+    </div>
       </div>
       <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
         {messages && messages.length > 0 ? (

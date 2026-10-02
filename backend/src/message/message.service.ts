@@ -25,13 +25,13 @@ export class MessageService {
 
     	const messages = await this.prisma.message.findMany({
         	where: {
-        	    OR: [
-        	        { senderId: myId, receiverId: otherUserId },
-        	        { senderId: otherUserId, receiverId: myId },
-        	    ],
-    			},
-			orderBy: {
-        		createdAt: 'asc',
+            	OR: [
+                	{ senderId: myId, receiverId: otherUserId, deletedForSender: false },
+                	{ senderId: otherUserId, receiverId: myId, deletedForReceiver: false },
+            	],
+        	},
+        	orderBy: {
+            	createdAt: 'asc',
         	},
     	});
     	return messages;
@@ -39,15 +39,15 @@ export class MessageService {
 
 	//envoyer toute les personne avec les quel je discute
 	async conversation(userId: number){
-		const list = await this.prisma.message.findMany({
+    	const list = await this.prisma.message.findMany({
         	where: {
-        	    OR: [
-        	        { senderId: userId},
-        	        { receiverId: userId},
-        	    ],
-    			},
-			orderBy: {
-        		createdAt: 'asc',
+            	OR: [
+                	{ senderId: userId, deletedForSender: false },
+                	{ receiverId: userId, deletedForReceiver: false },
+            	],
+        	},
+        	orderBy: {
+            	createdAt: 'asc',
         	},
     	});
     	return list;
@@ -86,23 +86,43 @@ export class MessageService {
 
     	if (!message || (message.senderId !== userId && message.receiverId !== userId)) {
         	throw new UnauthorizedException("Message introuvable.");
+    	}	
+
+    	if (message.senderId === userId) {
+        	await this.prisma.message.update({
+            	where: { id: messageId },
+            	data: { deletedForSender: true },
+        	});
+    	} else {
+        	await this.prisma.message.update({
+            	where: { id: messageId },
+            	data: { deletedForReceiver: true },
+        	});
     	}
 
-    	const sup = await this.prisma.message.delete({
-        	where: { id: messageId },
-    	});
-    	return sup;
+    	return { success: true, message: "Message masqué pour vous" };
 	}
 
 	async deleteDiscution(myId: number, otherUserId: number) {
-    	const messages = await this.prisma.message.deleteMany({
+    	await this.prisma.message.updateMany({
         	where: {
-        	    OR: [
-        	        { senderId: myId, receiverId: otherUserId },
-        	        { senderId: otherUserId, receiverId: myId },
-        	    ],
+            	senderId: myId,
+            	receiverId: otherUserId,
+        	},
+        	data: {
+            	deletedForSender: true,
         	},
     	});
-    	return messages;
+
+    	await this.prisma.message.updateMany({
+        	where: {
+            	senderId: otherUserId,
+            	receiverId: myId,
+        	},
+        	data: {
+            	deletedForReceiver: true,
+        	},
+    	});
+		return { success: true, message: "Conversation masquée pour vous" };
+		}
 	}
-}
