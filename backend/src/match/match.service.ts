@@ -77,6 +77,7 @@ export class MatchService {
             kind: true,
             orientation: true,
             biography: true,
+            isOnline: true,
           },
         },
         user2: {
@@ -86,6 +87,7 @@ export class MatchService {
             kind: true,
             orientation: true,
             biography: true,
+            isOnline: true,
           },
         },
       },

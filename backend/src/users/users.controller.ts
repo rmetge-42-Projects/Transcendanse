@@ -52,10 +52,11 @@ export class UsersController {
     return this.usersService.updateProfile(userId, updateProfileDto);
   }
 
-  //enlever le status en ligne ou le mettre en fonction du satsus recu
+  //defini le statut
   @UseGuards(JwtAuthGuard)
   @Patch('status')
-  async status(@Body() statusDto : StatusDto){
-    return this.usersService.status(statusDto.isOnline);
+  async status(@Req() req: Request, @Body() statusDto : StatusDto){
+    const userId = (req.user as { id: number }).id;
+    return this.usersService.status(userId, statusDto);
   }
 }

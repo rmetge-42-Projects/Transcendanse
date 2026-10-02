@@ -35,6 +35,7 @@ model User {
 
   twoFactorSecret  String?
   twoFactorEnabled Boolean  @default(false)
+  isOnline Boolean @default(false)
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
 }

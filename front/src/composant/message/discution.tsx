@@ -26,23 +26,17 @@ export default function Duiscution({
 
   const { data: messages, isLoading } = useMessages(selectedUser?.userId);
     useEffect(() => {
-      if (!selectedUser) return; 
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      socket.auth = { token };
-      socket.connect();
+    if (!selectedUser) return;
 
       socket.on("newMessage", () => {
-          queryClient.invalidateQueries({ queryKey: ["discution", selectedUser.userId] });
-          queryClient.invalidateQueries({ queryKey: ["messagerie"] });
+        queryClient.invalidateQueries({ queryKey: ["discution", selectedUser.userId] });
+        queryClient.invalidateQueries({ queryKey: ["messagerie"] });
       });
 
-      return () => {
-          socket.off("newMessage");
-          socket.disconnect();
-      };
-    }, [selectedUser?.userId]);
+    return () => {
+        socket.off("newMessage");
+    };
+  }, [selectedUser?.userId]);
 
   if (!selectedUser) {
     return (

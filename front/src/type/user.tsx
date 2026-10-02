@@ -4,4 +4,5 @@ export interface UserType {
   biography?: string;
   kind: string;
   orientation: string;
+  isOnline?: boolean;
 }

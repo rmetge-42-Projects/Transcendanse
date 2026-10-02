@@ -20,6 +20,7 @@ export function useMatches() {
       const res = await api.get<UserType[]>('/match');
       return res.data;
     },
+    refetchInterval: 10000,
   });
 }
 

@@ -1,7 +1,6 @@
 #!/bin/bash
-# Script de creation rapide de 2 comptes de test, avec profils remplis
+# Script de creation rapide de 2 comptes de test, avec profils remplis et match cree
 # Usage : bash create-test-users.sh
-# Adapte l'URL de base si besoin (port, http/https)
 
 BASE_URL="https://localhost:8443/api"
 CURL="curl -k -s"
@@ -64,17 +63,16 @@ echo "Id Alice : $ID_A"
 echo "Id Bob   : $ID_B"
 
 echo ""
-echo "== Tentative de creation d'un match (adapte le endpoint/payload si besoin) =="
-echo "-> Verifie dans match.controller.ts le nom exact de la route et le format attendu."
+echo "== Creation du match (like reciproque) =="
 $CURL -X POST "$BASE_URL/match/validate" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_A" \
-  -d "{\"userId\":$ID_B}"
+  -d "{\"userId\":$ID_B,\"status\":\"like\"}"
 echo ""
 $CURL -X POST "$BASE_URL/match/validate" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN_B" \
-  -d "{\"userId\":$ID_A}"
+  -d "{\"userId\":$ID_A,\"status\":\"like\"}"
 echo ""
 
 echo ""

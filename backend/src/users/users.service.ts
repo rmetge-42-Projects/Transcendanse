@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateDto } from './dto/createProfile.dto';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
+import { StatusDto } from './dto/status.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -148,10 +149,16 @@ export class UsersService {
     }
 
   //mettre onLine a false (ou true)
-    status(status: boolean) {
+    async status(userId: number, statusDto: StatusDto) {
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                isOnline: statusDto.isOnline,
+            },
+        });
         return {
             success: true,
-            message: "Status hors ligne"
-        }
+            message: statusDto.isOnline ? "Status en ligne" : "Status hors ligne",
+        };
     }
 }
