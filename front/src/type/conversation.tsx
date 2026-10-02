@@ -5,6 +5,7 @@ export interface UserConversationType {
   lastMessageDate: string;
   unreadCount: number;
   isOnline?: boolean;
+  isActive?: boolean;
 }
 
 // export interface MessageType {

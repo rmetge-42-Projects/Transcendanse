@@ -5,4 +5,5 @@ export interface UserType {
   kind: string;
   orientation: string;
   isOnline?: boolean;
+  isActive?: boolean;
 }

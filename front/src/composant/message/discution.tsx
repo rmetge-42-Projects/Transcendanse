@@ -190,28 +190,33 @@ export default function Duiscution({
       {invalide && (
         <p className="text-red-500 text-sm mt-3 font-medium">{invalide}</p>
       )}
-      <div className="p-4 border-t border-gray-200 flex gap-2">
-        <input
-          type="text"
-          placeholder="Écrivez votre message..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-blue-950"
-          value={messageText}
-          onChange={(e) => setMessageText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              send(selectedUser.userId);
-            }
-          }}
-        />
-        <button
-          className="bg-blue-950 text-white p-2.5 rounded-full hover:bg-blue-900 transition"
-          // disabled={send}
-          onClick={() => send(selectedUser.userId)}
-        >
-          <Send className="w-4 h-4" />
-        </button>
-      </div>
+      {selectedUser.isActive === false ? (
+        <div className="p-4 border-t border-gray-200 text-center text-gray-500 text-sm">
+            Vous ne pouvez plus envoyer de message à cet utilisateur.
+        </div>
+      ) : (
+        <div className="p-4 border-t border-gray-200 flex gap-2">
+            <input
+                type="text"
+                placeholder="Écrivez votre message..."
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-blue-950"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        send(selectedUser.userId);
+                    }
+                }}
+            />
+            <button
+                className="bg-blue-950 text-white p-2.5 rounded-full hover:bg-blue-900 transition"
+                onClick={() => send(selectedUser.userId)}
+            >
+                <Send className="w-4 h-4" />
+            </button>
+        </div>
+    )}
     </div>
   );
 }

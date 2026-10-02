@@ -84,12 +84,33 @@ export class MatchService {
         },
       },
     });
+
     const matchedProfiles = matches.map((match) => {
-      if (match.user1.id === currentUserId) {
-        return match.user2;
-      }
-      return match.user1;
-    });
+    let otherUser;
+    if (match.user1.id === currentUserId) {
+      otherUser = match.user2;
+    } else {
+      otherUser = match.user1;
+    }
+    
+    let onlineStatus;
+    if (match.isActive) {
+      onlineStatus = otherUser.isOnline;
+    }
+    else {
+      onlineStatus = false;
+    }
+
+    return {
+      id: otherUser.id,
+      username: otherUser.username,
+      kind: otherUser.kind,
+      orientation: otherUser.orientation,
+      biography: otherUser.biography,
+      isOnline: onlineStatus,
+      isActive: match.isActive,
+        };
+      });
     return matchedProfiles;
   }
 
@@ -149,44 +170,35 @@ export class MatchService {
 
   //supprimer un match
 	async deleteMatch(currentUserId: number, otherUserId: number) {
-
     const user1Id = Math.min(currentUserId, otherUserId);
     const user2Id = Math.max(currentUserId, otherUserId);
 
-    const existingMatch = await this.prisma.match.findUnique({where: {user1Id_user2Id: {user1Id: user1Id, user2Id: user2Id}}});
-		
+    const existingMatch = await this.prisma.match.findUnique({
+        where: {
+            user1Id_user2Id: {
+                user1Id: user1Id,
+                user2Id: user2Id,
+            },
+        },
+    });
+
     if (!existingMatch) {
         throw new NotFoundException('Match introuvable');
     }
 
-    await this.prisma.$transaction([
-      this.prisma.match.delete({
+    await this.prisma.match.update({
         where: {
-          user1Id_user2Id: {
-            user1Id: user1Id,
-            user2Id: user2Id,
-          },
-        },
-      }),
-      this.prisma.like.deleteMany({
-        where: {
-          OR: [
-            {
-              fromUserId: currentUserId,
-              toUserId: otherUserId,
+            user1Id_user2Id: {
+                user1Id: user1Id,
+                user2Id: user2Id,
             },
-            {
-              fromUserId: otherUserId,
-              toUserId: currentUserId,
-            },
-          ],
         },
-      }),
-    ]);
+        data: { isActive: false },
+    });
 
-		return{
-			success: true,
-			message: "Match supprime"
-		}
-	}
+    return {
+        success: true,
+        message: "Match supprime"
+    }
+  }
 }
