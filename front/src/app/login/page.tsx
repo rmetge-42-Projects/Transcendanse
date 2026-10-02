@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { api } from '@/src/lib/axios';
 import { Eye, EyeOff } from "lucide-react";
 import Connextion from "@/src/composant/connection/connection";
+import { socket } from "@/src/lib/socket";
 //page de connection
 
 // 1. Définition du type pour le formulaire
@@ -19,6 +20,7 @@ export default function Login() {
 	const [invalide, setInvalide] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
+	
 	
 	// 2. Configuration de React Hook Form
 	const {
@@ -36,6 +38,13 @@ export default function Login() {
 		try{
 			const res = await api.post("/auth/login", data);
 			localStorage.setItem('token', res.data.access_token);
+        	socket.auth = { token: res.data.access_token };
+
+        	if (socket.connected) {
+            	socket.disconnect();
+        	}
+        	socket.connect();
+			
 			router.push("/myProfile");
 		}
 		catch {
