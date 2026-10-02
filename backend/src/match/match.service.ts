@@ -32,15 +32,16 @@ export class MatchService {
           const reverseLike = await tx.like.findUnique({where: { fromUserId_toUserId: { fromUserId: validateDto.userId, toUserId: currentUserId}}});
           const matched = reverseLike !== null;
 
-          if (matched) {
-              const user1Id = Math.min(currentUserId, validateDto.userId);
-              const user2Id = Math.max(currentUserId, validateDto.userId);
-              try {
-                await tx.match.create({data: {user1Id: user1Id, user2Id: user2Id}});
-              } catch (error) {
-              // Le match existe déjà dans ce cas la , mais ce nest pas une erreur
-            }
-          }
+      if (matched) {
+        const user1Id = Math.min(currentUserId, validateDto.userId);
+        const user2Id = Math.max(currentUserId, validateDto.userId);
+
+        await tx.match.upsert({
+          where: { user1Id_user2Id: { user1Id: user1Id, user2Id: user2Id } },
+          update: { isActive: true },
+          create: { user1Id: user1Id, user2Id: user2Id },
+      });
+    }
 
           return matched;
       });
@@ -214,6 +215,15 @@ export class MatchService {
             },
         },
         data: { isActive: false },
+    });
+
+    await this.prisma.like.deleteMany({
+      where: {
+          OR: [
+              { fromUserId: currentUserId, toUserId: otherUserId },
+              { fromUserId: otherUserId, toUserId: currentUserId },
+          ],
+      },
     });
 
     return {
