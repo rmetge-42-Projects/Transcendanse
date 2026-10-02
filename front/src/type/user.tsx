@@ -6,4 +6,6 @@ export interface UserType {
   orientation: string;
   isOnline?: boolean;
   isActive?: boolean;
+  unreadCount?: number;
+  lastMessage?: string;
 }

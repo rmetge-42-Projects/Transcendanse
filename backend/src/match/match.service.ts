@@ -85,7 +85,7 @@ export class MatchService {
       },
     });
 
-    const matchedProfiles = matches.map((match) => {
+    const matchedProfiles = await Promise.all(matches.map(async (match) => {
     let otherUser;
     if (match.user1.id === currentUserId) {
       otherUser = match.user2;
@@ -101,6 +101,25 @@ export class MatchService {
       onlineStatus = false;
     }
 
+    const unreadCount = await this.prisma.message.count({
+      where: {
+          senderId: otherUser.id,
+          receiverId: currentUserId,
+          isRead: false,
+          deletedForReceiver: false,
+        },
+    });
+
+    const lastMessage = await this.prisma.message.findFirst({
+      where: {
+        OR: [
+            { senderId: currentUserId, receiverId: otherUser.id, deletedForSender: false },
+            { senderId: otherUser.id, receiverId: currentUserId, deletedForReceiver: false },
+          ],
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
     return {
       id: otherUser.id,
       username: otherUser.username,
@@ -109,8 +128,9 @@ export class MatchService {
       biography: otherUser.biography,
       isOnline: onlineStatus,
       isActive: match.isActive,
+      lastMessage: lastMessage ? lastMessage.content : "",
         };
-      });
+      }));
     return matchedProfiles;
   }
 

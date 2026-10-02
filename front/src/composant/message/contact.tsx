@@ -66,27 +66,26 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
                 {user.username}
               </span>
              
-              {/* attention pas de sisteme de vu de message pour le moment
+              
               <div className="flex items-center justify-between gap-2 w-full mt-0.5">
             
                 <span
                   className={`text-sm truncate ${
-                    user.unreadCount > 0
+                    (user.unreadCount ?? 0) > 0
                       ? "text-gray-900 font-semibold"
                       : "text-gray-400"
                   }`}
                 >
-                  {user.unreadCount > 1
+                  {(user.unreadCount ?? 0) > 1
                     ? `${user.unreadCount} nouveaux messages`
                     : user.lastMessage || "Aucun message"}
                 </span>
 
-                {user.unreadCount > 0 && (
+                {(user.unreadCount ?? 0) > 0 && (
                   <span className=" flex items-center justify-center w-2 h-2 bg-orange-500 rounded-full "/>
                 )}
-              </div> */}
+              </div>
               <span className="text-sm text-gray-400">
-                  Match
               </span>
             </div>
           </div>
