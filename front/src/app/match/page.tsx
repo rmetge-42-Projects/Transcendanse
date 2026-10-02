@@ -73,16 +73,9 @@ export default function Match() {
       // nextProfile();
       if (data.match){
         setIsMatch(true);
-        // return (
-        //    <div className="relative max-w-4xl mx-auto min-h-[75vh] flex flex-col justify-between px-6 py-10">
-        //       vous avez un Match
-        //       <HeartPlus/>
-
-        //    </div>
-        // )
+      }else {
+        await handleNext();
       }
-        
-      await handleNext();
     } catch {
       setInvalide("Une erreur est survenue, veuillez réessayer.");
     }

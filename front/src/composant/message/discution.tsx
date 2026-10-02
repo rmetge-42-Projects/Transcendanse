@@ -178,12 +178,14 @@ export default function Duiscution({
                 >
                     Supprimer la conversation
                 </button>
+              {selectedUser.isActive !== false && (
                 <button
                     onClick={() => deleteMatch(selectedUser.userId)}
                     className="text-left px-3 py-2 rounded-lg hover:bg-red-50 text-sm text-red-600"
                 >
                     Supprimer le match
                 </button>
+              )}
             {selectedUser.isBlocked ? (
                 <button
                     onClick={() => unblockUser(selectedUser.userId)}

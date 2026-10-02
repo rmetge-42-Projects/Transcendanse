@@ -1,83 +1,68 @@
 #!/bin/bash
-# Script de creation rapide de 2 comptes de test, avec profils remplis et match cree
+# Script de creation rapide de 4 comptes de test, avec profils remplis
 # Usage : bash create-test-users.sh
 
 BASE_URL="https://localhost:8443/api"
 CURL="curl -k -s"
 
-echo "== Creation du compte A (Alice) =="
-RES_A=$($CURL -X POST "$BASE_URL/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"alice@test.com","password":"motdepasse123","validatePassword":"motdepasse123"}')
-echo "$RES_A"
-TOKEN_A=$(echo "$RES_A" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+declare -a EMAILS=("alice@test.com" "bob@test.com" "charlie@test.com" "diana@test.com")
+declare -a NAMES=("Alice" "Bob" "Charlie" "Diana")
+declare -a USERNAMES=("alice_test" "bob_test" "charlie_test" "diana_test")
+declare -a KINDS=("woman" "man" "man" "woman")
+declare -a BIRTHDAYS=("1998-05-12" "1997-08-23" "1995-03-15" "1999-11-02")
 
-echo ""
-echo "== Creation du compte B (Bob) =="
-RES_B=$($CURL -X POST "$BASE_URL/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"bob@test.com","password":"motdepasse123","validatePassword":"motdepasse123"}')
-echo "$RES_B"
-TOKEN_B=$(echo "$RES_B" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+declare -a TOKENS=()
+declare -a IDS=()
 
-echo ""
-echo "== Si les comptes existaient deja, connexion a la place =="
-if [ -z "$TOKEN_A" ]; then
-  RES_A=$($CURL -X POST "$BASE_URL/auth/login" \
-    -H "Content-Type: application/json" \
-    -d '{"email":"alice@test.com","password":"motdepasse123"}')
-  TOKEN_A=$(echo "$RES_A" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
-fi
-if [ -z "$TOKEN_B" ]; then
-  RES_B=$($CURL -X POST "$BASE_URL/auth/login" \
-    -H "Content-Type: application/json" \
-    -d '{"email":"bob@test.com","password":"motdepasse123"}')
-  TOKEN_B=$(echo "$RES_B" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
-fi
+for i in 0 1 2 3; do
+    email="${EMAILS[$i]}"
+    name="${NAMES[$i]}"
+    username="${USERNAMES[$i]}"
+    kind="${KINDS[$i]}"
+    birthday="${BIRTHDAYS[$i]}"
 
-echo "Token Alice : $TOKEN_A"
-echo "Token Bob   : $TOKEN_B"
+    echo "== Creation du compte : $name =="
+    RES=$($CURL -X POST "$BASE_URL/auth/register" \
+      -H "Content-Type: application/json" \
+      -d "{\"email\":\"$email\",\"password\":\"motdepasse123\",\"validatePassword\":\"motdepasse123\"}")
+    echo "$RES"
+    TOKEN=$(echo "$RES" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 
-echo ""
-echo "== Remplissage du profil d'Alice =="
-$CURL -X POST "$BASE_URL/users/createProfile" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN_A" \
-  -d '{"name":"Alice","username":"alice_test","birthday":"1998-05-12","kind":"woman","orientation":"all","biography":"Compte de test Alice"}'
-echo ""
+    if [ -z "$TOKEN" ]; then
+        echo "-> Compte deja existant, connexion a la place"
+        RES=$($CURL -X POST "$BASE_URL/auth/login" \
+          -H "Content-Type: application/json" \
+          -d "{\"email\":\"$email\",\"password\":\"motdepasse123\"}")
+        TOKEN=$(echo "$RES" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+    fi
 
-echo "== Remplissage du profil de Bob =="
-$CURL -X POST "$BASE_URL/users/createProfile" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN_B" \
-  -d '{"name":"Bob","username":"bob_test","birthday":"1997-08-23","kind":"man","orientation":"all","biography":"Compte de test Bob"}'
-echo ""
+    echo "Token $name : $TOKEN"
+    TOKENS+=("$TOKEN")
 
-echo ""
-echo "== Recuperation des ids via /users/me =="
-ME_A=$($CURL -X GET "$BASE_URL/users/me" -H "Authorization: Bearer $TOKEN_A")
-ME_B=$($CURL -X GET "$BASE_URL/users/me" -H "Authorization: Bearer $TOKEN_B")
-ID_A=$(echo "$ME_A" | grep -o '"id":[0-9]*' | head -1 | cut -d':' -f2)
-ID_B=$(echo "$ME_B" | grep -o '"id":[0-9]*' | head -1 | cut -d':' -f2)
-echo "Id Alice : $ID_A"
-echo "Id Bob   : $ID_B"
+    $CURL -X POST "$BASE_URL/users/createProfile" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $TOKEN" \
+      -d "{\"name\":\"$name\",\"username\":\"$username\",\"birthday\":\"$birthday\",\"kind\":\"$kind\",\"orientation\":\"all\",\"biography\":\"Compte de test $name\"}"
+    echo ""
 
-echo ""
-echo "== Creation du match (like reciproque) =="
-$CURL -X POST "$BASE_URL/match/validate" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN_A" \
-  -d "{\"userId\":$ID_B,\"status\":\"like\"}"
-echo ""
-$CURL -X POST "$BASE_URL/match/validate" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN_B" \
-  -d "{\"userId\":$ID_A,\"status\":\"like\"}"
-echo ""
+    ME=$($CURL -X GET "$BASE_URL/users/me" -H "Authorization: Bearer $TOKEN")
+    ID=$(echo "$ME" | grep -o '"id":[0-9]*' | head -1 | cut -d':' -f2)
+    echo "Id $name : $ID"
+    IDS+=("$ID")
 
-echo ""
+    echo ""
+done
+
 echo "======================================"
 echo "Comptes prets :"
-echo "  alice@test.com / motdepasse123 (id=$ID_A)"
-echo "  bob@test.com   / motdepasse123 (id=$ID_B)"
+for i in 0 1 2 3; do
+    echo "  ${EMAILS[$i]} / motdepasse123 (id=${IDS[$i]})"
+done
 echo "======================================"
+echo ""
+echo "Aucun match cree automatiquement cette fois - likez-vous manuellement"
+echo "pour tester le scenario 'match pas sur le dernier profil de la liste'."
+echo ""
+echo "Exemple pour creer un match entre Alice et Bob :"
+echo "curl -k -s -X POST $BASE_URL/match/validate -H \"Content-Type: application/json\" -H \"Authorization: Bearer ${TOKENS[0]}\" -d '{\"userId\":${IDS[1]},\"status\":\"like\"}'"
+echo "curl -k -s -X POST $BASE_URL/match/validate -H \"Content-Type: application/json\" -H \"Authorization: Bearer ${TOKENS[1]}\" -d '{\"userId\":${IDS[0]},\"status\":\"like\"}'"
