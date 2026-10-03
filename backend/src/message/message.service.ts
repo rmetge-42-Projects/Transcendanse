@@ -23,6 +23,8 @@ export class MessageService {
         	},
     	});
 
+		this.messageGateway.server.to(`user_${myId}`).emit('messagesRead', {});
+		
     	const messages = await this.prisma.message.findMany({
         	where: {
             	OR: [

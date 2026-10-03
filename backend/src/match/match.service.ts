@@ -139,6 +139,7 @@ export class MatchService {
       isOnline: onlineStatus,
       isActive: match.isActive,
       isBlocked: isBlocked !== null,
+      unreadCount: unreadCount,
       lastMessage: lastMessage ? lastMessage.content : "",
         };
       }));

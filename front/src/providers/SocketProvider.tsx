@@ -2,9 +2,19 @@
 import { useEffect } from "react";
 import { socket } from "@/src/lib/socket";
 import { useQueryClient } from "@tanstack/react-query";
+import { useMatches } from "@/src/hook/conversation";
+import { useMessageStore } from "@/src/constant/newMessage";
 
 export default function SocketProvider({ children }: { children: React.ReactNode }) {
     const queryClient = useQueryClient();
+    const { data: users } = useMatches();
+    const setMessageCount = useMessageStore((state) => state.setMessageCount);
+
+    useEffect(() => {
+        if (!users) return;
+        const total = users.reduce((total, user) => total + (user.unreadCount ?? 0), 0);
+        setMessageCount(total);
+    }, [users]);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -15,17 +25,19 @@ export default function SocketProvider({ children }: { children: React.ReactNode
 
         socket.on("newMatch", () => {
             queryClient.invalidateQueries({ queryKey: ["matches"] });
-        setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
-        }, 2000);
+        });
 
+        socket.on("messagesRead", () => {
+            queryClient.invalidateQueries({ queryKey: ["matches"] });
         });
 
         return () => {
             socket.off("newMatch");
+            socket.off("messagesRead");
             socket.disconnect();
         };
     }, []);
+    
 
     return <>{children}</>;
 }
