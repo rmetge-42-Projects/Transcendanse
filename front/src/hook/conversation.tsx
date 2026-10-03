@@ -32,5 +32,6 @@ export function useMessages(userId?: number) {
       return res.data;
     },
     enabled: !!userId, // Ne lance la requête que si un userId est fourni
+    staleTime: 0, //refresh automatiquement
   });
 }
