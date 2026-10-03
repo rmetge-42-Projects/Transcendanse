@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useMatch } from "@/src/composant/match/matchStore";
 import Bottom from "@/src/display/bottom";
 import Navigation from "@/src/display/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Match() {
   // const router = useRouter();
@@ -20,6 +21,8 @@ export default function Match() {
   const { data: profiles, isLoading, isError, refetch } = useOtherUser();
   const index = useMatch((state) => state.currentIndex);
   const nextProfile = useMatch((state) => state.nextProfile);
+  const queryClient = useQueryClient();
+  const [isRefetching, setIsRefetching] = useState(false);
 
   const reset = useMatch((state) => state.resetProfiles);
 
@@ -83,12 +86,13 @@ export default function Match() {
 
   const handleNext = async () => {
     // S'il ne reste plus de profil après celui-ci (c'était le dernier)
-    if (index + 2 >= profiles.length) {
-      reset(); // 1. Remet l'index à 0
-      await refetch(); // 2. Recharge automatiquement de nouveaux profils !
+    if (index + 1 >= profiles.length) {
+      await queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+      reset();
     } else {
       nextProfile(); // Sinon, passe simplement au profil suivant
     }
+    setIsRefetching(false);
   };
 
   if (isMatch) {
@@ -107,7 +111,11 @@ export default function Match() {
             </p>
 
             <button 
-              onClick={() => setIsMatch(false)}
+                onClick={async () => {
+                  setIsRefetching(true);
+                  setIsMatch(false);
+                  await handleNext();
+                }}
               className="px-6 py-3 bg-blue-950 text-white rounded-full font-semibold hover:bg-blue-900 transition"
               >
               Continuer à défiler
