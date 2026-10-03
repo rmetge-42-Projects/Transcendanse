@@ -15,7 +15,10 @@ export default function SocketProvider({ children }: { children: React.ReactNode
 
         socket.on("newMatch", () => {
             queryClient.invalidateQueries({ queryKey: ["matches"] });
+        setTimeout(() => {
             queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+        }, 2000);
+
         });
 
         return () => {
