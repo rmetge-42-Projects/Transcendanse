@@ -1,10 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ValidateDto } from './dto/validate.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { MessageGateway } from '../message/message.gateway';
 
 @Injectable()
 export class MatchService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService,
+              private messageGateway: MessageGateway,
+              ){}
 
   //valide ou non le profile de mach et dire si on a un match
   async rejected(currentUserId: number, validateDto: ValidateDto) {
@@ -41,6 +44,8 @@ export class MatchService {
           update: { isActive: true },
           create: { user1Id: user1Id, user2Id: user2Id },
       });
+      this.messageGateway.server.to(`user_${currentUserId}`).emit('newMatch', {});
+      this.messageGateway.server.to(`user_${validateDto.userId}`).emit('newMatch', {});
     }
 
           return matched;

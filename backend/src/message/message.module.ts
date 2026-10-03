@@ -7,6 +7,7 @@ import { MessageGateway } from './message.gateway';
 @Module({
     imports: [PrismaModule],
     controllers: [MessageController],
-    providers: [MessageService, MessageGateway]
+    providers: [MessageService, MessageGateway],
+    exports: [MessageGateway]
 })
 export class MessageModule {}
