@@ -28,19 +28,12 @@ export class UsersController {
     return this.usersService.getProfile(userId);
   }
 
-  //recupere les profils d'autres personnes
-  // @UseGuards(JwtAuthGuard)
-  // @Get('other')
-  // async getOther(@Req() req: Request) {
-  //   const userId = (req.user as { id: number }).id;
-  //   return this.usersService.getOtherProfile(userId);
-  // }
-
   //envoie les info du match
   @UseGuards(JwtAuthGuard)
   @Get(':userId')
-  async myMatchProfile(@Param('userId') userId : string) {
-    return this.usersService.myMatchProfile(+userId);
+  async myMatchProfile(@Param('userId') userId: string, @Req() req: Request) {
+      const currentUserId = (req.user as { id: number }).id;
+      return this.usersService.myMatchProfile(currentUserId, +userId);
   }
 
   //pour apres modifier le profile en une seule fois

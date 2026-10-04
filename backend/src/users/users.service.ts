@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { CreateDto } from './dto/createProfile.dto';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { StatusDto } from './dto/status.dto';
@@ -65,12 +65,34 @@ export class UsersService {
     }
 
     //envoie les info de l'utilisateur (userId) - sert a afficher le profil du match
-    async myMatchProfile(userId: number){
+    async myMatchProfile(currentUserId: number, targetUserId: number){
+        if (currentUserId !== targetUserId) {
+            const blocked = await this.prisma.block.findFirst({
+                where: {
+                    OR: [
+                        { blockerId: currentUserId, blockedId: targetUserId },
+                        { blockerId: targetUserId, blockedId: currentUserId },
+                    ],
+                },
+            });
+            if (blocked) {
+                throw new NotFoundException("Utilisateur introuvable.");
+            }
+
+            const user1Id = Math.min(currentUserId, targetUserId);
+            const user2Id = Math.max(currentUserId, targetUserId);
+            const match = await this.prisma.match.findUnique({
+                where: { user1Id_user2Id: { user1Id: user1Id, user2Id: user2Id } },
+            });
+            if (!match) {
+                throw new NotFoundException("Utilisateur introuvable.");
+            }
+        }
+
         const user = await this.prisma.user.findUnique({
-            where: { id: userId },
+            where: { id: targetUserId },
             select: {
                 id: true,
-                email: true,
                 createdAt: true,
                 name: true,
                 username: true,
@@ -82,7 +104,7 @@ export class UsersService {
         });
 
         if (!user) {
-            throw new UnauthorizedException("Utilisateur introuvable.");
+            throw new NotFoundException("Utilisateur introuvable.");
         }
         return user;
     }

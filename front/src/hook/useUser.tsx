@@ -31,5 +31,6 @@ export function useMyMatch(userId?: number) {
       const res = await api.get(`/users/${userId}`);
       return res.data;
     },
+    retry : false,
   });
 }
