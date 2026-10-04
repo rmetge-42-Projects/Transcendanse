@@ -30,22 +30,20 @@ export class AuthController {
 		return this.authService.registerUser(registerDto.email, registerDto.password, registerDto.validatePassword);
 	}
 
-	//requette pour modifier le mdp
-	//front = composant/password
 	@UseGuards(JwtAuthGuard)
 	@Post('password')
-	async modifyPassword(@Body() passwordDto: PasswordDto)
+	async modifyPassword(@Body() passwordDto: PasswordDto, @Req() req: Request)
 	{
-		return this.authService.password(passwordDto);
+    	const userId = (req.user as { id: number }).id;
+    	return this.authService.password(userId, passwordDto);
 	}
 
-	//requette pour modifier l'email
-	//front = composant/email
 	@UseGuards(JwtAuthGuard)
 	@Post('email')
-	async modifyEmail(@Body() emailDto: EmailDto)
+	async modifyEmail(@Body() emailDto: EmailDto, @Req() req: Request)
 	{
-		return this.authService.email(emailDto);
+    	const userId = (req.user as { id: number }).id;
+    	return this.authService.email(userId, emailDto);
 	}
 
 	//genere la double authentification pour la premiere fois

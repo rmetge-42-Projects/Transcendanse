@@ -100,16 +100,36 @@ export class AuthService {
     }
 
     //l'utilisateur modifie le mot de passe
-    async   password(passwordDto: PasswordDto)
+    async   password(userId: number, passwordDto: PasswordDto)
     {
         if (passwordDto.newPass !== passwordDto.verifNewPass)
         {
             throw new BadRequestException("Les nouveaux mots de passe ne correspondent pas.");
         }
+
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user)
+        {
+            throw new NotFoundException("Utilisateur introuvable.");
+        }
+
+        const passwordMatches = await bcrypt.compare(passwordDto.lastPass, user.password);
+        if (!passwordMatches)
+        {
+            throw new BadRequestException("L'ancien mot de passe est incorrect.");
+        }
+
         if (passwordDto.newPass === passwordDto.lastPass)
         {
             throw new BadRequestException("Le nouveau mot de passe doit être différent de l'ancien.");
         }
+
+        const hashedPassword = await bcrypt.hash(passwordDto.newPass, 10);
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword },
+        });
+
         return {
             success: true,
             message: "Le mot de passe a été modifié."
@@ -118,12 +138,37 @@ export class AuthService {
 
 
     //l'utilisateur modifie l'adresse email
-    async   email(emailDto: EmailDto)
+    async   email(userId: number, emailDto: EmailDto)
     {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user)
+        {
+            throw new NotFoundException("Utilisateur introuvable.");
+        }
+
+        if (emailDto.lastEmail !== user.email)
+        {
+            throw new BadRequestException("L'ancien email est incorrect.");
+        }
+
         if (emailDto.newEmail === emailDto.lastEmail)
         {
             throw new BadRequestException("Le nouvel email doit être différent de l'ancien.");
         }
+
+        const existingUser = await this.prisma.user.findUnique({
+            where: { email: emailDto.newEmail },
+        });
+        if (existingUser)
+        {
+            throw new ConflictException("Un compte existe déjà avec cet email.");
+        }
+
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { email: emailDto.newEmail },
+        });
+
         return {
             success: true,
             message: "L'email a été modifié."
