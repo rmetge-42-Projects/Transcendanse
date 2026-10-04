@@ -66,6 +66,23 @@ export class MessageService {
 	
 		if (!existingMatch) {
 			throw new ForbiddenException("Vous devez avoir un match pour envoyer un message");
+		} 
+
+		if (!existingMatch.isActive) {
+    		throw new ForbiddenException("Vous ne pouvez plus envoyer de message à cet utilisateur.");
+		}
+
+		const blocked = await this.prisma.block.findFirst({
+    		where: {
+        		OR: [
+            		{ blockerId: userId, blockedId: sendMessageDto.receiveId },
+            		{ blockerId: sendMessageDto.receiveId, blockedId: userId },
+        		],
+    		},
+		});
+
+		if (blocked) {
+    		throw new ForbiddenException("Vous ne pouvez plus envoyer de message à cet utilisateur.");
 		}
 
     	const newMessage = await this.prisma.message.create({

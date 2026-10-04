@@ -260,6 +260,22 @@ export class MatchService {
     const currentId = Math.min(currentUserId, targetUserId);
     const targetId = Math.max(currentUserId, targetUserId);
 
+    if (currentUserId === targetUserId) {
+      throw new BadRequestException('Vous ne pouvez pas vous bloquer vous-même.');
+    }
+
+    const targetUser = await this.prisma.user.findUnique({ where: { id: targetUserId } });
+      if (!targetUser) {
+    throw new NotFoundException('Utilisateur introuvable');
+    }
+
+    const existingBlock = await this.prisma.block.findUnique({
+        where: { blockerId_blockedId: { blockerId: currentUserId, blockedId: targetUserId } },
+    });
+    if (existingBlock) {
+      throw new BadRequestException('Vous avez déjà bloqué cet utilisateur.');
+    }
+
     await this.prisma.block.create({
       data: {
         blockerId: currentUserId,
