@@ -12,7 +12,13 @@ export default function SocketProvider({ children }: { children: React.ReactNode
 
     useEffect(() => {
         if (!users) return;
-        const total = users.reduce((total, user) => total + (user.unreadCount ?? 0), 0);
+        const total = users.reduce((sum, user) => {
+            let count = user.unreadCount ?? 0;
+        if (user.isNewMatch === true && (user.unreadCount ?? 0) === 0) {
+            count += 1;
+        }
+            return sum + count;
+        }, 0);
         setMessageCount(total);
     }, [users]);
 

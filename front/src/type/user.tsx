@@ -9,4 +9,5 @@ export interface UserType {
   isBlocked?: boolean;
   unreadCount?: number;
   lastMessage?: string;
+  isNewMatch?: boolean;
 }

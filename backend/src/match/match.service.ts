@@ -51,9 +51,9 @@ export class MatchService {
       const user1Id = Math.min(currentUserId, validateDto.userId);
       const user2Id = Math.max(currentUserId, validateDto.userId);
 
-      await tx.match.upsert({
+    await tx.match.upsert({
         where: { user1Id_user2Id: { user1Id: user1Id, user2Id: user2Id } },
-        update: { isActive: true },
+        update: { isActive: true, seenByUser1: false, seenByUser2: false },
         create: { user1Id: user1Id, user2Id: user2Id },
     });
   }
@@ -122,6 +122,13 @@ export class MatchService {
       onlineStatus = false;
     }
 
+    let seenByMe;
+    if (match.user1.id === currentUserId) {
+      seenByMe = match.seenByUser1;
+    } else {
+      seenByMe = match.seenByUser2;
+    }
+
     const unreadCount = await this.prisma.message.count({
       where: {
           senderId: otherUser.id,
@@ -141,6 +148,11 @@ export class MatchService {
       orderBy: { createdAt: 'desc' },
     });
 
+    let lastActivity = match.createdAt;
+    if (lastMessage) {
+      lastActivity = lastMessage.createdAt;
+    }
+
     const isBlocked = await this.prisma.block.findUnique({
     where: { blockerId_blockedId: { blockerId: currentUserId, blockedId: otherUser.id } },
     });
@@ -155,9 +167,16 @@ export class MatchService {
       isActive: match.isActive,
       isBlocked: isBlocked !== null,
       unreadCount: unreadCount,
+      isNewMatch: match.isActive && !seenByMe,
       lastMessage: lastMessage ? lastMessage.content : "",
+      lastActivity: lastActivity,
         };
       }));
+
+      matchedProfiles.sort((a, b) => {
+      return b.lastActivity.getTime() - a.lastActivity.getTime();
+    });
+
     return matchedProfiles;
   }
 

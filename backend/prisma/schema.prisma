@@ -75,11 +75,13 @@ model Like {
 }
 
 model Match {
-  id        Int      @id @default(autoincrement())
-  user1Id   Int
-  user2Id   Int
-  createdAt DateTime @default(now())
-  isActive  Boolean  @default(true)
+  id          Int      @id @default(autoincrement())
+  user1Id     Int
+  user2Id     Int
+  createdAt   DateTime @default(now())
+  isActive    Boolean  @default(true)
+  seenByUser1 Boolean  @default(false)
+  seenByUser2 Boolean  @default(false)
 
   user1 User @relation("MatchesAsUser1", fields: [user1Id], references: [id])
   user2 User @relation("MatchesAsUser2", fields: [user2Id], references: [id])

@@ -23,6 +23,21 @@ export class MessageService {
         	},
     	});
 
+		const user1Id = Math.min(myId, otherUserId);
+		const user2Id = Math.max(myId, otherUserId);
+
+		if (myId === user1Id) {
+		    await this.prisma.match.updateMany({
+		        where: { user1Id: user1Id, user2Id: user2Id },
+		        data: { seenByUser1: true },
+		    });
+		} else {
+    	await this.prisma.match.updateMany({
+        	where: { user1Id: user1Id, user2Id: user2Id },
+        	data: { seenByUser2: true },
+    	});
+	}
+
 		this.messageGateway.server.to(`user_${myId}`).emit('messagesRead', {});
 		
     	const messages = await this.prisma.message.findMany({

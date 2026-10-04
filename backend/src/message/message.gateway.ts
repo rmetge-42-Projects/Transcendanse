@@ -38,18 +38,14 @@ export class MessageGateway {
   }
 
   async handleDisconnect(client: Socket) {
-      const userId = client.data.userId;
-      if (userId) {
-          try {
-              await this.prisma.user.update({
-                  where: { id: userId },
-                  data: { isOnline: false },
-              });
-              console.log('Utilisateur déconnecté :', userId);
-          } catch (error) {
-              console.log('Utilisateur déjà supprimé, pas de mise à jour nécessaire');
-          }
-      }
+    const userId = client.data.userId;
+    if (userId) {
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { isOnline: false },
+        });
+        console.log('Utilisateur déconnecté :', userId);
+    }
   }
 
   sendNewMessage(userId: number, message: any) {
