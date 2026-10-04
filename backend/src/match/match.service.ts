@@ -24,6 +24,18 @@ export class MatchService {
           throw new NotFoundException('Utilisateur introuvable');
       }
 
+      const blocked = await this.prisma.block.findFirst({
+        where: {
+            OR: [
+                { blockerId: currentUserId, blockedId: validateDto.userId },
+                { blockerId: validateDto.userId, blockedId: currentUserId },
+            ],
+        },
+    });
+    if (blocked) {
+        throw new NotFoundException('Utilisateur introuvable');
+    }
+
       const existingLike = await this.prisma.like.findUnique({where: {fromUserId_toUserId: {fromUserId: currentUserId, toUserId: validateDto.userId}}});
       if (existingLike) {
           throw new BadRequestException('Vous avez déjà liké ce profil');
@@ -32,27 +44,30 @@ export class MatchService {
       const isMatch = await this.prisma.$transaction(async (tx) => {
           await tx.like.create({data: {fromUserId: currentUserId, toUserId: validateDto.userId}});
 
-          const reverseLike = await tx.like.findUnique({where: { fromUserId_toUserId: { fromUserId: validateDto.userId, toUserId: currentUserId}}});
-          const matched = reverseLike !== null;
+      const reverseLike = await tx.like.findUnique({where: { fromUserId_toUserId: { fromUserId: validateDto.userId, toUserId: currentUserId}}});
+      const matched = reverseLike !== null;
 
-      if (matched) {
-        const user1Id = Math.min(currentUserId, validateDto.userId);
-        const user2Id = Math.max(currentUserId, validateDto.userId);
+    if (matched) {
+      const user1Id = Math.min(currentUserId, validateDto.userId);
+      const user2Id = Math.max(currentUserId, validateDto.userId);
 
-        await tx.match.upsert({
-          where: { user1Id_user2Id: { user1Id: user1Id, user2Id: user2Id } },
-          update: { isActive: true },
-          create: { user1Id: user1Id, user2Id: user2Id },
-      });
+      await tx.match.upsert({
+        where: { user1Id_user2Id: { user1Id: user1Id, user2Id: user2Id } },
+        update: { isActive: true },
+        create: { user1Id: user1Id, user2Id: user2Id },
+    });
+  }
+
+    return matched;
+  });
+
+    if (isMatch) {
       this.messageGateway.server.to(`user_${currentUserId}`).emit('newMatch', {});
       this.messageGateway.server.to(`user_${validateDto.userId}`).emit('newMatch', {});
     }
 
-          return matched;
-      });
-
-      return { success: true, message: isMatch ? 'C\'est un Match !' : 'Profile Like !', match: isMatch };
-      }
+    return { success: true, message: isMatch ? 'C\'est un Match !' : 'Profile Like !', match: isMatch };
+    }
     else {
       return { success: false, message: 'probleme' };
     }
