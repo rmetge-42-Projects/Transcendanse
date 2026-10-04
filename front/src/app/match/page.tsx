@@ -13,6 +13,7 @@ import { useMatch } from "@/src/composant/match/matchStore";
 import Bottom from "@/src/display/bottom";
 import Navigation from "@/src/display/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { getErrorMessage } from "@/src/lib/errors";
 
 export default function Match() {
   // const router = useRouter();
@@ -60,8 +61,8 @@ export default function Match() {
       });
       // nextProfile();
       await handleNext();
-    } catch {
-      setInvalide("Une erreur est survenue, veuillez réessayer.");
+    } catch (error) {
+        setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
     }
   };
 
@@ -79,8 +80,8 @@ export default function Match() {
       }else {
         await handleNext();
       }
-    } catch {
-      setInvalide("Une erreur est survenue, veuillez réessayer.");
+    } catch (error) {
+        setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
     }
   };
 

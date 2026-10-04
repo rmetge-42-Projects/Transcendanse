@@ -7,6 +7,7 @@ import { api } from '@/src/lib/axios';
 import { Eye, EyeOff } from "lucide-react";
 import Connextion from "@/src/composant/connection/connection";
 import { socket } from "@/src/lib/socket";
+import { getErrorMessage } from "@/src/lib/errors";
 //page de connection
 
 // 1. Définition du type pour le formulaire
@@ -47,8 +48,8 @@ export default function Login() {
 			
 			router.push("/myProfile");
 		}
-		catch {
-			setInvalide("Email ou mot de passe incorrect.");
+		catch (error) {
+    		setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
 			reset();
 		}
 		finally{

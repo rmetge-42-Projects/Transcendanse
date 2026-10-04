@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { api } from '@/src/lib/axios';
 import { Eye, EyeOff } from "lucide-react";
 import Connextion from "@/src/composant/connection/connection";
+import { getErrorMessage } from "@/src/lib/errors";
+
 //page register pour cree son compte
 
 type	RegisterFormValues = {
@@ -45,8 +47,8 @@ export default function NewAccount(){
 			localStorage.setItem("token", res.data.access_token)
 			router.push("/createProfile");
 		}
-		catch{
-				setInvalide("Email ou mot de passe incorrect.");
+		catch (error) {
+    			setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
 				reset();
 		}
 		finally{

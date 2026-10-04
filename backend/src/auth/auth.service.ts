@@ -1,8 +1,13 @@
 // verifie, creer le user et genere le token JWT
 
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+    BadRequestException,
+    ConflictException,
+    Injectable,
+    NotFoundException,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { PasswordDto } from './dto/password.dto';
@@ -27,18 +32,20 @@ export class AuthService {
 
         if (!user)
             {
-                throw new UnauthorizedException("Incorrect email or password.");
+                throw new UnauthorizedException("Email ou mot de passe incorrect.");
             }
 
             const passwordMatches = await bcrypt.compare(pass, user.password);
 
             if (!passwordMatches)
             {
-                throw new UnauthorizedException("Incorrect email or password.");
+                throw new UnauthorizedException("Email ou mot de passe incorrect.");
             }
 
             if (user.twoFactorEnabled)
             {
+                // ATTENTION : ce message exact ("2FA required") est peut-etre lu par le front,
+                // ne pas le traduire sans verifier avec la personne qui fait la 2FA
                 return {
                     success: false,
                     message: "2FA required",
@@ -50,7 +57,7 @@ export class AuthService {
 
             return {
                 success: true,
-                message: "Login successful !",
+                message: "Connexion réussie !",
                 access_token: token,
             };
     }
@@ -61,7 +68,7 @@ export class AuthService {
     {
         if (pass !== validPass)
         {
-            throw new UnauthorizedException("The passwords do not match.");
+            throw new BadRequestException("Les mots de passe ne correspondent pas.");
         }
 
         const existingUser = await this.prisma.user.findUnique({
@@ -70,7 +77,7 @@ export class AuthService {
 
         if (existingUser)
         {
-            throw new UnauthorizedException("An account already exists with this email.");
+            throw new ConflictException("Un compte existe déjà avec cet email.");
         }
 
         const hashedPassword = await bcrypt.hash(pass, 10);
@@ -87,7 +94,7 @@ export class AuthService {
 
         return {
             success: true,
-            message: "Registration successful !",
+            message: "Inscription réussie !",
             access_token: token,
         };
     }
@@ -95,24 +102,32 @@ export class AuthService {
     //l'utilisateur modifie le mot de passe
     async   password(passwordDto: PasswordDto)
     {
-        if (passwordDto.newPass === passwordDto.verifNewPass && passwordDto.newPass !== passwordDto.lastPass)
-            return {
-                success: true,
-                message: "The password has been changed."
-            }
-        throw new BadRequestException("Incorrect password.");
+        if (passwordDto.newPass !== passwordDto.verifNewPass)
+        {
+            throw new BadRequestException("Les nouveaux mots de passe ne correspondent pas.");
+        }
+        if (passwordDto.newPass === passwordDto.lastPass)
+        {
+            throw new BadRequestException("Le nouveau mot de passe doit être différent de l'ancien.");
+        }
+        return {
+            success: true,
+            message: "Le mot de passe a été modifié."
+        }
     }
 
 
     //l'utilisateur modifie l'adresse email
     async   email(emailDto: EmailDto)
     {
-        if (emailDto.newEmail !== emailDto.lastEmail)
-            return {
-                success: true,
-                message: "The email has been changed."
-            }
-        throw new BadRequestException("Incorrect email.");
+        if (emailDto.newEmail === emailDto.lastEmail)
+        {
+            throw new BadRequestException("Le nouvel email doit être différent de l'ancien.");
+        }
+        return {
+            success: true,
+            message: "L'email a été modifié."
+        }
     }
 
     //genere la double authentification pour la premiere fois
@@ -147,10 +162,10 @@ export class AuthService {
         });
 
         if (!user)
-            throw new BadRequestException("User not found");
+            throw new NotFoundException("Utilisateur introuvable.");
 
         if (!user.twoFactorSecret)
-            throw new BadRequestException("2FA not yet initialized for this user.");
+            throw new BadRequestException("La double authentification n'a pas encore été initialisée pour cet utilisateur.");
 
         const result = await verify({ secret: user.twoFactorSecret, token });
 
@@ -164,7 +179,7 @@ export class AuthService {
             return true;
         }
         else
-            throw new BadRequestException("Incorrect secret code.");
+            throw new BadRequestException("Code incorrect.");
     }
 
     //genere la 2fa pour les connexions
@@ -175,17 +190,17 @@ export class AuthService {
         });
 
         if (!user) {
-            throw new UnauthorizedException("Incorrect email or password.");
+            throw new UnauthorizedException("Email ou mot de passe incorrect.");
         }
 
         if (!user.twoFactorSecret) {
-            throw new BadRequestException("2FA not enabled for this user.");
+            throw new BadRequestException("La double authentification n'est pas activée pour cet utilisateur.");
         }
 
         const result = await verify({ secret: user.twoFactorSecret, token });
 
         if (!result.valid) {
-            throw new BadRequestException("Incorrect secret code.");
+            throw new BadRequestException("Code incorrect.");
         }
 
         const payload = { id: user.id, email: user.email };
@@ -193,7 +208,7 @@ export class AuthService {
 
         return {
             success: true,
-            message: "Login successful !",
+            message: "Connexion réussie !",
             access_token: JWTtoken,
         };
     }

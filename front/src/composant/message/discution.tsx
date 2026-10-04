@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { socket } from "@/src/lib/socket";
 import { useMessages, useMatches } from "@/src/hook/conversation";
 import MyMatchProfile from "@/src/app/myMatchProfile/[id]/page";
+import { getErrorMessage } from "@/src/lib/errors";
 
 interface ContactProps {
   selectedUser: UserConversationType | null;
@@ -79,9 +80,9 @@ export default function Duiscution({
       });
       setMessageText("");
       queryClient.invalidateQueries({ queryKey: ["discution", userId] });
-    } catch {
+    } catch(error) {
       if (messageText)
-        setInvalide("Une erreur est survenue, veuillez réessayer.");
+        setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
     }
   };
 
@@ -101,7 +102,7 @@ export default function Duiscution({
                 setSelectedUser(null);
                 router.push("/message");
             } else {
-                setInvalide("Une erreur est survenue, le match n'a pas été supprimé.");
+                setInvalide(getErrorMessage(error, "Une erreur est survenue, le match n'a pas été supprimé."));
             }
         }
     }
@@ -114,8 +115,8 @@ export default function Duiscution({
           await api.delete(`/message/conversation/${userId}`);
           queryClient.invalidateQueries({ queryKey: ["discution", userId] });
           setShowMenu(false);
-      } catch {
-          setInvalide("Une erreur est survenue, la conversation n'a pas été supprimée.");
+      } catch (error) {
+        setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
       }
     }
   };
@@ -129,8 +130,8 @@ export default function Duiscution({
           queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
           setSelectedUser(null);
           router.push("/message");
-      } catch {
-          setInvalide("Une erreur est survenue, l'utilisateur n'a pas été bloqué.");
+      } catch (error) {
+        setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
       }
     }
   };
@@ -141,8 +142,8 @@ export default function Duiscution({
         queryClient.invalidateQueries({ queryKey: ["matches"] });
         queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
         setShowMenu(false);
-    } catch {
-        setInvalide("Une erreur est survenue, l'utilisateur n'a pas été débloqué.");
+    } catch (error) {
+        setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
     }
   };
 

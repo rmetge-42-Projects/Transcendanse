@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { CreateDto } from './dto/createProfile.dto';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { StatusDto } from './dto/status.dto';
@@ -11,8 +11,17 @@ export class UsersService {
     private prisma: PrismaService,
     ) {}
 
+    //verifie si il y a un doublon de username
+    private checkUsernameError(error: any): never {
+    if (error.code === 'P2002') {
+        throw new ConflictException("Ce nom d'utilisateur est déjà pris.");
+    }
+    throw error;
+    }
     //implemente les infos du nouvel utilisateur dans la db
     async createProfile(userId: number, createDto: CreateDto) {
+
+        try {
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },
             select: { id: true, email: true, createdAt: true },
@@ -26,7 +35,11 @@ export class UsersService {
             },
         });
         return updatedUser;
+        } catch (error) {
+            this.checkUsernameError(error);
+        }
     }
+    
 
     //envoie les infos de l'utilisateur
     async getProfile(userId: number) {
@@ -50,55 +63,6 @@ export class UsersService {
         }
         return user;
     }
-
-    //envoie les infos des profils des matchs
-    // async getOtherProfile(userId: number) {
-    //     const currentUser = await this.prisma.user.findUnique({
-    //         where: { id: userId },
-    //     });
-
-    //     if (!currentUser) {
-    //         throw new UnauthorizedException("Utilisateur introuvable.");
-    //     }
-
-    //     let others;
-
-    //     if (currentUser.orientation === 'all') {
-    //         others = await this.prisma.user.findMany({
-    //             where: {
-    //                 id: { not: userId },
-    //             },
-    //             select: { 
-    //                 id: true,
-    //                 name: true,
-    //                 username: true,
-    //                 createdAt: true,
-    //                 kind: true,
-    //                 orientation: true,
-    //                 birthday: true,
-    //                 biography: true
-    //             },
-    //         });
-    //     } else {
-    //         others = await this.prisma.user.findMany({
-    //             where: {
-    //                 id: { not: userId },
-    //                 kind: currentUser.orientation,
-    //             },
-    //             select: {
-    //                 id: true,
-    //                 name: true,
-    //                 username: true,
-    //                 createdAt: true,
-    //                 kind: true,
-    //                 orientation: true,
-    //                 birthday: true,
-    //                 biography: true
-    //             },
-    //         });
-    //     }
-    //     return others;
-    // }
 
     //envoie les info de l'utilisateur (userId) - sert a afficher le profil du match
     async myMatchProfile(userId: number){
@@ -125,6 +89,7 @@ export class UsersService {
 
     //met a jour le profil en une seule fois
     async updateProfile(userId: number, updateProfileDto: UpdateProfileDto) {
+        try{
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },
             select: {
@@ -146,6 +111,9 @@ export class UsersService {
             },
         });
         return updatedUser;
+        } catch (error) {
+            this.checkUsernameError(error);
+        }
     }
 
   //mettre onLine a false (ou true)
