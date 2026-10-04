@@ -1,7 +1,8 @@
 import { SendMessageDto } from './dto/sendMessage.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { UnauthorizedException, ForbiddenException, Injectable } from '@nestjs/common';
+import { UnauthorizedException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { MessageGateway } from './message.gateway';
+
 
 @Injectable()
 export class MessageService {
@@ -114,27 +115,27 @@ export class MessageService {
 
 	//supprimer un msg
 	async deleteMessage(userId: number, messageId: number) {
-    	const message = await this.prisma.message.findUnique({
-        	where: { id: messageId },
-    	});
+	    const message = await this.prisma.message.findUnique({
+	        where: { id: messageId },
+	    });
 
-    	if (!message || (message.senderId !== userId && message.receiverId !== userId)) {
-        	throw new UnauthorizedException("Message introuvable.");
-    	}	
+	    if (!message || (message.senderId !== userId && message.receiverId !== userId)) {
+	        throw new NotFoundException("Message introuvable.");
+	    }
 
-    	if (message.senderId === userId) {
-        	await this.prisma.message.update({
-            	where: { id: messageId },
-            	data: { deletedForSender: true },
-        	});
-    	} else {
-        	await this.prisma.message.update({
-            	where: { id: messageId },
-            	data: { deletedForReceiver: true },
-        	});
-    	}
+	    if (message.senderId === userId) {
+	 	    await this.prisma.message.update({
+	            where: { id: messageId },
+	            data: { deletedForSender: true },
+	        });
+	    } else {
+	        await this.prisma.message.update({
+	            where: { id: messageId },
+	            data: { deletedForReceiver: true },
+	        });
+	    }
 
-    	return { success: true, message: "Message masqué pour vous" };
+	    return { success: true, message: "Message masqué pour vous" };
 	}
 
 	async deleteDiscution(myId: number, otherUserId: number) {

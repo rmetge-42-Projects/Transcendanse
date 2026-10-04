@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { socket } from "@/src/lib/socket";
+
 import { useMessages, useMatches } from "@/src/hook/conversation";
 import MyMatchProfile from "@/src/app/myMatchProfile/[id]/page";
 import { getErrorMessage } from "@/src/lib/errors";
@@ -25,33 +26,33 @@ export default function Duiscution({
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
 
-  const { data: users } = useMatches();
-    useEffect(() => {
-      if (!selectedUser || !users) return;
+  const { data: messages, isLoading } = useMessages(selectedUser?.userId);
 
-      const freshUser = users.find((u) => u.id === selectedUser.userId);
-      if (freshUser) {
-        setSelectedUser({
-            ...selectedUser,
-            isBlocked: freshUser.isBlocked,
-            isActive: freshUser.isActive,
-            isOnline: freshUser.isOnline,
-        });
-      }
+  const { data: users } = useMatches();
+
+  useEffect(() => {
+    if (!selectedUser || !users) return;
+    const freshUser = users.find((u) => u.id === selectedUser.userId);
+    if (freshUser) {
+      setSelectedUser({
+        ...selectedUser,
+        isBlocked: freshUser.isBlocked,
+        isActive: freshUser.isActive,
+        isOnline: freshUser.isOnline,
+      });
+    }
   }, [users]);
 
-  
-  const { data: messages, isLoading } = useMessages(selectedUser?.userId);
-    useEffect(() => {
+  useEffect(() => {
     if (!selectedUser) return;
 
-      socket.on("newMessage", () => {
-        queryClient.invalidateQueries({ queryKey: ["discution", selectedUser.userId] });
-        queryClient.invalidateQueries({ queryKey: ["messagerie"] });
-      });
+    socket.on("newMessage", () => {
+      queryClient.invalidateQueries({ queryKey: ["discution", selectedUser.userId] });
+      queryClient.invalidateQueries({ queryKey: ["messagerie"] });
+    });
 
     return () => {
-        socket.off("newMessage");
+      socket.off("newMessage");
     };
   }, [selectedUser?.userId]);
 
@@ -70,6 +71,7 @@ export default function Duiscution({
       </div>
     );
   }
+
   const send = async (userId: number) => {
     setInvalide("");
     if (!messageText.trim()) return;
@@ -80,31 +82,31 @@ export default function Duiscution({
       });
       setMessageText("");
       queryClient.invalidateQueries({ queryKey: ["discution", userId] });
-    } catch(error) {
+    } catch (error) {
       if (messageText)
-        setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
+        setInvalide(getErrorMessage(error, "Une erreur est survenue, veuillez réessayer."));
     }
   };
 
   const deleteMatch = async (userId: number) => {
     const confirmLogout = window.confirm("Es-tu sûr de vouloir supprimer ce match ?");
     if (confirmLogout) {
-        try {
-            await api.delete(`/match/${userId}`);
-            queryClient.invalidateQueries({ queryKey: ["matches"] });
-            queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
-            setSelectedUser(null);
-            router.push("/message");
-        } catch (error: any) {
-            if (error.response?.status === 404) {
-                queryClient.invalidateQueries({ queryKey: ["matches"] });
-                queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
-                setSelectedUser(null);
-                router.push("/message");
-            } else {
-                setInvalide(getErrorMessage(error, "Une erreur est survenue, le match n'a pas été supprimé."));
-            }
+      try {
+        await api.delete(`/match/${userId}`);
+        queryClient.invalidateQueries({ queryKey: ["matches"] });
+        queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+        setSelectedUser(null);
+        router.push("/message");
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          queryClient.invalidateQueries({ queryKey: ["matches"] });
+          queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+          setSelectedUser(null);
+          router.push("/message");
+        } else {
+          setInvalide(getErrorMessage(error, "Une erreur est survenue, le match n'a pas été supprimé."));
         }
+      }
     }
   };
 
@@ -112,12 +114,23 @@ export default function Duiscution({
     const confirm = window.confirm("Es-tu sûr de vouloir supprimer cette conversation ?");
     if (confirm) {
       try {
-          await api.delete(`/message/conversation/${userId}`);
-          queryClient.invalidateQueries({ queryKey: ["discution", userId] });
-          setShowMenu(false);
+        await api.delete(`/message/conversation/${userId}`);
+        queryClient.invalidateQueries({ queryKey: ["discution", userId] });
+        setShowMenu(false);
       } catch (error) {
-        setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
+        setInvalide(getErrorMessage(error, "Une erreur est survenue, la conversation n'a pas été supprimée."));
       }
+    }
+  };
+
+  // Masque UN message precis, uniquement pour moi (l'autre personne le voit toujours)
+  const deleteMessage = async (messageId: number, userId: number) => {
+    try {
+      await api.delete(`/message/message/${messageId}`);
+      queryClient.invalidateQueries({ queryKey: ["discution", userId] });
+      queryClient.invalidateQueries({ queryKey: ["matches"] });
+    } catch (error) {
+      setInvalide(getErrorMessage(error, "Le message n'a pas été supprimé."));
     }
   };
 
@@ -125,25 +138,25 @@ export default function Duiscution({
     const confirmBlock = window.confirm("Es-tu sûr de vouloir bloquer cet utilisateur ?");
     if (confirmBlock) {
       try {
-          await api.post(`/match/block/${userId}`);
-          queryClient.invalidateQueries({ queryKey: ["matches"] });
-          queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
-          setSelectedUser(null);
-          router.push("/message");
+        await api.post(`/match/block/${userId}`);
+        queryClient.invalidateQueries({ queryKey: ["matches"] });
+        queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+        setSelectedUser(null);
+        router.push("/message");
       } catch (error) {
-        setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
+        setInvalide(getErrorMessage(error, "Une erreur est survenue, l'utilisateur n'a pas été bloqué."));
       }
     }
   };
 
   const unblockUser = async (userId: number) => {
     try {
-        await api.delete(`/match/block/${userId}`);
-        queryClient.invalidateQueries({ queryKey: ["matches"] });
-        queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
-        setShowMenu(false);
+      await api.delete(`/match/block/${userId}`);
+      queryClient.invalidateQueries({ queryKey: ["matches"] });
+      queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+      setShowMenu(false);
     } catch (error) {
-        setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
+      setInvalide(getErrorMessage(error, "Une erreur est survenue, l'utilisateur n'a pas été débloqué."));
     }
   };
 
@@ -164,48 +177,48 @@ export default function Duiscution({
         >
           {selectedUser.userName}
         </span>
-    <div className="relative ml-auto">
-        <button
+        <div className="relative ml-auto">
+          <button
             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition"
             title="Options"
             onClick={() => setShowMenu(!showMenu)}
-        >
+          >
             <Trash />
-        </button>
-        {showMenu && (
+          </button>
+          {showMenu && (
             <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-2 flex flex-col gap-1">
-                <button
-                    onClick={() => deleteConversation(selectedUser.userId)}
-                    className="text-left px-3 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-700"
-                >
-                    Supprimer la conversation
-                </button>
+              <button
+                onClick={() => deleteConversation(selectedUser.userId)}
+                className="text-left px-3 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-700"
+              >
+                Supprimer la conversation
+              </button>
               {selectedUser.isActive !== false && (
                 <button
-                    onClick={() => deleteMatch(selectedUser.userId)}
-                    className="text-left px-3 py-2 rounded-lg hover:bg-red-50 text-sm text-red-600"
+                  onClick={() => deleteMatch(selectedUser.userId)}
+                  className="text-left px-3 py-2 rounded-lg hover:bg-red-50 text-sm text-red-600"
                 >
-                    Supprimer le match
+                  Supprimer le match
                 </button>
               )}
-            {selectedUser.isBlocked ? (
+              {selectedUser.isBlocked ? (
                 <button
-                    onClick={() => unblockUser(selectedUser.userId)}
-                    className="text-left px-3 py-2 rounded-lg hover:bg-green-50 text-sm text-green-700 font-semibold"
+                  onClick={() => unblockUser(selectedUser.userId)}
+                  className="text-left px-3 py-2 rounded-lg hover:bg-green-50 text-sm text-green-700 font-semibold"
                 >
-                    Débloquer cet utilisateur
+                  Débloquer cet utilisateur
                 </button>
-            ) : (
+              ) : (
                 <button
-                    onClick={() => blockUser(selectedUser.userId)}
-                    className="text-left px-3 py-2 rounded-lg hover:bg-red-50 text-sm text-red-700 font-semibold"
+                  onClick={() => blockUser(selectedUser.userId)}
+                  className="text-left px-3 py-2 rounded-lg hover:bg-red-50 text-sm text-red-700 font-semibold"
                 >
-                    Bloquer cet utilisateur
+                  Bloquer cet utilisateur
                 </button>
-            )}
+              )}
             </div>
-        )}
-    </div>
+          )}
+        </div>
       </div>
       <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
         {messages && messages.length > 0 ? (
@@ -222,22 +235,31 @@ export default function Duiscution({
                 }`}
               >
                 <p>{msg.content}</p>
-                <span
-                  className={`text-[10px] block mt-1 text-right ${
-                    isMe ? "text-gray-300" : "text-gray-400"
-                  }`}
-                >
-                  {(() => {
-                    const d = new Date(msg.createdAt);
-                    // Si la date est valide, on formate l'heure, sinon on affiche le texte tel quel
-                    return !isNaN(d.getTime())
-                      ? d.toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : msg.createdAt;
-                  })()}
-                </span>
+                <div className="flex items-center justify-end gap-2 mt-1">
+                  <button
+                    onClick={() => deleteMessage(msg.id, selectedUser.userId)}
+                    className="opacity-50 hover:opacity-100 transition"
+                    title="Supprimer pour moi"
+                  >
+                    <Trash className="w-3 h-3" />
+                  </button>
+                  <span
+                    className={`text-[10px] ${
+                      isMe ? "text-gray-300" : "text-gray-400"
+                    }`}
+                  >
+                    {(() => {
+                      const d = new Date(msg.createdAt);
+                      // Si la date est valide, on formate l'heure, sinon on affiche le texte tel quel
+                      return !isNaN(d.getTime())
+                        ? d.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : msg.createdAt;
+                    })()}
+                  </span>
+                </div>
               </div>
             );
           })
@@ -253,31 +275,31 @@ export default function Duiscution({
       )}
       {selectedUser.isActive === false ? (
         <div className="p-4 border-t border-gray-200 text-center text-gray-500 text-sm">
-            Vous ne pouvez plus envoyer de message à cet utilisateur.
+          Vous ne pouvez plus envoyer de message à cet utilisateur.
         </div>
       ) : (
         <div className="p-4 border-t border-gray-200 flex gap-2">
-            <input
-                type="text"
-                placeholder="Écrivez votre message..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-blue-950"
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                        e.preventDefault();
-                        send(selectedUser.userId);
-                    }
-                }}
-            />
-            <button
-                className="bg-blue-950 text-white p-2.5 rounded-full hover:bg-blue-900 transition"
-                onClick={() => send(selectedUser.userId)}
-            >
-                <Send className="w-4 h-4" />
-            </button>
+          <input
+            type="text"
+            placeholder="Écrivez votre message..."
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-blue-950"
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                send(selectedUser.userId);
+              }
+            }}
+          />
+          <button
+            className="bg-blue-950 text-white p-2.5 rounded-full hover:bg-blue-900 transition"
+            onClick={() => send(selectedUser.userId)}
+          >
+            <Send className="w-4 h-4" />
+          </button>
         </div>
-    )}
+      )}
     </div>
   );
 }
