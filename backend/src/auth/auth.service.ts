@@ -71,6 +71,11 @@ export class AuthService {
             throw new BadRequestException("Les mots de passe ne correspondent pas.");
         }
 
+        if (pass.length < 8)
+        {
+            throw new BadRequestException("Le mot de passe doit contenir au moins 8 caractères.");
+        }
+
         const existingUser = await this.prisma.user.findUnique({
             where: { email: email },
         });
