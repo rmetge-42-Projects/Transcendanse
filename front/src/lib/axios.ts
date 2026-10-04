@@ -8,19 +8,21 @@ export const api = axios.create({
 });
 
 // Cet intercepteur s'exécute automatiquement AVANT chaque requête sortante
-api.interceptors.request.use(
-  (config) => {
-    // 1. On vérifie d'abord qu'on est bien dans le navigateur (côté client)
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    return config;
-  },
+api.interceptors.response.use(
+  (response) => response,
   (error) => {
+    const status = error?.response?.status;
+    const url: string = error?.config?.url ?? '';
+
+    // Les routes de connexion renvoient aussi 401 pour un mauvais mot de passe :
+    // il ne faut pas rediriger dans ce cas, juste laisser la page afficher le message
+    const isAuthRoute = url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/2fa/verify-login');
+
+    if (status === 401 && !isAuthRoute && typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+
     return Promise.reject(error);
   }
 );
