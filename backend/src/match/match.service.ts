@@ -1,90 +1,347 @@
-import { Injectable } from '@nestjs/common';
-import { ValideteDto } from './dto/validate.dto';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { ValidateDto } from './dto/validate.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { MessageGateway } from '../message/message.gateway';
 
 @Injectable()
 export class MatchService {
-  //valide ou non le profile de mach
-  //et dire si on a un match
-  async rejected(valideteDto: ValideteDto) {
-    if (valideteDto.status === 'reject') {
-      //userId est le numero de profile liker ou nom
-      return {
-        success: true,
-        message: 'Profile Reject !',
-      };
-    } 
-    else if (valideteDto.status === 'like') {
-      //regarde si le user a match avec moi et renvoie match: true ou match: false
-      // if (valideteDto.userId.match == true)
-      const isMatch = true;
-      return {
-        success: true,
-        message: isMatch ? 'C\'est un Match !' : 'Profile Like !',
-        match: isMatch,
-      };
-    } else {
-      return {
-        success: false,
-        message: 'probleme',
-      };
+  constructor(private prisma: PrismaService,
+              private messageGateway: MessageGateway,
+              ){}
+
+  //valide ou non le profile de mach et dire si on a un match
+  async rejected(currentUserId: number, validateDto: ValidateDto) {
+    if (validateDto.status === 'reject') {
+        return { success: true, message: 'Profile Reject !' };
     }
+    else if (validateDto.status === 'like') {
+      if (currentUserId === validateDto.userId) {
+          throw new BadRequestException('Vous ne pouvez pas liker votre propre profil');
+      }
+
+      const targetUser = await this.prisma.user.findUnique({where: {id: validateDto.userId}});
+      if (!targetUser) {
+          throw new NotFoundException('Utilisateur introuvable');
+      }
+
+      const blocked = await this.prisma.block.findFirst({
+        where: {
+            OR: [
+                { blockerId: currentUserId, blockedId: validateDto.userId },
+                { blockerId: validateDto.userId, blockedId: currentUserId },
+            ],
+        },
+    });
+    if (blocked) {
+        throw new NotFoundException('Utilisateur introuvable');
+    }
+
+      const existingLike = await this.prisma.like.findUnique({where: {fromUserId_toUserId: {fromUserId: currentUserId, toUserId: validateDto.userId}}});
+      if (existingLike) {
+          throw new BadRequestException('Vous avez déjà liké ce profil');
+      }
+
+      const isMatch = await this.prisma.$transaction(async (tx) => {
+          await tx.like.create({data: {fromUserId: currentUserId, toUserId: validateDto.userId}});
+
+      const reverseLike = await tx.like.findUnique({where: { fromUserId_toUserId: { fromUserId: validateDto.userId, toUserId: currentUserId}}});
+      const matched = reverseLike !== null;
+
+    if (matched) {
+      const user1Id = Math.min(currentUserId, validateDto.userId);
+      const user2Id = Math.max(currentUserId, validateDto.userId);
+
+    await tx.match.upsert({
+        where: { user1Id_user2Id: { user1Id: user1Id, user2Id: user2Id } },
+        update: { isActive: true, seenByUser1: false, seenByUser2: false },
+        create: { user1Id: user1Id, user2Id: user2Id },
+    });
+  }
+
+    return matched;
+  });
+
+    if (isMatch) {
+      this.messageGateway.server.to(`user_${currentUserId}`).emit('newMatch', {});
+      this.messageGateway.server.to(`user_${validateDto.userId}`).emit('newMatch', {});
+    }
+
+    return { success: true, message: isMatch ? 'C\'est un Match !' : 'Profile Like !', match: isMatch };
+    }
+    else {
+      return { success: false, message: 'probleme' };
+    }
+  }
+
+  //renvoit la liste des matchs
+  async getMatches(currentUserId: number) {
+    const matches = await this.prisma.match.findMany({
+      where: {
+        OR: [
+          { user1Id: currentUserId },
+          { user2Id: currentUserId },
+        ],
+      },
+      include: {
+        user1: {
+          select: {
+            id: true,
+            username: true,
+            kind: true,
+            orientation: true,
+            biography: true,
+            isOnline: true,
+          },
+        },
+        user2: {
+          select: {
+            id: true,
+            username: true,
+            kind: true,
+            orientation: true,
+            biography: true,
+            isOnline: true,
+          },
+        },
+      },
+    });
+
+    const matchedProfiles = await Promise.all(matches.map(async (match) => {
+    let otherUser;
+    if (match.user1.id === currentUserId) {
+      otherUser = match.user2;
+    } else {
+      otherUser = match.user1;
+    }
+    
+    let onlineStatus;
+    if (match.isActive) {
+      onlineStatus = otherUser.isOnline;
+    }
+    else {
+      onlineStatus = false;
+    }
+
+    let seenByMe;
+    if (match.user1.id === currentUserId) {
+      seenByMe = match.seenByUser1;
+    } else {
+      seenByMe = match.seenByUser2;
+    }
+
+    const unreadCount = await this.prisma.message.count({
+      where: {
+          senderId: otherUser.id,
+          receiverId: currentUserId,
+          isRead: false,
+          deletedForReceiver: false,
+        },
+    });
+
+    const lastMessage = await this.prisma.message.findFirst({
+      where: {
+        OR: [
+            { senderId: currentUserId, receiverId: otherUser.id, deletedForSender: false },
+            { senderId: otherUser.id, receiverId: currentUserId, deletedForReceiver: false },
+          ],
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    let lastActivity = match.createdAt;
+    if (lastMessage) {
+      lastActivity = lastMessage.createdAt;
+    }
+
+    const isBlocked = await this.prisma.block.findUnique({
+    where: { blockerId_blockedId: { blockerId: currentUserId, blockedId: otherUser.id } },
+    });
+
+    return {
+      id: otherUser.id,
+      username: otherUser.username,
+      kind: otherUser.kind,
+      orientation: otherUser.orientation,
+      biography: otherUser.biography,
+      isOnline: onlineStatus,
+      isActive: match.isActive,
+      isBlocked: isBlocked !== null,
+      unreadCount: unreadCount,
+      isNewMatch: match.isActive && !seenByMe,
+      lastMessage: lastMessage ? lastMessage.content : "",
+      lastActivity: lastActivity,
+        };
+      }));
+
+      matchedProfiles.sort((a, b) => {
+      return b.lastActivity.getTime() - a.lastActivity.getTime();
+    });
+
+    return matchedProfiles;
   }
 
   //envoie les infos des profil des match
   //faire une pres selection (orientation sexuel ...)
   //pour faire les carte de match
-  getOtherProfile() {
-    return [
-      {
-        id: 12,
-        username: 'Sophie',
-        kind: 'woman',
-        orientation: 'man',
-        biography: 'Passionnée de danse contemporaine, de voyages et de bon café !',
+  async getOtherProfile(currentUserId: number) {
+
+    const currentUser = await this.prisma.user.findUnique({where: { id: currentUserId }});
+
+    if (!currentUser) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+
+    if (!currentUser.kind || !currentUser.orientation) {
+      throw new BadRequestException('Profil incomplet');
+    }
+
+    let kindFilter;
+    if (currentUser.orientation == 'all') {
+      kindFilter = {not: null};
+    }
+    else  {
+      kindFilter = currentUser.orientation;
+    }
+
+    const sentLikes = await this.prisma.like.findMany({where: {fromUserId: currentUserId}, select: {toUserId: true}});
+    const likedUserIds = sentLikes.map((like) => like.toUserId);
+
+    const blockedByMe = await this.prisma.block.findMany({
+      where: { blockerId: currentUserId },
+      select: { blockedId: true },
+    });
+    const blockedByMeIds = blockedByMe.map((block) => block.blockedId);
+
+    const blockedMe = await this.prisma.block.findMany({
+      where: { blockedId: currentUserId },
+      select: { blockerId: true },
+    });
+    const blockedMeIds = blockedMe.map((block) => block.blockerId);
+
+    //je regarde si c'est pas moi, je regarde si c'est mon genre , et je regarde si je suis son genre ou si il est all
+    //+ si on ne cest pas bloquer
+    const compatibleUser = await this.prisma.user.findMany({
+      where: {
+        id: {
+          not: currentUserId,
+          notIn: [...likedUserIds, ...blockedByMeIds, ...blockedMeIds],
+        },
+        kind: kindFilter,
+        OR: [
+          {
+            orientation: currentUser.kind,
+          },
+          {
+            orientation: 'all',
+          },
+        ],
       },
-      {
-        id: 13,
-        username: 'Alexandre',
-        kind: 'man',
-        orientation: 'woman',
-        biography: 'Danseur de salsa et grand amateur de musique électronique.',
+      select: {
+        id: true,
+        username: true,
+        kind: true,
+        orientation: true,
+        biography: true,
       },
-      {
-        id: 14,
-        username: 'Camille',
-        kind: 'other',
-        orientation: 'all',
-        biography: 'Toujours partant pour tester de nouvelles chorégraphies et sorties.',
-      },
-      {
-        id: 15,
-        username: 'Lucas',
-        kind: 'man',
-        orientation: 'all',
-        biography: 'Étudiant à 42, aime le tango, les échecs et le code propre.',
-      },
-      {
-        id: 16,
-        username: 'Léa',
-        kind: 'woman',
-        orientation: 'all',
-        biography: 'Fan de hip-hop, de cuisine italienne et de randonnée.',
-      },
-    ];
+    });
+    return compatibleUser;
   }
 
-  //supprimer le userId de les match
-	async deleteMatch(userId?: number) {
-		if (!userId)
-		{
-			return{
-				success: false,
-				message: "Un probleme avec la supression du match"
-			}
-		}
-		return{
-			success: true,
-			message: "Match supprimer"
-		}
-	}
+  //supprimer un match
+	async deleteMatch(currentUserId: number, otherUserId: number) {
+    const user1Id = Math.min(currentUserId, otherUserId);
+    const user2Id = Math.max(currentUserId, otherUserId);
+
+    const existingMatch = await this.prisma.match.findUnique({
+        where: {
+            user1Id_user2Id: {
+                user1Id: user1Id,
+                user2Id: user2Id,
+            },
+        },
+    });
+
+    if (!existingMatch) {
+        throw new NotFoundException('Match introuvable');
+    }
+
+    await this.prisma.match.update({
+        where: {
+            user1Id_user2Id: {
+                user1Id: user1Id,
+                user2Id: user2Id,
+            },
+        },
+        data: { isActive: false },
+    });
+
+    await this.prisma.like.deleteMany({
+      where: {
+          OR: [
+              { fromUserId: currentUserId, toUserId: otherUserId },
+              { fromUserId: otherUserId, toUserId: currentUserId },
+          ],
+      },
+    });
+
+    return {
+        success: true,
+        message: "Match supprime"
+    }
+  }
+
+  async blockUser(currentUserId: number, targetUserId: number) {
+    const currentId = Math.min(currentUserId, targetUserId);
+    const targetId = Math.max(currentUserId, targetUserId);
+
+    if (currentUserId === targetUserId) {
+      throw new BadRequestException('Vous ne pouvez pas vous bloquer vous-même.');
+    }
+
+    const targetUser = await this.prisma.user.findUnique({ where: { id: targetUserId } });
+      if (!targetUser) {
+    throw new NotFoundException('Utilisateur introuvable');
+    }
+
+    const existingBlock = await this.prisma.block.findUnique({
+        where: { blockerId_blockedId: { blockerId: currentUserId, blockedId: targetUserId } },
+    });
+    if (existingBlock) {
+      throw new BadRequestException('Vous avez déjà bloqué cet utilisateur.');
+    }
+
+    await this.prisma.block.create({
+      data: {
+        blockerId: currentUserId,
+        blockedId: targetUserId,
+      },
+    });
+
+    const existingMatch = await this.prisma.match.findUnique({
+      where: { user1Id_user2Id: { user1Id: currentId, user2Id: targetId } },
+    });
+
+    if (existingMatch) {
+      await this.prisma.match.update({
+        where: { user1Id_user2Id: { user1Id: currentId, user2Id: targetId } },
+        data: { isActive: false },
+      });
+    }
+
+    await this.prisma.like.deleteMany({
+      where: {
+        OR: [
+          { fromUserId: currentUserId, toUserId: targetUserId },
+          { fromUserId: targetUserId, toUserId: currentUserId },
+        ],
+      },
+    });
+  }
+
+  async unblockUser(currentUserId: number, targetUserId: number) {
+    await this.prisma.block.deleteMany({
+        where: { blockerId: currentUserId, blockedId: targetUserId },
+    });
+    return { success: true, message: "Utilisateur débloqué" };
+  }
 }

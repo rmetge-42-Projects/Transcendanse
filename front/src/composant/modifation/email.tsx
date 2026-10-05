@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from 'react-hook-form'
 import { api } from '@/src/lib/axios'
 import EditCard from "./editCard"
+import { getErrorMessage } from "@/src/lib/errors";
 
 type EmailFormValues = {
     lastEmail: string;
@@ -30,8 +31,8 @@ export default function Email() {
         try {
             await api.post("/auth/Email", data);
             router.push("/myProfile");
-        } catch {
-            setInvalide("Erreur lors de la modification, réessayez.");
+        } catch (error) {
+            setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
         } finally {
             setIsSubmit(false);
         }

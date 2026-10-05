@@ -8,6 +8,7 @@ import { api } from '@/src/lib/axios'
 import { useUser } from "@/src/hook/useUser"
 import EditCard from "./editCard"
 import AvatarPicker from "@/src/composant/profile/AvatarPicker"
+import { getErrorMessage } from "@/src/lib/errors";
 
 type ProfileFormValues = {
     username: string;
@@ -67,8 +68,8 @@ export default function Profile() {
             // alert("Profil mis à jour avec succès !");
             await queryClient.invalidateQueries({ queryKey: ['userMe'] });
             router.push("/myProfile");
-        } catch {
-            setInvalide("Erreur lors de la mise à jour, réessayez.");
+        } catch (error) {
+            setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
         } finally {
             setIsSubmit(false);
         }

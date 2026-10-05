@@ -7,6 +7,8 @@ import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
 import AvatarPicker from "@/src/composant/profile/AvatarPicker";
+import { getErrorMessage } from "@/src/lib/errors";
+//page de creation de compte où on rentre toute les info personnel
 
 type ProfileFormValues = {
 	name: string;

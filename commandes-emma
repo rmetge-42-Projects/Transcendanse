@@ -1,0 +1,17 @@
+pour voir les match qui a match avec qui:
+
+sudo docker compose exec database psql \
+  -U votre_nom_utilisateur_ici \
+  -d nom_de_la_base_de_donnees \
+  -c 'SELECT m.id, u1.username AS "user1", u2.username AS "user2", m."createdAt" FROM "Match" m JOIN "User" u1 ON u1.id = m."user1Id" JOIN "User" u2 ON u2.id = m."user2Id" ORDER BY m.id;'
+
+pour update un docker:
+
+sudo docker compose --env-file backend/.env up -d --build (nom du domaine ex:frontend)
+
+pour afficher ls utulisateur :
+  
+  sudo docker compose exec database psql \
+  -U votre_nom_utilisateur_ici \
+  -d nom_de_la_base_de_donnees \
+  -c 'SELECT id, email, name, username, kind, orientation FROM "User" ORDER BY id;'

@@ -41,19 +41,12 @@ export class UsersController {
     return this.usersService.getProfile(userId);
   }
 
-  // Récupère les profils des autres utilisateurs
-  @UseGuards(JwtAuthGuard)
-  @Get('other')
-  async getOther(@Req() req: Request) {
-    const userId = (req.user as { id: number }).id;
-    return this.usersService.getOtherProfile(userId);
-  }
-
-  // Envoie les infos du match pour l'affichage de profil
+  //envoie les info du match
   @UseGuards(JwtAuthGuard)
   @Get(':userId')
-  async myMatchProfile(@Param('userId') userId: string) {
-    return this.usersService.myMatchProfile(+userId);
+  async myMatchProfile(@Param('userId') userId: string, @Req() req: Request) {
+      const currentUserId = (req.user as { id: number }).id;
+      return this.usersService.myMatchProfile(currentUserId, +userId);
   }
 
   // Mise à jour du profil
@@ -65,10 +58,11 @@ export class UsersController {
     return this.usersService.updateProfile(userId, updateProfileDto);
   }
 
-  // Mettre à jour le statut en ligne
+  //defini le statut
   @UseGuards(JwtAuthGuard)
   @Patch('status')
-  async status(@Body() statusDto: StatusDto) {
-    return this.usersService.status(statusDto.isOnline);
+  async status(@Req() req: Request, @Body() statusDto : StatusDto){
+    const userId = (req.user as { id: number }).id;
+    return this.usersService.status(userId, statusDto);
   }
 }
