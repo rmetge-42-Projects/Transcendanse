@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
 import { UserType } from '../type/user';
+import { ActivityType } from '../type/activity';
 
 export function useUser() {
   return useQuery({
@@ -28,6 +29,16 @@ export function useMyMatch(userId?: number) {
     queryKey: ['userMyMatch', userId],
     queryFn: async () => {
       const res = await api.get(`/users/${userId}`);
+      return res.data;
+    },
+  });
+}
+
+export function useActivity() {
+  return useQuery<ActivityType[]>({
+    queryKey: ['activity'],
+    queryFn: async () => {
+      const res = await api.get<ActivityType[]>('/match/activity');
       return res.data;
     },
   });
