@@ -20,6 +20,7 @@ export function useOtherUser() {
       const res = await api.get<UserType[]>('/match/other');
       return res.data;
     },
+    refetchInterval: 10000,
   });
 }
 
@@ -30,5 +31,6 @@ export function useMyMatch(userId?: number) {
       const res = await api.get(`/users/${userId}`);
       return res.data;
     },
+    retry : false,
   });
 }

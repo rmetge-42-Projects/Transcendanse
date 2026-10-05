@@ -5,7 +5,7 @@ import Bottom from "@/src/display/bottom";
 import { UserConversationType, MessageType } from "@/src/type/conversation";
 import { useState } from "react";
 import Contact from "@/src/composant/message/contact";
-import Duiscution from "@/src/composant/message/discution";
+import Discution from "@/src/composant/message/discution";
 
 export default function Message() {
   // const { data: users, isLoading: isLoadingUser, isError } = useConversation();
@@ -27,7 +27,7 @@ export default function Message() {
           {/* 1. Colonne de gauche (Contact) */}
           <Contact selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
           {/* 2. Colonne de droite (Discution) */}
-          <Duiscution selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
+          <Discution selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
         </div>
       </div>
 

@@ -8,7 +8,7 @@ export const KIND_LABELS: Record<string, string> = {
 export const ORIENTATION_LABELS: Record<string, string> = {
   man: "Homme",
   woman: "Femme",
-  all: "N'import",
+  all: "N'importe",
 };
 
 // Optionnel : Une fonction utilitaire pour sécuriser l'affichage

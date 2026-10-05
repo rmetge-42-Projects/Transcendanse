@@ -5,6 +5,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from 'react-hook-form';
 import { api } from '@/src/lib/axios';
+import { getErrorMessage } from "@/src/lib/errors";
 //page de creation de compte où on rentre toute les info personnel
 
 type ProfileFormValues = {
@@ -45,9 +46,8 @@ export  default function CreateAccount()
 			const res = await api.post("/users/createProfile", data);
 			router.push("/myProfile");
 		}
-		catch(error)
-		{
-			setInvalide("Error, reessayer");
+		catch (error) {
+    		setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
 		}
 		finally{
 			setIsSumbit(false);
@@ -122,9 +122,9 @@ export  default function CreateAccount()
 							<option disabled hidden>
 								Choisi une option
 							</option>
-							<option value="Men">Homme</option>
-							<option value="Woman">Femme</option>
-							<option value="All">N'importe</option>
+							<option value="man">Homme</option>
+							<option value="woman">Femme</option>
+							<option value="all">N'importe</option>
 						</select>
 						{errors.orientation && <p className="bg-red-600 text-white text-sm mt-1">{errors.orientation.message}</p>}
 						<label className="text-sm font-semibold text-gray-700">

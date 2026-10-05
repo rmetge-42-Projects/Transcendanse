@@ -26,10 +26,23 @@ model User {
   kind        String?
   orientation String?
   biography   String?
-  twoFactorSecret  String? 
+
+  likesSent     Like[]  @relation("LikesSent")
+  likesReceived Like[]  @relation("LikesReceived")
+
+  matchesAsUser1 Match[] @relation("MatchesAsUser1")
+  matchesAsUser2 Match[] @relation("MatchesAsUser2")
+
+  twoFactorSecret  String?
   twoFactorEnabled Boolean  @default(false)
+
+  isOnline Boolean @default(false)
+
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
+
+  blocksSent     Block[] @relation("BlocksSent")
+  blocksReceived Block[] @relation("BlocksReceived")
 }
 
 //Message
@@ -42,6 +55,48 @@ model Message {
   createdAt  DateTime @default(now())
   isRead     Boolean  @default(false)
 
+  deletedForSender   Boolean @default(false)
+  deletedForReceiver Boolean @default(false)
+
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
   receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model Like {
+  id         Int      @id @default(autoincrement())
+  fromUserId Int
+  toUserId   Int
+  createdAt  DateTime @default(now())
+
+  fromUser User @relation("LikesSent", fields: [fromUserId], references: [id])
+  toUser   User @relation("LikesReceived", fields: [toUserId], references: [id])
+
+  @@unique([fromUserId, toUserId])
+}
+
+model Match {
+  id          Int      @id @default(autoincrement())
+  user1Id     Int
+  user2Id     Int
+  createdAt   DateTime @default(now())
+  isActive    Boolean  @default(true)
+  seenByUser1 Boolean  @default(false)
+  seenByUser2 Boolean  @default(false)
+
+  user1 User @relation("MatchesAsUser1", fields: [user1Id], references: [id])
+  user2 User @relation("MatchesAsUser2", fields: [user2Id], references: [id])
+
+  @@unique([user1Id, user2Id])
+}
+
+model Block {
+  id          Int      @id @default(autoincrement())
+  blockerId   Int
+  blockedId   Int
+  createdAt   DateTime @default(now())
+
+  blocker User @relation("BlocksSent", fields: [blockerId], references: [id])
+  blocked User @relation("BlocksReceived", fields: [blockedId], references: [id])
+
+  @@unique([blockerId, blockedId])
 }

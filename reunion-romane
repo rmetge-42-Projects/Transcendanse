@@ -174,3 +174,4 @@ socket.on("newMessage", (nouveauMessage) => {
     // Ajoute automatiquement le message dans la liste affichée
     setMessages((prev) => [...prev, nouveauMessage]);
 });
+
