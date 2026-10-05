@@ -32,7 +32,7 @@ export default function MyMatchProfile()
       }
 
     return (
-        <ProfileCard> 
+        <ProfileCard photo={user?.photo}> 
           <MatchProfile user={user}/>
           <div className="max-w-4xl mx-auto px-6 py-6">
             <Link 

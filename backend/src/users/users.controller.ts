@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Put, Req, UseGuards, Patch, Param } from '@nestjs/common';
+import { 
+  Controller,
+  Get,
+  Post,
+  Body,
+  Req,
+  Patch,
+  Put,
+  UseGuards,
+  Param,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateDto } from './dto/createProfile.dto';
 import type { Request } from 'express';
@@ -10,17 +20,20 @@ import { StatusDto } from './dto/status.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  //requette post, remplissage des infos du profil pour la creation de compte
-  //front = createProfile
+  // Requête POST: enregistrement du profil utilisateur
+  // Front = createProfile
   @UseGuards(JwtAuthGuard)
   @Post('createProfile')
-  async createProfile(@Body() createDto: CreateDto, @Req() req: Request) {
-      const userId = (req.user as { id: number }).id;
-      return this.usersService.createProfile(userId, createDto);
+  async createProfile(
+    @Body() createDto: CreateDto,
+    @Req() req: Request,
+  ) {
+    const userId = (req.user as { id: number }).id;
+    return this.usersService.createProfile(userId, createDto);
   }
 
-  //recupere les infos de l'user
-  //front = profil
+  // Récupère les infos du profil connecté
+  // Front = profil (myProfile)
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getMe(@Req() req: Request) {
@@ -36,8 +49,8 @@ export class UsersController {
       return this.usersService.myMatchProfile(currentUserId, +userId);
   }
 
-  //pour apres modifier le profile en une seule fois
-  //front = updateProfile
+  // Mise à jour du profil
+  // Front = updateProfile
   @UseGuards(JwtAuthGuard)
   @Put('updateProfile')
   async updateProfile(@Req() req: Request, @Body() updateProfileDto: UpdateProfileDto) {

@@ -26,6 +26,7 @@ model User {
   kind        String?
   orientation String?
   biography   String?
+  photo       String?
 
   likesSent     Like[]  @relation("LikesSent")
   likesReceived Like[]  @relation("LikesReceived")

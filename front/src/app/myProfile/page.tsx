@@ -37,6 +37,9 @@ export default function Profile() {
     }
   }, [user, queryClient, router]);
 
+
+  // console.log("Données utilisateur reçues de l'API :", user);
+
   // État de chargement grand format
   if (isLoading) {
     return (
@@ -56,7 +59,7 @@ export default function Profile() {
   // setMessageCount(user.newMessage)
 
   return (
-    <ProfileCard>
+    <ProfileCard photo={user.photo}>
       <Menu />
       {/* Nom & Email */}
       <h1 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">

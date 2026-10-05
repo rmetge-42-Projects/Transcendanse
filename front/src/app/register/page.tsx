@@ -43,14 +43,34 @@ export default function NewAccount(){
 		data.validatePassword;
 
 		try {
+			console.log("tst");
 			const res = await api.post("/auth/register", data)
 			localStorage.setItem("token", res.data.access_token)
 			router.push("/createProfile");
 		}
-		catch (error) {
-    			setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
-				reset();
+//error peut etre a mettre partout (ou a enlever)
+		catch (error: any) {
+		  // 1. Récupération du message d'erreur renvoyé par le backend
+		  const serverMessage = error.response?.data?.message;
+
+		  let errorMessage = "Une erreur est survenue lors de l'inscription.";
+
+		  // 2. Gestion si NestJS renvoie plusieurs erreurs de validation (tableau) ou un message simple (string)
+		  if (Array.isArray(serverMessage)) {
+		    errorMessage = serverMessage.join(". "); // Fusionne les erreurs en une seule phrase
+		  } else if (typeof serverMessage === "string") {
+		    errorMessage = serverMessage;
+		  }
+	  
+		  // 3. Mise à jour de ton état d'erreur
+		  setInvalide(errorMessage);
+		  reset();
 		}
+		// catch{
+		
+		// 	// setInvalide("Email ou mot de passe incorrect.");
+		// 	reset();
+		// }
 		finally{
 			setIsLoading(false);
 		}

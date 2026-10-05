@@ -18,28 +18,32 @@ export class UsersService {
     }
     throw error;
     }
+	
     //implemente les infos du nouvel utilisateur dans la db
-    async createProfile(userId: number, createDto: CreateDto) {
-
-        try {
-        const updatedUser = await this.prisma.user.update({
-            where: { id: userId },
-            select: { id: true, email: true, createdAt: true },
-            data: {
-                name: createDto.name,
-                username: createDto.username,
-                birthday: createDto.birthday,
-                kind: createDto.kind,
-                orientation: createDto.orientation,
-                biography: createDto.biography,
-            },
-        });
-        return updatedUser;
-        } catch (error) {
-            this.checkUsernameError(error);
-        }
-    }
-    
+   async createProfile(userId: number, createDto: CreateDto, photoPath?: string) {
+		const finalPhoto = photoPath || createDto.photo || null;
+		return await this.prisma.user.update({
+			where: { id: userId },
+			select: {
+				id: true,
+				email: true,
+				username: true,
+				name: true,
+				photo: true,
+				createdAt: true,
+			},
+			data: {
+				name: createDto.name,
+				username: createDto.username,
+				birthday: createDto.birthday,
+				kind: createDto.kind,
+				orientation: createDto.orientation,
+				biography: createDto.biography,
+				photo: finalPhoto,
+			},
+		});
+	}
+	
 
     //envoie les infos de l'utilisateur
     async getProfile(userId: number) {
@@ -55,6 +59,7 @@ export class UsersService {
                 kind: true,
                 orientation: true,
                 biography: true,
+                photo: true,
             },
         });
 
@@ -100,6 +105,7 @@ export class UsersService {
                 kind: true,
                 orientation: true,
                 biography: true,
+                photo: true,
             },
         });
 
@@ -124,12 +130,14 @@ export class UsersService {
                 kind: true,
                 orientation: true,
                 biography: true,
+                photo: true,
             },
             data: {
-                username: updateProfileDto.username,
-                kind: updateProfileDto.kind,
-                orientation: updateProfileDto.orientation,
-                biography: updateProfileDto.biography,
+                ...(updateProfileDto.username !== undefined && { username: updateProfileDto.username }),
+                ...(updateProfileDto.kind !== undefined && { kind: updateProfileDto.kind }),
+                ...(updateProfileDto.orientation !== undefined && { orientation: updateProfileDto.orientation }),
+                ...(updateProfileDto.biography !== undefined && { biography: updateProfileDto.biography }),
+                ...(updateProfileDto.photo !== undefined && { photo: updateProfileDto.photo }),
             },
         });
         return updatedUser;

@@ -1,4 +1,4 @@
-!/bin/sh
+#!/bin/sh
 
 vault server -config=/vault/config/vault.conf &
 VAULT_PID=$!

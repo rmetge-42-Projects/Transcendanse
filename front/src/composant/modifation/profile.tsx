@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from 'react-hook-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { api } from '@/src/lib/axios'
 import { useUser } from "@/src/hook/useUser"
 import EditCard from "./editCard"
+import AvatarPicker from "@/src/composant/profile/AvatarPicker"
 import { getErrorMessage } from "@/src/lib/errors";
 
 type ProfileFormValues = {
@@ -24,6 +25,16 @@ export default function Profile() {
     
     const { data: user, isLoading, isError } = useUser();
     
+    const [preview, setPreview] = useState<string | null>(user?.photo || null);
+    const [croppedFile, setCroppedFile] = useState<File | null>(null);
+
+    // Mettre à jour l'aperçu si les données utilisateur arrivent
+    useEffect(() => {
+        if (user?.photo) {
+            setPreview(user.photo);
+        }
+    }, [user?.photo]);
+    
     const {
         register,
         handleSubmit,
@@ -36,6 +47,11 @@ export default function Profile() {
             biography: user?.biography || '',
         }
     });
+
+    const handlePhotoChange = (file: File | null, dataUrl: string | null) => {
+        setCroppedFile(file);
+        setPreview(dataUrl);
+    };
     
     if (isLoading) return <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm animate-pulse text-center text-gray-400">Chargement...</div>;
     if (isError || !user) return <div className="bg-white p-6 rounded-2xl border border-red-100 text-red-500 text-center">Erreur lors du chargement du profil.</div>;
@@ -44,7 +60,11 @@ export default function Profile() {
         setInvalide('');
         setIsSubmit(true);
         try {
-            await api.put('/users/updateProfile', data);
+            const payload = {
+                ...data,
+                photo: preview ?? null,
+            };
+            await api.put('/users/updateProfile', payload);
             // alert("Profil mis à jour avec succès !");
             await queryClient.invalidateQueries({ queryKey: ['userMe'] });
             router.push("/myProfile");
@@ -60,6 +80,13 @@ export default function Profile() {
         <EditCard title="Information du profil">
 
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-4">
+                {/* PHOTO DE PROFIL & MENU D'OPTIONS */}
+                <div className="flex justify-center p-4 bg-gray-50/80 rounded-2xl border border-gray-100 mb-2">
+                    <AvatarPicker
+                        value={preview}
+                        onChange={handlePhotoChange}
+                    />
+                </div>
                 {/* USERNAME */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">

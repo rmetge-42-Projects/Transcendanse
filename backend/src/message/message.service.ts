@@ -138,6 +138,7 @@ export class MessageService {
 	    return { success: true, message: "Message masqué pour vous" };
 	}
 
+	//jsp si c'est utile : romane
 	async deleteDiscution(myId: number, otherUserId: number) {
     	await this.prisma.message.updateMany({
         	where: {

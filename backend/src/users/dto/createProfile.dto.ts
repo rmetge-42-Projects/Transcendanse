@@ -34,4 +34,8 @@ export class CreateDto{
     @IsOptional()
     @MaxLength(500, { message: "La biographie ne peut pas dépasser 500 caractères." })
     biography!: string
+
+    @IsString()
+    @IsOptional()
+    photo?: string;
 }
