@@ -91,6 +91,7 @@ export class MatchService {
             orientation: true,
             biography: true,
             isOnline: true,
+            photo: true,
           },
         },
         user2: {
@@ -101,6 +102,7 @@ export class MatchService {
             orientation: true,
             biography: true,
             isOnline: true,
+            photo:true,
           },
         },
       },
@@ -242,6 +244,7 @@ export class MatchService {
         kind: true,
         orientation: true,
         biography: true,
+        photo: true,
       },
     });
     return compatibleUser;

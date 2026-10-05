@@ -38,7 +38,7 @@ export default function Profile() {
   }, [user, queryClient, router]);
 
 
-  console.log("Données utilisateur reçues de l'API :", user);
+  // console.log("Données utilisateur reçues de l'API :", user);
 
   // État de chargement grand format
   if (isLoading) {

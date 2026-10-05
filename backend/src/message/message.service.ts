@@ -114,7 +114,6 @@ export class MessageService {
 	}
 
 	//supprimer un msg
-	//a voir, ca rique d'etre conplique : romane
 	async deleteMessage(userId: number, messageId: number) {
 	    const message = await this.prisma.message.findUnique({
 	        where: { id: messageId },

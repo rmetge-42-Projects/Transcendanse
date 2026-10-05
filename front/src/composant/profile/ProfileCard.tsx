@@ -9,7 +9,7 @@ export default function ProfileCard({
   children: React.ReactNode;
   photo?: string | null;
 }) {
-  console.log("URL photo reçue :", photo);
+  // console.log("URL photo reçue :", photo);
   return (
     <Bottom>
       {/* Conteneur large pour écran Web */}
