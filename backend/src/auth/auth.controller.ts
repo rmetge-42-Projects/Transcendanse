@@ -30,11 +30,6 @@ export class AuthController {
 		return this.authService.registerUser(registerDto.email, registerDto.password, registerDto.validatePassword);
 	}
 
-	//pour l'authentification42
-	@Get('login42') 
-	async login42() {
-		return this.authService.login42();
-	}
 
 
 	//requette pour modifier le mdp

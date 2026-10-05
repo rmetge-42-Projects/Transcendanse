@@ -92,17 +92,6 @@ export class AuthService {
         };
     }
 
-    async   login42()
-    {
-        const payload = { id: 12, email: "email42" };
-        const token = await this.jwtService.signAsync(payload);
-        return {
-            success: true,
-            message: "Registration successful !",
-            access_token: token,
-        };
-    }
-
     //l'utilisateur modifie le mot de passe
     async   password(passwordDto: PasswordDto)
     {
