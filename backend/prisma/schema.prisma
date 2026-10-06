@@ -26,6 +26,7 @@ model User {
   kind        String?
   orientation String?
   biography   String?
+  photo       String?
 
   likesSent     Like[]  @relation("LikesSent")
   likesReceived Like[]  @relation("LikesReceived")
@@ -33,10 +34,16 @@ model User {
   matchesAsUser1 Match[] @relation("MatchesAsUser1")
   matchesAsUser2 Match[] @relation("MatchesAsUser2")
 
-  twoFactorSecret  String? 
+  twoFactorSecret  String?
   twoFactorEnabled Boolean  @default(false)
+
+  isOnline Boolean @default(false)
+
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
+
+  blocksSent     Block[] @relation("BlocksSent")
+  blocksReceived Block[] @relation("BlocksReceived")
 }
 
 //Message
@@ -48,6 +55,9 @@ model Message {
   content    String
   createdAt  DateTime @default(now())
   isRead     Boolean  @default(false)
+
+  deletedForSender   Boolean @default(false)
+  deletedForReceiver Boolean @default(false)
 
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
   receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
@@ -66,10 +76,13 @@ model Like {
 }
 
 model Match {
-  id        Int      @id @default(autoincrement())
-  user1Id   Int
-  user2Id   Int
-  createdAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  user1Id     Int
+  user2Id     Int
+  createdAt   DateTime @default(now())
+  isActive    Boolean  @default(true)
+  seenByUser1 Boolean  @default(false)
+  seenByUser2 Boolean  @default(false)
 
   user1 User @relation("MatchesAsUser1", fields: [user1Id], references: [id])
   user2 User @relation("MatchesAsUser2", fields: [user2Id], references: [id])
@@ -77,24 +90,14 @@ model Match {
   @@unique([user1Id, user2Id])
 }
 
-//model User {
-//  id        Int      @id @default(autoincrement())
-//  email     String   @unique
-//  password  String
-//  createdAt DateTime @default(now())
-//  profile   Profile?
-//}
+model Block {
+  id          Int      @id @default(autoincrement())
+  blockerId   Int
+  blockedId   Int
+  createdAt   DateTime @default(now())
 
- 
-//model Profile {
-//  id            Int @id @default(autoincrement()) re r 
-//  userId        Int @unique
-//  user          User @relation(fields: [userId], references: [id])
-//  name          String
-//  username      String
-//  birthday      DateTime
-//  kind          String
-//  orientation   String
-//  biography     String?
-//
-//}
+  blocker User @relation("BlocksSent", fields: [blockerId], references: [id])
+  blocked User @relation("BlocksReceived", fields: [blockedId], references: [id])
+
+  @@unique([blockerId, blockedId])
+}

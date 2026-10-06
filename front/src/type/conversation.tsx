@@ -1,10 +1,13 @@
 export interface UserConversationType {
+  userPhoto: string | null | undefined;
   userId: number;
   userName: string;
   lastMessage: string;
   lastMessageDate: string;
   unreadCount: number;
   isOnline?: boolean;
+  isActive?: boolean;
+  isBlocked?: boolean;
 }
 
 // export interface MessageType {

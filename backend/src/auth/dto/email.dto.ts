@@ -1,12 +1,12 @@
-import {IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString, IsEmail } from "class-validator";
 
 export class EmailDto{
 
     @IsString()
-    @IsNotEmpty()
+    @IsNotEmpty({ message: "L'ancien email est obligatoire." })
     lastEmail!: string;
 
-    @IsString()
-    @IsNotEmpty()
+    @IsEmail({}, { message: "Format d'email invalide." })
+    @IsNotEmpty({ message: "Le nouvel email est obligatoire." })
     newEmail!: string
 }

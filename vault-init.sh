@@ -1,4 +1,4 @@
-!/bin/sh
+#!/bin/sh
 
 vault server -config=/vault/config/vault.conf &
 VAULT_PID=$!
@@ -31,6 +31,7 @@ if [ ! -f /vault/file/keys.txt ]; then
 else
     echo "Vault is already initialized. Unsealing..."
     UNSEAL_KEY=$(grep 'Unseal Key 1:' /vault/file/keys.txt | awk '{print $4}')
+    ROOT_TOKEN=$(grep 'Initial Root Token:' /vault/file/keys.txt | awk '{print $4}')
     vault operator unseal $UNSEAL_KEY
 fi
 

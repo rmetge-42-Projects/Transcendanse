@@ -1,7 +1,8 @@
 import { SendMessageDto } from './dto/sendMessage.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { UnauthorizedException, ForbiddenException, Injectable } from '@nestjs/common';
+import { UnauthorizedException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { MessageGateway } from './message.gateway';
+
 
 @Injectable()
 export class MessageService {
@@ -23,15 +24,32 @@ export class MessageService {
         	},
     	});
 
+		const user1Id = Math.min(myId, otherUserId);
+		const user2Id = Math.max(myId, otherUserId);
+
+		if (myId === user1Id) {
+		    await this.prisma.match.updateMany({
+		        where: { user1Id: user1Id, user2Id: user2Id },
+		        data: { seenByUser1: true },
+		    });
+		} else {
+    	await this.prisma.match.updateMany({
+        	where: { user1Id: user1Id, user2Id: user2Id },
+        	data: { seenByUser2: true },
+    	});
+	}
+
+		this.messageGateway.server.to(`user_${myId}`).emit('messagesRead', {});
+		
     	const messages = await this.prisma.message.findMany({
         	where: {
-        	    OR: [
-        	        { senderId: myId, receiverId: otherUserId },
-        	        { senderId: otherUserId, receiverId: myId },
-        	    ],
-    			},
-			orderBy: {
-        		createdAt: 'asc',
+            	OR: [
+                	{ senderId: myId, receiverId: otherUserId, deletedForSender: false },
+                	{ senderId: otherUserId, receiverId: myId, deletedForReceiver: false },
+            	],
+        	},
+        	orderBy: {
+            	createdAt: 'asc',
         	},
     	});
     	return messages;
@@ -39,15 +57,15 @@ export class MessageService {
 
 	//envoyer toute les personne avec les quel je discute
 	async conversation(userId: number){
-		const list = await this.prisma.message.findMany({
+    	const list = await this.prisma.message.findMany({
         	where: {
-        	    OR: [
-        	        { senderId: userId},
-        	        { receiverId: userId},
-        	    ],
-    			},
-			orderBy: {
-        		createdAt: 'asc',
+            	OR: [
+                	{ senderId: userId, deletedForSender: false },
+                	{ receiverId: userId, deletedForReceiver: false },
+            	],
+        	},
+        	orderBy: {
+            	createdAt: 'asc',
         	},
     	});
     	return list;
@@ -64,6 +82,23 @@ export class MessageService {
 	
 		if (!existingMatch) {
 			throw new ForbiddenException("Vous devez avoir un match pour envoyer un message");
+		} 
+
+		if (!existingMatch.isActive) {
+    		throw new ForbiddenException("Vous ne pouvez plus envoyer de message à cet utilisateur.");
+		}
+
+		const blocked = await this.prisma.block.findFirst({
+    		where: {
+        		OR: [
+            		{ blockerId: userId, blockedId: sendMessageDto.receiveId },
+            		{ blockerId: sendMessageDto.receiveId, blockedId: userId },
+        		],
+    		},
+		});
+
+		if (blocked) {
+    		throw new ForbiddenException("Vous ne pouvez plus envoyer de message à cet utilisateur.");
 		}
 
     	const newMessage = await this.prisma.message.create({
@@ -80,29 +115,50 @@ export class MessageService {
 
 	//supprimer un msg
 	async deleteMessage(userId: number, messageId: number) {
-    	const message = await this.prisma.message.findUnique({
-        	where: { id: messageId },
-    	});
+	    const message = await this.prisma.message.findUnique({
+	        where: { id: messageId },
+	    });
 
-    	if (!message || (message.senderId !== userId && message.receiverId !== userId)) {
-        	throw new UnauthorizedException("Message introuvable.");
-    	}
+	    if (!message || (message.senderId !== userId && message.receiverId !== userId)) {
+	        throw new NotFoundException("Message introuvable.");
+	    }
 
-    	const sup = await this.prisma.message.delete({
-        	where: { id: messageId },
-    	});
-    	return sup;
+	    if (message.senderId === userId) {
+	 	    await this.prisma.message.update({
+	            where: { id: messageId },
+	            data: { deletedForSender: true },
+	        });
+	    } else {
+	        await this.prisma.message.update({
+	            where: { id: messageId },
+	            data: { deletedForReceiver: true },
+	        });
+	    }
+
+	    return { success: true, message: "Message masqué pour vous" };
 	}
 
+	//jsp si c'est utile : romane
 	async deleteDiscution(myId: number, otherUserId: number) {
-    	const messages = await this.prisma.message.deleteMany({
+    	await this.prisma.message.updateMany({
         	where: {
-        	    OR: [
-        	        { senderId: myId, receiverId: otherUserId },
-        	        { senderId: otherUserId, receiverId: myId },
-        	    ],
+            	senderId: myId,
+            	receiverId: otherUserId,
+        	},
+        	data: {
+            	deletedForSender: true,
         	},
     	});
-    	return messages;
+
+    	await this.prisma.message.updateMany({
+        	where: {
+            	senderId: otherUserId,
+            	receiverId: myId,
+        	},
+        	data: {
+            	deletedForReceiver: true,
+        	},
+    	});
+		return { success: true, message: "Conversation masquée pour vous" };
+		}
 	}
-}

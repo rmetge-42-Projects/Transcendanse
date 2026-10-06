@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { api } from '@/src/lib/axios'
 import { Eye, EyeOff } from "lucide-react"
 import EditCard from "./editCard"
+import { getErrorMessage } from "@/src/lib/errors";
 
 type PasswordFormValues = {
     lastPass: string;
@@ -33,8 +34,8 @@ export default function Password() {
         try {
             await api.post("/auth/password", data);
             router.push("/myProfile");
-        } catch {
-            setInvalide("Erreur lors de la modification, réessayez.");
+        } catch (error) {
+            setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
         } finally {
             setIsSubmit(false);
         }

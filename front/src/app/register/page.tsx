@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { api } from '@/src/lib/axios';
 import { Eye, EyeOff } from "lucide-react";
 import Connextion from "@/src/composant/connection/connection";
+import { getErrorMessage } from "@/src/lib/errors";
+
 //page register pour cree son compte
 
 type	RegisterFormValues = {
@@ -41,14 +43,34 @@ export default function NewAccount(){
 		data.validatePassword;
 
 		try {
+			console.log("tst");
 			const res = await api.post("/auth/register", data)
 			localStorage.setItem("token", res.data.access_token)
 			router.push("/createProfile");
 		}
-		catch{
-				setInvalide("Email ou mot de passe incorrect.");
-				reset();
+//error peut etre a mettre partout (ou a enlever)
+		catch (error: any) {
+		  // 1. Récupération du message d'erreur renvoyé par le backend
+		  const serverMessage = error.response?.data?.message;
+
+		  let errorMessage = "Une erreur est survenue lors de l'inscription.";
+
+		  // 2. Gestion si NestJS renvoie plusieurs erreurs de validation (tableau) ou un message simple (string)
+		  if (Array.isArray(serverMessage)) {
+		    errorMessage = serverMessage.join(". "); // Fusionne les erreurs en une seule phrase
+		  } else if (typeof serverMessage === "string") {
+		    errorMessage = serverMessage;
+		  }
+	  
+		  // 3. Mise à jour de ton état d'erreur
+		  setInvalide(errorMessage);
+		  reset();
 		}
+		// catch{
+		
+		// 	// setInvalide("Email ou mot de passe incorrect.");
+		// 	reset();
+		// }
 		finally{
 			setIsLoading(false);
 		}
@@ -61,7 +83,7 @@ export default function NewAccount(){
 						type="email" 
 						placeholder="ex: test@test.com" 
 						{...register("email", {required: "L\'email est obligatoire"})}
-						className="rounded px-3 py-2 w-full border "
+						className="rounded px-3 py-2 w-full border text-black "
 						/>
 					{errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
 					<label>Mot de passe</label>

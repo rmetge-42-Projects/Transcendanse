@@ -12,6 +12,8 @@ import { useState } from "react";
 import { useMatch } from "@/src/composant/match/matchStore";
 import Bottom from "@/src/display/bottom";
 import Navigation from "@/src/display/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { getErrorMessage } from "@/src/lib/errors";
 
 export default function Match() {
   // const router = useRouter();
@@ -20,6 +22,8 @@ export default function Match() {
   const { data: profiles, isLoading, isError, refetch } = useOtherUser();
   const index = useMatch((state) => state.currentIndex);
   const nextProfile = useMatch((state) => state.nextProfile);
+  const queryClient = useQueryClient();
+  const [isRefetching, setIsRefetching] = useState(false);
 
   const reset = useMatch((state) => state.resetProfiles);
 
@@ -27,11 +31,11 @@ export default function Match() {
   if (isLoading) {
     return (
       <Bottom>
-        <IfIsLoading>Chargement du profil...</IfIsLoading>
+        <IfIsLoading>Chargement des profiles...</IfIsLoading>
       </Bottom>);
   }
   if (isError || !profiles) {
-    return <IfIsError> Erreur : impossible de charger le profil. </IfIsError>;
+    return <IfIsError> Erreur : impossible de charger les profiles. </IfIsError>;
   }
 
   if (profiles.length === 0) {
@@ -57,8 +61,8 @@ export default function Match() {
       });
       // nextProfile();
       await handleNext();
-    } catch {
-      setInvalide("Une erreur est survenue, veuillez réessayer.");
+    } catch (error) {
+        setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
     }
   };
 
@@ -73,29 +77,23 @@ export default function Match() {
       // nextProfile();
       if (data.match){
         setIsMatch(true);
-        // return (
-        //    <div className="relative max-w-4xl mx-auto min-h-[75vh] flex flex-col justify-between px-6 py-10">
-        //       vous avez un Match
-        //       <HeartPlus/>
-
-        //    </div>
-        // )
+      }else {
+        await handleNext();
       }
-        
-      await handleNext();
-    } catch {
-      setInvalide("Une erreur est survenue, veuillez réessayer.");
+    } catch (error) {
+        setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
     }
   };
 
   const handleNext = async () => {
     // S'il ne reste plus de profil après celui-ci (c'était le dernier)
-    if (index + 2 >= profiles.length) {
-      reset(); // 1. Remet l'index à 0
-      await refetch(); // 2. Recharge automatiquement de nouveaux profils !
+    if (index + 1 >= profiles.length) {
+      await queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+      reset();
     } else {
       nextProfile(); // Sinon, passe simplement au profil suivant
     }
+    setIsRefetching(false);
   };
 
   if (isMatch) {
@@ -114,7 +112,11 @@ export default function Match() {
             </p>
 
             <button 
-              onClick={() => setIsMatch(false)}
+                onClick={async () => {
+                  setIsRefetching(true);
+                  setIsMatch(false);
+                  await handleNext();
+                }}
               className="px-6 py-3 bg-blue-950 text-white rounded-full font-semibold hover:bg-blue-900 transition"
               >
               Continuer à défiler
@@ -128,7 +130,7 @@ export default function Match() {
   
   return (
     <>
-      <ProfileCard>
+      <ProfileCard photo={currentProfile?.photo}>
         <div className="w-full flex flex-col items-center pb-14">
           {/* Indicateur de progression */}
           {/* <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
