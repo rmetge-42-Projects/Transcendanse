@@ -1,4 +1,4 @@
-AME = transcendence
+NAME = transcendence
 
 # Colors for output
 GREEN = \033[0;32m

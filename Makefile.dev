@@ -49,8 +49,7 @@ reset-db:
 	docker compose exec backend npx prisma migrate reset
 
 studio:
-	docker compose exec backend npx prisma studio
-
+	docker compose exec backend sh entrypoint.sh npx prisma studio --hostname 0.0.0.0
 db-shell:
 	docker compose exec database psql -U $${DB_USER:-transcendence} -d $${DB_NAME:-transcendence}
 

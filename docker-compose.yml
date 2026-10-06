@@ -20,6 +20,9 @@ services:
     environment:
       VAULT_ADDR: http://vault:8200
       PORT: 3000
+    ports:
+      - "3000:3000"
+      - "5555:5555"
     volumes:
       - vol_back:/app/uploads
       - vol_vault:/vault/secrets:ro
