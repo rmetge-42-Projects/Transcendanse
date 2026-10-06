@@ -39,19 +39,12 @@ export class MessageGateway {
 
   async handleDisconnect(client: Socket) {
     const userId = client.data.userId;
-    if (!userId) return;
-
-    try {
-        const remaining = await this.server.in(`user_${userId}`).fetchSockets();
-        if (remaining.length > 0) return;
-
+    if (userId) {
         await this.prisma.user.update({
             where: { id: userId },
             data: { isOnline: false },
         });
         console.log('Utilisateur déconnecté :', userId);
-    } catch (error) {
-        console.log('Utilisateur introuvable, statut non mis à jour');
     }
   }
 
