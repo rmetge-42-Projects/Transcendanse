@@ -46,12 +46,21 @@ export class AuthController {
     	return this.authService.email(userId, emailDto);
 	}
 
+
 	//genere la double authentification pour la premiere fois
 	@UseGuards(JwtAuthGuard)
 	@Post('2fa/generate')
 	async generateTwoFactor(@Req() req: Request) {
     	const userId = (req.user as { id: number }).id;
     	return this.authService.generateTwoFactorSecret(userId);
+	}
+
+	//desactive la 2FA
+	@UseGuards(JwtAuthGuard)
+	@Post('2fa/disable')
+	async disableTwoFactor(@Req() req: Request) {
+    	const userId = (req.user as { id: number }).id;
+    	return this.authService.disableTwoFactor(userId);
 	}
 
 	//regarde si le user veux la 2fa
