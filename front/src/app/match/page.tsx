@@ -31,11 +31,11 @@ export default function Match() {
   if (isLoading) {
     return (
       <Bottom>
-        <IfIsLoading>Chargement du profil...</IfIsLoading>
+        <IfIsLoading>Chargement des profiles...</IfIsLoading>
       </Bottom>);
   }
   if (isError || !profiles) {
-    return <IfIsError> Erreur : impossible de charger le profil. </IfIsError>;
+    return <IfIsError> Erreur : impossible de charger les profiles. </IfIsError>;
   }
 
   if (profiles.length === 0) {
@@ -130,7 +130,7 @@ export default function Match() {
   
   return (
     <>
-      <ProfileCard>
+      <ProfileCard photo={currentProfile?.photo}>
         <div className="w-full flex flex-col items-center pb-14">
           {/* Indicateur de progression */}
           {/* <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">

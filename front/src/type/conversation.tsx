@@ -1,4 +1,5 @@
 export interface UserConversationType {
+  userPhoto: string | null | undefined;
   userId: number;
   userName: string;
   lastMessage: string;

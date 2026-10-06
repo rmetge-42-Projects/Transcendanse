@@ -61,8 +61,6 @@ export default function Login() {
 		router.push("/register");
 	};
 
-	
-
 	return (
 		<Connextion title="Se connecter" >
 				{/* On enveloppe onSubmit dans handleSubmit */}

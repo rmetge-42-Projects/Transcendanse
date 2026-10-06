@@ -105,8 +105,13 @@ Avantages : Idéal pour un chat instantané et les jeux multijoueurs (comme votr
 
 status en ligne
 websocket
-match..
+vu messages
+algo 
+photo
+page code double authentification
+notif a ce rensegner
 
+2
 
 
 websocket
@@ -175,3 +180,63 @@ socket.on("newMessage", (nouveauMessage) => {
     setMessages((prev) => [...prev, nouveauMessage]);
 });
 
+
+
+vu message 
+photo
+websocket
+page code verif
+
+voir l'authentification 42, la photo(juste dans la creation pour le moment), a voir avec cindy la double authentification
+
+
+
+
+Le problème d'enregistrement et d'affichage de la photo de profil dans la base de données était dû à plusieurs blocages entre le frontend, le DTO et le backend :
+
+🔍 Origines du problème identifiées
+DTOs & ValidationPipe :
+photo était commenté dans 
+
+createProfile.dto.ts
+. Avec whitelist: true dans le ValidationPipe global de NestJS, le champ photo était automatiquement supprimé du payload avant d'arriver au service.
+Service Backend (UsersService) :
+Dans 
+
+users.service.ts
+, l'enregistrement de photo était désactivé lors de la modification (updateProfile), et la sélection photo: true était commentée pour getOtherProfile (page match), myMatchProfile, et updateProfile.
+Limite de taille du payload JSON :
+Les photos recadrées sont transmises sous forme de chaîne Base64 haute définition. La limite par défaut d'Express (100 Ko) pouvait bloquer l'envoi (413 Payload Too Large).
+Contrôleur et Frontend désynchronisés :
+createProfile essayait d'utiliser un upload de fichier Multer vers un dossier ./uploads inexistant, alors que modifyProfile utilisait le format Base64 JSON.
+🛠️ Modifications effectuées
+Backend - Limite de charge (
+
+main.ts
+) :
+Activation de app.use(json({ limit: '10mb' })) et app.use(urlencoded({ limit: '10mb', extended: true })) pour autoriser l'envoi sécurisé des images Base64.
+Backend - DTOs (
+
+createProfile.dto.ts
+ & 
+
+updateProfile.dto.ts
+) :
+Réactivation du champ @IsString() @IsOptional() photo?: string;.
+Backend - Service & Contrôleur (
+
+users.service.ts
+ & 
+
+users.controller.ts
+) :
+createProfile enregistre directement la photo dans la colonne photo de PostgreSQL.
+updateProfile met à jour photo (ou null en cas de suppression).
+getProfile, getOtherProfile et myMatchProfile renvoient tous photo: true dans la sélection Prisma.
+Frontend (
+
+createProfile/page.tsx
+) :
+Envoi direct en JSON (photo: preview || null).
+Invalidation automatique du cache React Query (userMe) lors de la création pour que la page profil affiche instantanément la nouvelle image.
+Les builds backend et frontend ont été testés et compilent tous les deux avec 0 erreur.
