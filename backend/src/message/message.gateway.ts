@@ -6,7 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 @WebSocketGateway({cors: { origin: '*'}})
 export class MessageGateway {
   constructor(
-    private readonly jwtService: JwtService, 
+    private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -24,14 +24,14 @@ export class MessageGateway {
       const payload = await this.jwtService.verifyAsync(token);
       client.join(`user_${payload.id}`);
       client.data.userId = payload.id;
-      
+
       await this.prisma.user.update({
         where: { id: payload.id },
         data: { isOnline: true },
       });
 
       console.log('Utilisateur connecté :', payload.id);
-    } 
+    }
     catch {
       client.disconnect();
     }
@@ -39,12 +39,20 @@ export class MessageGateway {
 
   async handleDisconnect(client: Socket) {
     const userId = client.data.userId;
-    if (userId) {
-        await this.prisma.user.update({
-            where: { id: userId },
-            data: { isOnline: false },
-        });
-        console.log('Utilisateur déconnecté :', userId);
+    if (!userId) return;
+
+    try {
+      // Ne passer hors ligne que s'il ne reste plus aucun socket pour cet utilisateur
+      const remaining = await this.server.in(`user_${userId}`).fetchSockets();
+      if (remaining.length > 0) return;
+
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { isOnline: false },
+      });
+      console.log('Utilisateur déconnecté :', userId);
+    } catch (error) {
+      console.log('Utilisateur introuvable, statut non mis à jour');
     }
   }
 
