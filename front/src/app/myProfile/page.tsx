@@ -17,7 +17,6 @@ export default function Profile() {
   const { data: user, isLoading, isError } = useUser();
   const queryClient = useQueryClient();
   const setMessageCount = useMessageStore((state) => state.setMessageCount);
-  // const messageCount = useMessageStore((state) => state.messageCount);
 
   useEffect(() => {
     if (user?.newMessage !== undefined) {
@@ -38,8 +37,6 @@ export default function Profile() {
   }, [user, queryClient, router]);
 
 
-  // console.log("Données utilisateur reçues de l'API :", user);
-
   // État de chargement grand format
   if (isLoading) {
     return (
@@ -56,7 +53,6 @@ export default function Profile() {
     <IfIsLoading>Chargement du profil..</IfIsLoading>;
   }
 
-  // setMessageCount(user.newMessage)
 
   return (
     <ProfileCard photo={user.photo}>
@@ -83,10 +79,8 @@ export default function Profile() {
             </span>
           )}
         </div>
-        //   </div>
       )}
 
-      {/* Zone de biographie */}
       <div className="w-full max-w-2xl mt-10 pt-8 border-t border-gray-100 text-left">
         <span className="text-xs md:text-sm font-extrabold text-gray-400 uppercase tracking-widest block mb-3">
           À propos de moi

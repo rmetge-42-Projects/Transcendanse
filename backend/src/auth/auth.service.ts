@@ -180,6 +180,7 @@ export class AuthService {
         }
     }
 
+
     //genere la double authentification pour la premiere fois
     //A rajouter dans le front voir validate.User Romane
     async generateTwoFactorSecret(userId: number) 
@@ -202,6 +203,20 @@ export class AuthService {
 
         return { qrCodeImage };
     }
+
+    //desactive la 2FA
+    async disableTwoFactor(userId: number) {
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                twoFactorEnabled: false, // Remplace par le nom exact du champ dans ton schéma
+                twoFactorSecret: null,      // Réinitialise le secret (optionnel selon ta logique)
+            },
+        });
+
+        return { message: '2FA désactivée avec succès' };
+    }
+    
 
     //regarde si le user veux la 2fa
     //A rajouter dans le front voir validate.User Romane

@@ -74,10 +74,10 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
             >
               <div className="relative shrink-0 ">
                 <div className="w-10 h-10 rounded-full bg-blue-950 flex items-center justify-center text-white font-bold">
-                  <User className="w-5 h-5" />
+                  {/* <User className="w-5 h-5" /> */}
 
 
-                {/* {user.photo ? (
+                {user.photo ? (
                   <img
                     src={user.photo}
                     alt="Avatar"
@@ -85,7 +85,7 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
                   />
                 ) : (
                   <User className="w-5 h-5" />
-                )} */}
+                )}
 
                     </div>
                     {user.isOnline && (

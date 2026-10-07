@@ -60,6 +60,7 @@ export class UsersService {
                 orientation: true,
                 biography: true,
                 photo: true,
+				twoFactorEnabled: true,
             },
         });
 
