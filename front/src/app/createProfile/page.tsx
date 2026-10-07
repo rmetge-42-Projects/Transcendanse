@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
 import AvatarPicker from "@/src/composant/profile/AvatarPicker";
+// import { getErrorMessage } from "@/src/constant/getErrorMessage";
 import { getErrorMessage } from "@/src/lib/errors";
 //page de creation de compte où on rentre toute les info personnel
 
@@ -58,10 +59,11 @@ export default function CreateAccount() {
 			await api.post('/users/createProfile', payload);
 			await queryClient.invalidateQueries({ queryKey: ['userMe'] });
 			router.push('/myProfile');
-		} catch (err: any) {
-			const errorMsg = err?.response?.data?.message || "Erreur lors de l'enregistrement du profil. Veuillez réessayer.";
-			setInvalide(Array.isArray(errorMsg) ? errorMsg.join(', ') : errorMsg);
-		} finally {
+		}
+		catch (err: any) {
+			setInvalide(getErrorMessage(err, "Erreur lors de l'enregistrement du profil. Veuillez réessayer."));
+		}
+		finally {
 			setIsSubmit(false);
 		}
 	};

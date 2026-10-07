@@ -7,6 +7,7 @@ CREATE TABLE "User" (
     "name" TEXT,
     "username" TEXT,
     "birthday" TIMESTAMP(3),
+    "photo" TEXT,
     "kind" TEXT,
     "orientation" TEXT,
     "biography" TEXT,
@@ -19,6 +20,7 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Message" (
     "id" SERIAL NOT NULL,
+    "photo" TEXT,
     "senderId" INTEGER NOT NULL,
     "receiverId" INTEGER NOT NULL,
     "content" TEXT NOT NULL,
@@ -36,6 +38,10 @@ CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE "Photo" ADD CONSTRAINT "Message_senderId_fkey" FOREIGN KEY ("photo") REFERENCES "User"("photo") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_receiverId_fkey" FOREIGN KEY ("receiverId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
