@@ -14,7 +14,6 @@ export default function SocketProvider({ children }: { children: React.ReactNode
     const [hasToken, setHasToken] = useState(false);
 
     // Aucune requete /match tant qu'on n'est pas connecte
-    console.log(hasToken);
     const { data: users } = useMatches(hasToken);
     const setMessageCount = useMessageStore((state) => state.setMessageCount);
 
