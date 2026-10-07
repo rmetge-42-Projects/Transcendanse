@@ -41,14 +41,13 @@ export default function Menu()
 	// Clic sur la case à cocher
     const handleToggle2FA = async () => {
         if (!is2FAEnabled) {
-            // ACTIVATION : Récupère le QR Code et ouvre la modale
             try {
                 setLoading(true);
                 setError("");
                 const response = await api.post('/auth/2fa/generate');
                 
-                setQrCodeImage(response.data.qrCodeImage); // Stocke l'image base64
-                setShowModal(true);                       // Ouvre la modale
+                setQrCodeImage(response.data.qrCodeImage); 
+                setShowModal(true);                       
             } catch (err) {
                 console.error("Erreur génération 2FA", err);
                 alert("Impossible de générer le QR Code.");
@@ -56,7 +55,6 @@ export default function Menu()
                 setLoading(false);
             }
         } else {
-            // DÉSACTIVATION
             const confirmDisable = window.confirm("Veux-tu vraiment désactiver la double authentification ?");
             if (!confirmDisable) return;
 
@@ -70,7 +68,7 @@ export default function Menu()
         }
     };
 
-    // Soumission du code à 6 chiffres dans la modale
+
     const handleConfirm2FA = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!token || token.length < 6) return;
@@ -79,7 +77,6 @@ export default function Menu()
             setLoading(true);
             setError("");
 
-            // Envoie le token au backend pour activer définitivement la 2FA
             await api.post('/auth/2fa/confirm', { token });
 
             setIs2FAEnabled(true);

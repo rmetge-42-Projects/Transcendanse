@@ -50,34 +50,30 @@ export default function Login() {
         router.push("/myProfile");
     };
 
-	// 4. Fonction déclenchée uniquement si les règles de validation sont respectées
 	const onSubmit = async (data: LoginFormValues) => {
 		setInvalide(''); 
-		// On bloque le bouton
 		setIsLoading(true);
 		try{
 			const res = await api.post("/auth/login", data);
-
-			// Vérification si la 2FA est requise selon la réponse du backend
             if (res.data.message === "2FA required" || res.data.success === false) {
                 setEmailFor2FA(data.email);
-                setRequires2FA(true); // Bascule sur la saisie du code 2FA
+                setRequires2FA(true);
                 return;
             }
 
-            // Si 2FA non activée : connexion directe
             if (res.data.access_token) {
                 handleLoginSuccess(res.data.access_token);
             }
-        } catch (error) {
+        } 
+        catch (error) {
+            
             setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
-            reset();
+            // reset();
         } finally {
             setIsLoading(false);
         }
     };
 
-	// 2. Deuxième étape : Validation du code 2FA
     const handleVerify2FA = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!twoFactorToken || twoFactorToken.length < 6) return;
@@ -86,7 +82,6 @@ export default function Login() {
         setIsLoading(true);
 
         try {
-            // Appel à la route backend /2fa/verify-login
             const res = await api.post("/auth/2fa/verify-login", {
                 email: emailFor2FA,
                 token: twoFactorToken,
@@ -95,9 +90,11 @@ export default function Login() {
             if (res.data.access_token) {
                 handleLoginSuccess(res.data.access_token);
             }
-        } catch (error) {
+        } 
+		catch (error) {
             setInvalide(getErrorMessage(error, "Code 2FA invalide ou expiré."));
-        } finally {
+        } 
+		finally {
             setIsLoading(false);
         }
     };
@@ -208,64 +205,4 @@ export default function Login() {
         )}
     </Connextion>
 	);
-	// return (
-	// 	<Connextion title="Se connecter" >
-	// 			{/* On enveloppe onSubmit dans handleSubmit */}
-	// 			<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 w-full">
-	// 				<div>
-	// 					<label className="block mb-1">Email</label>
-	// 					<input 
-	// 						type="email" 
-	// 						placeholder="ex: test@test.com" 
-	// 						{...register('email', { required: 'L\'email est obligatoire' })}
-	// 						className="rounded px-3 py-2 w-full border"
-	// 						/>
-	// 					{errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
-	// 				</div>
-	
-	// 				<div>
-	// 					<label className="block mb-1 text-sm font-semibold text-gray-700">Mot de passe</label>
-	
-	// 					{/* Conteneur relative indispensable pour caler le bouton */}
-	// 					<div className="relative w-full">
-	// 						<input 
-	// 							type={showPassword ? 'text' : 'password'}
-	// 							placeholder="ex: Password.123" 
-	// 							{...register('password', { required: 'Le mot de passe est obligatoire' })}
-	// 							className="rounded px-3 py-2 pr-10 w-full border border-gray-300"
-	// 							/>
-
-	// 							<button
-	// 							type="button"
-	// 							onClick={() => setShowPassword(!showPassword)}
-	// 							className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer rounded-full focus:outline-none"
-	// 							aria-label={showPassword ? "Masquer" : "Afficher"}
-	// 							>
-	// 							{showPassword ? (
-	// 								<EyeOff />
-	// 							) : (
-	// 								<Eye />
-	// 							)}
-	// 						</button>
-	// 					</div>
-	// 				{errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
-	// 				</div>
-	// 				{invalide && <p className="text-red-500 text-sm">{invalide}</p>}
-	// 				<button 
-	// 					type="submit" 
-	// 					disabled={isLoading}
-	// 					className="bg-blue-600 hover:bg-blue-700 text-white rounded p-2 mt-4 transition disabled:bg-blue-300"
-	// 					>
-	// 					{isLoading ? 'Connexion...' : 'Se connecter'}
-	// 				</button>
-	// 			</form>
-	// 			<button 
-	// 				className="bg-gray-600 hover:bg-gray-700 text-white rounded p-2 mt-4 w-full transition" 
-	// 				onClick={registerRedirect}
-	// 				>
-	// 				S'inscrire
-	// 			</button>
-							
-	// 	</Connextion>
-	// );
 }
