@@ -50,13 +50,12 @@ services:
       PGDATABASE: ${DB_NAME}
   vault:
     image: hashicorp/vault:1.13
-    ports:
-      - "8200:8200"
     env_file:
       - .env
     environment:
       VAULT_ADDR: http://127.0.0.1:8200
     volumes:
+      - ./secrets/nginx-certs:/etc/vault/ssl:ro
       - vol_vault:/vault/file
       - ./Vault/vault.conf:/vault/config/vault.conf
       - ./vault-init.sh:/vault-init.sh
@@ -64,10 +63,7 @@ services:
       - IPC_LOCK
     command: sh /vault-init.sh
     healthcheck:
-      test: ["CMD", "vault", "status"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD", "wget", "--no-check-certificate", "--spider", "-q", "https://127.0.0.1:8200/v1/sys/health"]
 
   nginx:
     build:
@@ -80,6 +76,8 @@ services:
       MODSEC_RULE_ENGINE: on
       MODSEC_REQ_BODY_LIMIT: 26214400
       MODSEC_REQ_BODY_NO_FILES_LIMIT: 26214400
+    volumes:
+      - ./secrets/nginx-certs:/etc/nginx/ssl:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -k -f https://localhost:443 || exit 1"]
       interval: 10s
@@ -100,6 +98,34 @@ services:
         - vol_backup:/backups
         - ./backup.sh:/backup.sh:ro
       command: sh /backup.sh
+    
+  prometheus:
+      image: prom/prometheus:v2.54.1
+      container_name: transcendense-prometheus
+      volumes:
+        - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      ports:
+        - "9090:9090"
+      restart: unless-stopped
+
+  node-exporter:
+      image: prom/node-exporter:latest
+      container_name: transcendense-node-exporter
+      ports:
+        - "9100:9100"
+      restart: unless-stopped
+
+  grafana:
+      image: grafana/grafana:latest
+      container_name: transcendense-grafana
+      ports:
+        - "3005:3000"
+      environment:
+        - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+        - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      depends_on:
+        - prometheus
+      restart: unless-stopped
 
 volumes:
   vol_data:
