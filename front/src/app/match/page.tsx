@@ -165,19 +165,6 @@ export default function Match() {
                 Les profils que tu as passés reviendront plus tard. Reviens dans quelques minutes ou relance une recherche.
               </p>
             </div>
-
-            <button
-              type="button"
-              onClick={async () => {
-                setRejectedIds(getRejectedIds());
-                await queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
-                reset();
-              }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-950 hover:bg-blue-900 text-white rounded-full font-semibold transition"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Actualiser
-            </button>
           </div>
         </div>
         <Navigation />
