@@ -43,5 +43,7 @@ export function useActivity() {
       const res = await api.get<ActivityType[]>('/match/activity');
       return res.data;
     },
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 }
