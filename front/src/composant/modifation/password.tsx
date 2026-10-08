@@ -6,6 +6,8 @@ import { useForm } from 'react-hook-form'
 import { api } from '@/src/lib/axios'
 import { Eye, EyeOff } from "lucide-react"
 import EditCard from "./editCard"
+import { getErrorMessage } from "@/src/lib/errors";
+import { useQueryClient } from "@tanstack/react-query"
 
 type PasswordFormValues = {
     lastPass: string;
@@ -20,6 +22,7 @@ export default function Password() {
     const [showLastPass, setShowLastPass] = useState(false);
     const [showNewPass, setShowNewPass] = useState(false);
     const [showVerifNewPass, setShowVerifNewPass] = useState(false);
+    const queryClient = useQueryClient()
 
     const {
         register,
@@ -32,9 +35,10 @@ export default function Password() {
         setIsSubmit(true);
         try {
             await api.post("/auth/password", data);
+            await queryClient.invalidateQueries({ queryKey: ['userMe'] });
             router.push("/myProfile");
-        } catch {
-            setInvalide("Erreur lors de la modification, réessayez.");
+        } catch (error) {
+            setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
         } finally {
             setIsSubmit(false);
         }

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
 import { UserConversationType, MessageType } from '../type/conversation';
+import { UserType } from '@/src/type/user';
 
 export function useConversation() {
   return useQuery<UserConversationType[]>({
@@ -12,6 +13,18 @@ export function useConversation() {
   });
 }
 
+export function useMatches(enabled: boolean = true) {
+  return useQuery<UserType[]>({
+    queryKey: ['matches'],
+    queryFn: async () => {
+      const res = await api.get<UserType[]>('/match');
+      return res.data;
+    },
+    enabled,
+    refetchInterval: 10000,
+  });
+}
+
 export function useMessages(userId?: number) {
   return useQuery<MessageType[]>({
     queryKey: ['discution', userId],
@@ -20,5 +33,6 @@ export function useMessages(userId?: number) {
       return res.data;
     },
     enabled: !!userId, // Ne lance la requête que si un userId est fourni
+    staleTime: 0, //refresh automatiquement
   });
 }

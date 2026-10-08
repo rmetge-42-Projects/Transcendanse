@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { api } from '@/src/lib/axios';
 import { Eye, EyeOff } from "lucide-react";
 import Connextion from "@/src/composant/connection/connection";
+import { getErrorMessage } from "@/src/lib/errors";
+
 //page register pour cree son compte
 
 type	RegisterFormValues = {
@@ -41,13 +43,13 @@ export default function NewAccount(){
 		data.validatePassword;
 
 		try {
+			console.log("tst");
 			const res = await api.post("/auth/register", data)
 			localStorage.setItem("token", res.data.access_token)
 			router.push("/createProfile");
 		}
-		catch{
-				setInvalide("Email ou mot de passe incorrect.");
-				reset();
+		catch (error: any) {
+			setInvalide(getErrorMessage(error, "Une erreur est survenue lors de l'inscription."));
 		}
 		finally{
 			setIsLoading(false);
@@ -56,15 +58,15 @@ export default function NewAccount(){
 	return(
 		<Connextion title="S'inscrire" >
 				<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-					<label>Email</label>
+					<label className="block mb-1 text-sm font-semibold text-gray-700">Email</label>
 					<input 
 						type="email" 
 						placeholder="ex: test@test.com" 
 						{...register("email", {required: "L\'email est obligatoire"})}
-						className="rounded px-3 py-2 w-full border "
+						className="rounded px-3 py-2 w-full border text-black "
 						/>
 					{errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
-					<label>Mot de passe</label>
+					<label className="block mb-1 text-sm font-semibold text-gray-700">Mot de passe</label>
 					<div className="relative w-full">
 						<input 
 							// type="password" 
@@ -88,7 +90,7 @@ export default function NewAccount(){
                     	</button>
 					</div>
 					{errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
-					<label>Validation mot de passe</label>
+					<label className="block mb-1 text-sm font-semibold text-gray-700">Validation mot de passe</label>
 					<div className="relative w-full">
 
 						<input 

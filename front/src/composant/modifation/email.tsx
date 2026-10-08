@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation"
 import { useForm } from 'react-hook-form'
 import { api } from '@/src/lib/axios'
 import EditCard from "./editCard"
+import { getErrorMessage } from "@/src/lib/errors";
+import { useQueryClient } from "@tanstack/react-query"
 
 type EmailFormValues = {
     lastEmail: string;
@@ -17,6 +19,7 @@ export default function Email() {
     const router = useRouter();
     const [invalide, setInvalide] = useState('');
     const [isSubmit, setIsSubmit] = useState(false);
+    const queryClient = useQueryClient();
 
     const {
         register,
@@ -29,9 +32,10 @@ export default function Email() {
         setIsSubmit(true);
         try {
             await api.post("/auth/Email", data);
+            await queryClient.invalidateQueries({ queryKey: ['userMe'] });
             router.push("/myProfile");
-        } catch {
-            setInvalide("Erreur lors de la modification, réessayez.");
+        } catch (error) {
+            setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
         } finally {
             setIsSubmit(false);
         }

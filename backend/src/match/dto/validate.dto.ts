@@ -1,11 +1,12 @@
-import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsIn } from 'class-validator';
 
-export class ValideteDto {
+export class ValidateDto {
   @IsNumber()
   @IsNotEmpty()
   userId!: number;
 
   @IsString()
   @IsNotEmpty()
+  @IsIn(['like', 'reject'])
   status!: string;
 }

@@ -1,6 +1,6 @@
 //recoit les demandes du front et defini les routes
 
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get } from '@nestjs/common';
 import { Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -30,23 +30,22 @@ export class AuthController {
 		return this.authService.registerUser(registerDto.email, registerDto.password, registerDto.validatePassword);
 	}
 
-	//requette pour modifier le mdp
-	//front = composant/password
 	@UseGuards(JwtAuthGuard)
 	@Post('password')
-	async modifyPassword(@Body() passwordDto: PasswordDto)
+	async modifyPassword(@Body() passwordDto: PasswordDto, @Req() req: Request)
 	{
-		return this.authService.password(passwordDto);
+    	const userId = (req.user as { id: number }).id;
+    	return this.authService.password(userId, passwordDto);
 	}
 
-	//requette pour modifier l'email
-	//front = composant/email
 	@UseGuards(JwtAuthGuard)
 	@Post('email')
-	async modifyEmail(@Body() emailDto: EmailDto)
+	async modifyEmail(@Body() emailDto: EmailDto, @Req() req: Request)
 	{
-		return this.authService.email(emailDto);
+    	const userId = (req.user as { id: number }).id;
+    	return this.authService.email(userId, emailDto);
 	}
+
 
 	//genere la double authentification pour la premiere fois
 	@UseGuards(JwtAuthGuard)
@@ -54,6 +53,14 @@ export class AuthController {
 	async generateTwoFactor(@Req() req: Request) {
     	const userId = (req.user as { id: number }).id;
     	return this.authService.generateTwoFactorSecret(userId);
+	}
+
+	//desactive la 2FA
+	@UseGuards(JwtAuthGuard)
+	@Post('2fa/disable')
+	async disableTwoFactor(@Req() req: Request) {
+    	const userId = (req.user as { id: number }).id;
+    	return this.authService.disableTwoFactor(userId);
 	}
 
 	//regarde si le user veux la 2fa

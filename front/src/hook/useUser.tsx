@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
 import { UserType } from '../type/user';
+import { ActivityType } from '../type/activity';
 
 export function useUser() {
   return useQuery({
@@ -20,6 +21,7 @@ export function useOtherUser() {
       const res = await api.get<UserType[]>('/match/other');
       return res.data;
     },
+    refetchInterval: 10000,
   });
 }
 
@@ -30,5 +32,18 @@ export function useMyMatch(userId?: number) {
       const res = await api.get(`/users/${userId}`);
       return res.data;
     },
+    retry : false,
+  });
+}
+
+export function useActivity() {
+  return useQuery<ActivityType[]>({
+    queryKey: ['activity'],
+    queryFn: async () => {
+      const res = await api.get<ActivityType[]>('/match/activity');
+      return res.data;
+    },
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 }

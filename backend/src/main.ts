@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as fs from 'fs';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
 	try {
@@ -23,6 +24,11 @@ async function bootstrap() {
     process.exit(1);
   }
 const app = await NestFactory.create(AppModule);
+
+app.use(json({ limit: '10mb' }));
+app.use(urlencoded({ limit: '10mb', extended: true }));
+
+
 app.enableCors();
 app.useGlobalPipes(
 	new ValidationPipe({
@@ -32,3 +38,5 @@ app.useGlobalPipes(
 await app.listen(process.env.PORT ?? 4000);
 }
 bootstrap();
+
+
