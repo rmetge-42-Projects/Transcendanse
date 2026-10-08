@@ -172,8 +172,9 @@ export class MatchService {
       isNewMatch: match.isActive && !seenByMe,
       lastMessage: lastMessage ? lastMessage.content : "",
       lastActivity: lastActivity,
-        };
-      }));
+      photo: otherUser.photo,
+      };
+    }));
 
       matchedProfiles.sort((a, b) => {
       return b.lastActivity.getTime() - a.lastActivity.getTime();

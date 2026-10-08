@@ -8,9 +8,10 @@
 BACKEND_DEPS := prisma@6 @prisma/client@6 bcrypt @types/bcrypt \
                 @nestjs/passport passport passport-jwt @types/passport-jwt \
                 otplib qrcode \
-                @nestjs/websockets@11 @nestjs/platform-socket.io@11 socket.io
+                @nestjs/websockets@11 @nestjs/platform-socket.io@11 socket.io \
+				@nestjs/serve-static@5
 
-FRONTEND_DEPS := lucide-react socket.io-client
+FRONTEND_DEPS := lucide-react socket.io-client \
 
 # ==============================================================================
 # VERIFICATION DES PREREQUIS SYSTEME
