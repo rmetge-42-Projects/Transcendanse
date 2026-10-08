@@ -36,6 +36,7 @@ export default function Duiscution({
     if (freshUser) {
       setSelectedUser({
         ...selectedUser,
+        userPhoto: freshUser.photo !== undefined ? freshUser.photo : selectedUser.userPhoto,
         isBlocked: freshUser.isBlocked,
         isActive: freshUser.isActive,
         isOnline: freshUser.isOnline,
@@ -166,17 +167,38 @@ export default function Duiscution({
 
   return (
     <div className="flex-1 flex flex-col bg-white">
-      {/* Entête du chat */}
-      <div className="p-4 border-b border-gray-200 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-blue-950 flex items-center justify-center text-white font-bold">
-          <User className="w-5 h-5" />
-        </div>
-        <span
+      {/* Entête du chat avec photo de profil ronde à côté du nom */}
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+        <div
           onClick={() => seeProfileMatch(selectedUser.userId)}
-          className="font-bold text-gray-800"
+          className="flex items-center gap-3 cursor-pointer group hover:opacity-85 transition"
+          title="Voir le profil du match"
         >
-          {selectedUser.userName}
-        </span>
+          <div className="relative shrink-0">
+            <div className="w-10 h-10 rounded-full bg-blue-950 flex items-center justify-center text-white font-bold overflow-hidden shadow-sm">
+              {selectedUser.userPhoto ? (
+                <img
+                  src={selectedUser.userPhoto}
+                  alt={selectedUser.userName || "Avatar"}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                <User className="w-5 h-5" />
+              )}
+            </div>
+            {selectedUser.isOnline && (
+              <span className="w-3 h-3 bg-green-500 rounded-full border-2 border-white absolute bottom-0 right-0" />
+            )}
+          </div>
+          <div>
+            <span className="font-bold text-gray-900 group-hover:text-blue-950 transition-colors block text-base leading-tight">
+              {selectedUser.userName}
+            </span>
+            <span className="text-[11px] text-gray-400 group-hover:text-gray-600 transition-colors">
+              Voir le profil
+            </span>
+          </div>
+        </div>
         <div className="relative ml-auto">
           <button
             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition"

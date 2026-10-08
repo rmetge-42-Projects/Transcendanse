@@ -16,9 +16,9 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
 
   if (isLoading) {
     return (
-      <div className=" min-h-screen flex flex-col justify-between p-8">
+      // <div className=" min-h-screen flex flex-col justify-between p-8">
         <IfIsLoading>Chargement des contacts...</IfIsLoading>
-      </div>
+      // </div>
     );
   }
   if (isError) {
@@ -63,6 +63,7 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
                   unreadCount: 0,
                   isActive: user.isActive,
                   isBlocked: user.isBlocked,
+                  isOnline: user.isOnline,
                 })
               }
               // 3. Applique la couleur si c'est l'utilisateur sélectionné
@@ -72,25 +73,21 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
                   : "hover:bg-gray-100/80"
               }`}
             >
-              <div className="relative shrink-0 ">
-                <div className="w-10 h-10 rounded-full bg-blue-950 flex items-center justify-center text-white font-bold">
-                  {/* <User className="w-5 h-5" /> */}
-
-
-                {user.photo ? (
-                  <img
-                    src={user.photo}
-                    alt="Avatar"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <User className="w-5 h-5" />
+              <div className="relative shrink-0">
+                <div className="w-10 h-10 rounded-full bg-blue-950 flex items-center justify-center text-white font-bold overflow-hidden shadow-sm">
+                  {user.photo ? (
+                    <img
+                      src={user.photo}
+                      alt={user.username || "Avatar"}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <User className="w-5 h-5" />
+                  )}
+                </div>
+                {user.isOnline && (
+                  <span className="w-3 h-3 bg-green-500 rounded-full border-2 border-white absolute bottom-0 right-0" />
                 )}
-
-                    </div>
-                    {user.isOnline && (
-                      <span className="w-3 h-3 bg-green-500 rounded-full border-2 border-white absolute bottom-0 right-0" />
-                    )}
               </div>
               <div className="flex flex-col overflow-hidden">
                 <span className="font-semibold text-gray-800">

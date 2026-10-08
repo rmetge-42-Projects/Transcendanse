@@ -1,21 +1,15 @@
 "use client";
 import Navigation from "@/src/display/navigation";
 import Bottom from "@/src/display/bottom";
-// import { useConversation, useMessages } from "@/src/hook/conversation";
-import { UserConversationType, MessageType } from "@/src/type/conversation";
+import { UserConversationType } from "@/src/type/conversation";
 import { useState } from "react";
 import Contact from "@/src/composant/message/contact";
 import Discution from "@/src/composant/message/discution";
 
 export default function Message() {
-  // const { data: users, isLoading: isLoadingUser, isError } = useConversation();
   const [selectedUser, setSelectedUser] = useState<UserConversationType | null>(
     null,
   );
-  // const { data: messages, isLoading: isLoadingMessage } = useMessages(
-  //   selectedUser?.userId,
-  // ); //pas encore implementer
-
 
 	return (
     <Bottom>

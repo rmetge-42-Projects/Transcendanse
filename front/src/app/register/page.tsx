@@ -58,7 +58,7 @@ export default function NewAccount(){
 	return(
 		<Connextion title="S'inscrire" >
 				<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-					<label>Email</label>
+					<label className="block mb-1 text-sm font-semibold text-gray-700">Email</label>
 					<input 
 						type="email" 
 						placeholder="ex: test@test.com" 
@@ -66,7 +66,7 @@ export default function NewAccount(){
 						className="rounded px-3 py-2 w-full border text-black "
 						/>
 					{errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
-					<label>Mot de passe</label>
+					<label className="block mb-1 text-sm font-semibold text-gray-700">Mot de passe</label>
 					<div className="relative w-full">
 						<input 
 							// type="password" 
@@ -90,7 +90,7 @@ export default function NewAccount(){
                     	</button>
 					</div>
 					{errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
-					<label>Validation mot de passe</label>
+					<label className="block mb-1 text-sm font-semibold text-gray-700">Validation mot de passe</label>
 					<div className="relative w-full">
 
 						<input 
