@@ -13,13 +13,14 @@ export function useConversation() {
   });
 }
 
-export function useMatches() {
+export function useMatches(enabled: boolean = true) {
   return useQuery<UserType[]>({
     queryKey: ['matches'],
     queryFn: async () => {
       const res = await api.get<UserType[]>('/match');
       return res.data;
     },
+    enabled,
     refetchInterval: 10000,
   });
 }

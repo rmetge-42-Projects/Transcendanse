@@ -7,10 +7,10 @@ sudo docker compose exec database psql \
 
 pour update un docker:
 
-sudo docker compose --env-file backend/.env up -d --build (nom du domaine ex:frontend)
+sudo docker compose --env-file .env up -d --build (nom du domaine ex:frontend)
 
-pour afficher ls utulisateur :
-  
+pour afficher les utilisateurs :
+
   sudo docker compose exec database psql \
   -U votre_nom_utilisateur_ici \
   -d nom_de_la_base_de_donnees \
