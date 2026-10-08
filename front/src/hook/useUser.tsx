@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
 import { UserType } from '../type/user';
+import { ActivityType } from '../type/activity';
 
 export function useUser() {
   return useQuery({
@@ -32,5 +33,17 @@ export function useMyMatch(userId?: number) {
       return res.data;
     },
     retry : false,
+  });
+}
+
+export function useActivity() {
+  return useQuery<ActivityType[]>({
+    queryKey: ['activity'],
+    queryFn: async () => {
+      const res = await api.get<ActivityType[]>('/match/activity');
+      return res.data;
+    },
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 }

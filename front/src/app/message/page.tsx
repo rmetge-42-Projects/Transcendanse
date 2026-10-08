@@ -5,6 +5,7 @@ import { UserConversationType } from "@/src/type/conversation";
 import { useState } from "react";
 import Contact from "@/src/composant/message/contact";
 import Discution from "@/src/composant/message/discution";
+import ActivityDropdown from "@/src/composant/message/activity";
 
 export default function Message() {
   const [selectedUser, setSelectedUser] = useState<UserConversationType | null>(
@@ -16,6 +17,9 @@ export default function Message() {
       {/* Conteneur principal */}
       <div className="max-w-6xl w-full mx-auto my-auto min-h-[75vh] flex flex-col justify-center px-4 pb-16">
         
+        <div className="flex justify-end mb-3">
+          <ActivityDropdown />
+        </div>
         {/* Grande boîte blanche divisée en 2 */}
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row h-[70vh] w-full border border-gray-200/80">
           {/* 1. Colonne de gauche (Contact) */}

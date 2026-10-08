@@ -21,6 +21,12 @@ export class MatchController {
     return this.matchService.getMatches(request.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('activity')
+  async getActivity(@Req() request) {
+    return this.matchService.getActivity(request.user.id);
+  }
+
   //recupere les info du profile
   @UseGuards(JwtAuthGuard)
   @Get('other')

@@ -183,6 +183,105 @@ export class MatchService {
     return matchedProfiles;
   }
 
+  async getActivity(currentUserId: number) {
+
+    const likes = await this.prisma.like.findMany({
+      where: {
+        OR: [
+          { fromUserId: currentUserId },
+          { toUserId: currentUserId },
+        ],
+      },
+      include: {
+        fromUser: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+        toUser: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    });
+
+
+    const likeActivities = likes.map((like) => {
+      if (like.fromUserId === currentUserId) {
+        return {
+          type: 'like_sent',
+          user: like.toUser,
+          createdAt: like.createdAt,
+        };
+      }
+    
+      return {
+        type: 'like_received',
+        user: like.fromUser,
+        createdAt: like.createdAt,
+      };
+    });
+
+
+    const matches = await this.prisma.match.findMany({
+      where: {
+        OR: [
+          { user1Id: currentUserId },
+          { user2Id: currentUserId },
+        ],
+      },
+      include: {
+        user1: {
+          select: {
+            id: true,
+            username: true,
+            kind: true,
+            orientation: true,
+            biography: true,
+          },
+        },
+        user2: {
+          select: {
+            id: true,
+            username: true,
+            kind: true,
+            orientation: true,
+            biography: true,
+          },
+        },
+      },
+    });
+
+    const matchActivities = matches.map((match) => {
+      let otherUser;
+    
+      if (match.user1Id === currentUserId)
+        otherUser = match.user2;
+      else
+        otherUser = match.user1;
+    
+      return {
+        type: 'match',
+        user: otherUser,
+        createdAt: match.createdAt,
+      };
+    });
+
+    const activities = [
+      ...likeActivities,
+      ...matchActivities,
+    ];
+
+    activities.sort((a, b) => {
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+
+    return activities;
+  }
+
   //envoie les infos des profil des match
   //faire une pres selection (orientation sexuel ...)
   //pour faire les carte de match

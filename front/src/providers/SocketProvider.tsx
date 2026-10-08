@@ -34,6 +34,7 @@ export default function SocketProvider({ children }: { children: React.ReactNode
     useEffect(() => {
         const refresh = () => {
             queryClient.invalidateQueries({ queryKey: ["matches"] });
+            queryClient.invalidateQueries({ queryKey: ["activity"] });
         };
         socket.on("newMatch", refresh);
         socket.on("messagesRead", refresh);
