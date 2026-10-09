@@ -1,41 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import { Activity, X } from "lucide-react";
+import { Activity, X, Heart, HeartPlus, UsersRound, Bell } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useActivity } from "@/src/hook/useUser";
 import { ActivityType } from "@/src/type/activity";
 
-function getActivityDisplay(activity: ActivityType) {
+function getActivityDisplay(activity: ActivityType): {
+  Icon: LucideIcon;
+  text: string;
+  color: string;
+} {
   const username = activity.user.username ?? "un utilisateur";
 
   if (activity.type === "match") {
     return {
-      emoji: "💞",
+      Icon: UsersRound,
       text: `Vous avez matché avec ${username}`,
-      color: "bg-rose-50 text-rose-600",
+      color: "bg-rose-100 text-rose-700 border-rose-200",
     };
   }
   
   if (activity.type === "like_sent") {
     return {
-      emoji: "🩷",
+      Icon: Heart,
       text: `Vous avez liké ${username}`,
-      color: "bg-orange-50 text-orange-600",
+      color: "bg-red-50 text-red-600 border-red-100",
     };
   }
   
   if (activity.type === "like_received") {
     return {
-      emoji: "💝",
+      Icon: HeartPlus,
       text: `${username} vous a liké`,
-      color: "bg-blue-50 text-blue-700",
+      color: "bg-pink-100 text-pink-700 border-pink-200",
     };
   }
-  
+
   return {
-    emoji: "🔔",
+    Icon: Bell,
     text: "Nouvelle activité",
-    color: "bg-gray-50 text-gray-600",
+    color: "bg-rose-50 text-rose-500 border-rose-100",
   };
 }
 
@@ -85,6 +90,7 @@ export default function ActivityDropdown() {
 
             {activities?.map((activity) => {
               const display = getActivityDisplay(activity);
+              const Icon = display.Icon;
 
               return (
                 <div
@@ -93,9 +99,9 @@ export default function ActivityDropdown() {
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center text-lg ${display.color}`}
+                      className={`w-9 h-9 rounded-full border flex items-center justify-center ${display.color}`}
                     >
-                      {display.emoji}
+                      <Icon className="w-4 h-4" />
                     </div>
 
                     <p className="text-sm text-gray-800 font-medium">
