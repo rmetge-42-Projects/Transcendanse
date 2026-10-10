@@ -182,7 +182,7 @@ services:
     environment:
       MODSEC_RULE_ENGINE: "On"
       MODSEC_REQ_BODY_LIMIT: 26214400
-      MODSEC_REQ_BODY_NO_FILES_LIMIT: 26214400
+      MODSEC_REQ_BODY_NOFILES_LIMIT: 26214400
       MODSEC_REQ_BODY_ACCESS: "On"
     volumes:
       - ./secrets/nginx-certs:/etc/nginx/ssl:ro
