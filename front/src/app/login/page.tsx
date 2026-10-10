@@ -110,7 +110,7 @@ export default function Login() {
             <>
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 w-full">
                     <div>
-                        <label className="block mb-1">Email</label>
+                        <label className="block mb-1 text-sm font-semibold text-gray-700">Email</label>
                         <input 
                             type="email" 
                             placeholder="ex: test@test.com" 
