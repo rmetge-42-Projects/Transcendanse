@@ -1,0 +1,38 @@
+groups:
+  - name: chi-fou-mi
+    rules:
+      - alert: BackupMissingOrStale
+        expr: absent(backup_last_success_timestamp_seconds) or backup_last_success_timestamp_seconds == 0 or (time() - backup_last_success_timestamp_seconds > 1200)
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Sauvegarde absente ou trop ancienne"
+          description: "Aucun fichier de backup chiffré non vide n'a été créé dans les 20 dernières minutes. Dernier timestamp: {{ $value }}."
+
+      - alert: PrometheusTargetDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Cible Prometheus indisponible"
+          description: "La cible {{ $labels.job }} ({{ $labels.instance }}) ne répond plus depuis une minute."
+
+      - alert: HttpProbeFailed
+        expr: probe_success == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Sonde HTTP en échec"
+          description: "Le service {{ $labels.instance }} ne répond pas correctement depuis une minute."
+
+      - alert: VaultSealed
+        expr: vault_core_unsealed == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Vault est scellé"
+          description: "Vault est scellé depuis une minute."

@@ -1,26 +1,44 @@
 #!/bin/sh
-set -e
 
-echo "Waiting for Vault to initialize..."
-sleep 5
+set -eu
 
-TOKEN=$(cat /vault/secrets/backend_token.txt)
-SECRETS=$(curl -s -H "X-Vault-Token: $TOKEN" http://vault:8200/v1/secret/data/backend)
+VAULT_ADDR="${VAULT_ADDR:-https://vault:8200}"
+VAULT_TOKEN_FILE="${VAULT_TOKEN_FILE:-/vault/secrets/backend_token.txt}"
 
-export DATABASE_URL=$(node -pe "JSON.parse(process.argv[1]).data.data.database_url" "$SECRETS")
-export JWT_SECRET=$(node -pe "JSON.parse(process.argv[1]).data.data.jwt_secret" "$SECRETS")
+echo "Waiting for Vault token..."
+attempt=0
+while [ ! -s "$VAULT_TOKEN_FILE" ]; do
+    attempt=$((attempt + 1))
+    if [ "$attempt" -ge 60 ]; then
+        echo "ERROR: Vault token was not created within 60 seconds." >&2
+        exit 1
+    fi
+    sleep 1
+done
 
-echo "Secrets loaded successfully."
+TOKEN="$(cat "$VAULT_TOKEN_FILE")"
+SECRETS="$(curl --fail --silent --show-error --connect-timeout 3 --max-time 10 \
+    --cacert "${VAULT_CACERT:-/vault/certs/ca.crt}" \
+    -H "X-Vault-Token: $TOKEN" \
+    "$VAULT_ADDR/v1/secret/data/backend")"
+unset TOKEN
 
-if [ -z "$1" ] || [ "$1" = "npm" ]; then
-    echo "Running Prisma migrations..."
+
+DATABASE_URL="$(printf '%s' "$SECRETS" | node -e 'let input=""; process.stdin.on("data", chunk => input += chunk); process.stdin.on("end", () => { const value = JSON.parse(input).data.data.database_url; if (!value) process.exit(1); process.stdout.write(value); });')"
+JWT_SECRET="$(printf '%s' "$SECRETS" | node -e 'let input=""; process.stdin.on("data", chunk => input += chunk); process.stdin.on("end", () => { const value = JSON.parse(input).data.data.jwt_secret; if (!value) process.exit(1); process.stdout.write(value); });')"
+unset SECRETS
+export DATABASE_URL JWT_SECRET
+
+echo "Vault secrets loaded."
+
+if [ -z "${1:-}" ] || [ "${1:-}" = "npm" ]; then
+    echo "Running Prisma schema sync..."
     npx prisma db push
 fi
 
-if [ $# -gt 0 ]; then
-    echo "Executing command: $@"
+if [ "$#" -gt 0 ]; then
     exec "$@"
 else
-    echo "Starting NestJS Server..."
     exec npm run start:dev
 fi
+

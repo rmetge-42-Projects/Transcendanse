@@ -4,14 +4,17 @@ const http = require('http');
 
 const app = express();
 const path = require('path');
+const fs = require('fs');
 app.use(express.static(path.join(__dirname, 'public')));
 const port = 3001;
 
+const secretDir = process.env.DB_SECRET_DIR || '/run/status-secrets';
+const readSecret = (name) => fs.readFileSync(path.join(secretDir, name), 'utf8').trim();
 const pool = new Pool({
   host: process.env.PGHOST || 'database',
-  user: process.env.PGUSER,
-  password: process.env.PGPASSWORD,
-  database: process.env.PGDATABASE,
+  user: readSecret('db_user'),
+  password: readSecret('db_password'),
+  database: readSecret('db_name'),
   port: 5432,
 });
 
