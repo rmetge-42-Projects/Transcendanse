@@ -302,8 +302,6 @@ services:
         - /sys:/host/sys:ro
         - /:/rootfs:ro
       container_name: transcendense-node-exporter
-      ports:
-        - "127.0.0.1:9100:9100"
       restart: unless-stopped
 
   postgres-exporter:
