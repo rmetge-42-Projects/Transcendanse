@@ -44,8 +44,9 @@ export class MessageGateway {
     if (!userId) return;
 
     try {
-      // Ne passer hors ligne que s'il ne reste plus aucun socket pour cet utilisateur
-      const remaining = await this.server.in(`user_${userId}`).fetchSockets();
+      // Ne passer hors ligne que s'il ne reste plus aucun socket pour cet utilisateur (en excluant le socket qui se deconnecte)
+      const sockets = await this.server.in(`user_${userId}`).fetchSockets();
+      const remaining = sockets.filter((s) => s.id !== client.id);
       if (remaining.length > 0) return;
 
       await this.prisma.user.update({

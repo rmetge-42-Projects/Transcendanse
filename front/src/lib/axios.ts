@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { socket } from './socket';
 
 export const api = axios.create({
   baseURL: '/api',
@@ -33,9 +34,20 @@ api.interceptors.response.use(
       url.includes('/auth/register') ||
       url.includes('/auth/2fa/verify-login');
 
-    if (status === 401 && hadToken && !isAuthRoute && typeof window !== 'undefined') {
+    if (status === 401 && !isAuthRoute && typeof window !== 'undefined') {
+      socket.auth = {};
+      if (socket.connected) {
+        socket.disconnect();
+      }
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      const isPublicRoute =
+        window.location.pathname === '/' ||
+        window.location.pathname === '/login' ||
+        window.location.pathname === '/register' ||
+        window.location.pathname === '/privacy';
+      if (!isPublicRoute) {
+        window.location.href = '/login';
+      }
     }
 
     return Promise.reject(error);

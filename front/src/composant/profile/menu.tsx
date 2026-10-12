@@ -6,6 +6,7 @@ import Link from "next/link";
 import { api } from "@/src/lib/axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { socket } from "@/src/lib/socket";
 
 export default function Menu()
 {
@@ -100,9 +101,12 @@ export default function Menu()
     	} catch (e) {
         	console.error("Erreur lors de la déconnexion", e);
     	} finally {
+        	socket.auth = {};
+        	socket.disconnect();
         	localStorage.removeItem('token');
+        	queryClient.cancelQueries();
         	queryClient.clear();
-        	router.push('/');
+        	window.location.href = '/';
     	}
 	};
 
