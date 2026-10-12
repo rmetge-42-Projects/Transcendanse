@@ -247,7 +247,7 @@ export default function AvatarCropperModal({
         {/* Zone de recadrage interactive */}
         <div className="p-6 flex flex-col items-center select-none">
           <p className="text-xs text-gray-500 mb-4 text-center">
-            👉 <b>Glissez</b> la photo pour la centrer • <b>Zoomez</b> avec le curseur ou la molette
+             <b>Glissez</b> la photo pour la centrer • <b>Zoomez</b> avec le curseur ou la molette
           </p>
 
           <div
