@@ -115,7 +115,7 @@ export default function Login() {
                             type="email" 
                             placeholder="ex: test@test.com" 
                             {...register('email', { required: 'L\'email est obligatoire' })}
-                            className="rounded px-3 py-2 w-full border"
+                            className="rounded px-3 py-2 w-full border text-black "
                         />
                         {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
                     </div>
@@ -128,7 +128,7 @@ export default function Login() {
                                 type={showPassword ? 'text' : 'password'}
                                 placeholder="ex: Password.123" 
                                 {...register('password', { required: 'Le mot de passe est obligatoire' })}
-                                className="rounded px-3 py-2 pr-10 w-full border border-gray-300"
+                                className="rounded px-3 py-2 w-full border text-black "
                             />
 
                             <button
