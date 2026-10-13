@@ -6,6 +6,7 @@ import { api } from '@/src/lib/axios';
 import { Eye, EyeOff } from "lucide-react";
 import Connextion from "@/src/composant/connection/connection";
 import { getErrorMessage } from "@/src/lib/errors";
+import { setAuthToken } from "@/src/lib/authToken";
 
 //page register pour cree son compte
 
@@ -43,10 +44,10 @@ export default function NewAccount(){
 		data.validatePassword;
 
 		try {
-			console.log("tst");
-			const res = await api.post("/auth/register", data)
-			localStorage.setItem("token", res.data.access_token)
-			router.push("/createProfile");
+				console.log("tst");
+				const res = await api.post("/auth/register", data)
+				setAuthToken(res.data.access_token)
+				router.push("/createProfile");
 		}
 		catch (error: any) {
 			setInvalide(getErrorMessage(error, "Une erreur est survenue lors de l'inscription."));

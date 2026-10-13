@@ -17,17 +17,29 @@ FRONTEND_DEPS := lucide-react socket.io-client \
 # VERIFICATION DES PREREQUIS SYSTEME
 # ==============================================================================
 check-docker:
-	@if ! command -v docker &> /dev/null; then \
+	@if ! command -v docker >/dev/null 2>&1; then \
 		echo ""; \
-		echo "ERREUR : Docker n'est pas installe sur cette machine."; \
-		echo "-> Installe Docker Desktop depuis : https://www.docker.com/products/docker-desktop/"; \
+		echo "ERREUR : la commande docker est introuvable."; \
+		if [ -x "$$HOME/.docker/bin/docker" ]; then \
+			echo "-> Docker Desktop semble installe, mais son CLI n'est pas dans le PATH."; \
+			echo "-> Ajoute temporairement : export PATH=\"$$HOME/.docker/bin:$$PATH\""; \
+		else \
+			echo "-> Installe Docker Desktop depuis : https://www.docker.com/products/docker-desktop/"; \
+		fi; \
 		echo "-> Une fois installe et lance, relance : make install"; \
 		echo ""; \
 		exit 1; \
 	fi
-	@if ! docker info &> /dev/null; then \
+	@if ! docker compose version >/dev/null 2>&1; then \
 		echo ""; \
-		echo "ERREUR : Docker est installe mais ne semble pas demarre."; \
+		echo "ERREUR : Docker Compose n'est pas disponible."; \
+		echo "-> Docker Desktop inclut Compose; verifie l'installation ou le PATH du CLI."; \
+		echo ""; \
+		exit 1; \
+	fi
+	@if ! docker info >/dev/null 2>&1; then \
+		echo ""; \
+		echo "ERREUR : Docker est installe mais Docker Desktop ne semble pas demarre."; \
 		echo "-> Lance l'application Docker Desktop, attends qu'elle soit prete, puis relance : make install"; \
 		echo ""; \
 		exit 1; \
@@ -58,7 +70,7 @@ install: check-docker
 	docker compose exec backend npx prisma migrate deploy
 	@echo ""
 	@echo "== C'est pret ! =="
-	@echo "-> Site accessible sur https://localhost (accepter l'avertissement de certificat)"
+	@echo "-> Site accessible sur https://localhost:8443 (accepter l'avertissement de certificat)"
 	@echo "-> Voir les logs : make logs"
 
 # ==============================================================================

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { api } from "@/src/lib/axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { clearAuthToken } from "@/src/lib/authToken";
 
 export default function Menu()
 {
@@ -92,19 +93,19 @@ export default function Menu()
         }
     };
 
-	const logout = async () => {
-    	const confirmLogout = window.confirm("Es-tu sûr de vouloir te déconnecter ?");
-    	if (!confirmLogout) return;
-    	try {
-        	await api.patch('/users/status', { isOnline: false });
-    	} catch (e) {
-        	console.error("Erreur lors de la déconnexion", e);
-    	} finally {
-        	localStorage.removeItem('token');
-        	queryClient.clear();
-        	router.push('/');
-    	}
-	};
+    const logout = async () => {
+        const confirmLogout = window.confirm("Es-tu sûr de vouloir te déconnecter ?");
+        if (!confirmLogout) return;
+        try {
+            await api.patch('/users/status', { isOnline: false });
+        } catch (e) {
+            console.error("Erreur lors de la déconnexion", e);
+        } finally {
+            clearAuthToken();
+            queryClient.clear();
+            router.push('/');
+        }
+    };
 
 	return(
 		<div className="absolute top-4 right-6 z-50">

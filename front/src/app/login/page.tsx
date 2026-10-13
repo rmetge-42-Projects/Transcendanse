@@ -8,6 +8,7 @@ import { Eye, EyeOff } from "lucide-react";
 import Connextion from "@/src/composant/connection/connection";
 import { socket } from "@/src/lib/socket";
 import { getErrorMessage } from "@/src/lib/errors";
+import { setAuthToken } from "@/src/lib/authToken";
 //page de connection
 
 // 1. Définition du type pour le formulaire
@@ -39,7 +40,7 @@ export default function Login() {
 
 	// Fonction centralisée pour finaliser la connexion une fois le JWT obtenu
     const handleLoginSuccess = (token: string) => {
-        localStorage.setItem('token', token);
+        setAuthToken(token);
         socket.auth = { token };
 
         if (socket.connected) {

@@ -22,7 +22,7 @@ services:
       PORT: 3000
     volumes:
       - vol_back:/app/uploads
-      - vol_vault:/vault/secrets:ro
+      - vol_vault_secrets:/vault/secrets:ro
     command: sh entrypoint.sh
 
   frontend:
@@ -42,17 +42,19 @@ services:
     environment:
       VAULT_ADDR: http://127.0.0.1:8200
     volumes:
-      - vol_vault:/vault/file
+      - vol_vault_data:/vault/file
+      - vol_vault_secrets:/vault/secrets
       - ./Vault/vault.conf:/vault/config/vault.conf
       - ./vault-init.sh:/vault-init.sh
     cap_add:
       - IPC_LOCK
     command: sh /vault-init.sh
     healthcheck:
-      test: ["CMD", "vault", "status"]
+      test: ["CMD-SHELL", "test -s /vault/secrets/backend_token.txt && VAULT_ADDR=http://127.0.0.1:8200 vault status >/dev/null 2>&1"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   nginx:
     build:
@@ -89,5 +91,6 @@ services:
 volumes:
   vol_data:
   vol_back:
-  vol_vault:
+  vol_vault_data:
+  vol_vault_secrets:
   vol_backup:

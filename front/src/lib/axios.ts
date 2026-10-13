@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearAuthToken, getAuthToken } from './authToken';
 
 export const api = axios.create({
   baseURL: '/api',
@@ -11,7 +12,7 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -34,7 +35,7 @@ api.interceptors.response.use(
       url.includes('/auth/2fa/verify-login');
 
     if (status === 401 && hadToken && !isAuthRoute && typeof window !== 'undefined') {
-      localStorage.removeItem('token');
+      clearAuthToken();
       window.location.href = '/login';
     }
 
