@@ -1,24 +1,25 @@
 import { create } from "zustand";
 import { UserType } from "@/src/type/user";
 
-type DeckUpdater = UserType[] | ((currentDeck: UserType[]) => UserType[]);
-
 interface MatchState {
-  deck: UserType[];
-  setDeck: (deckOrUpdater: DeckUpdater) => void;
-  clearDeck: () => void;
+  // Les variables
+  currentIndex: number;
+  profiles: UserType[];
+  // Les fonctions
+  nextProfile: () => void;
+  resetProfiles: () => void;
 }
 
-export const useMatch = create<MatchState>((set) => ({
-  deck: [],
-
-  setDeck: (deckOrUpdater) =>
-    set((state) => ({
-      deck:
-        typeof deckOrUpdater === "function"
-          ? deckOrUpdater(state.deck)
-          : deckOrUpdater,
-    })),
-
-  clearDeck: () => set({ deck: [] }),
+export const useMatch = create<MatchState>((set) =>  ({
+  // 1. Les valeurs initiales (au démarrage)
+  currentIndex: 0,
+  profiles: [],
+  // 2. Les fonctions qui utilisent "set" pour modifier les valeurs
+  nextProfile: () => set((state) => ({ 
+    currentIndex: state.currentIndex + 1 
+  })),
+  resetProfiles: () => set({ 
+    currentIndex: 0, 
+    profiles: [] 
+  }),
 }));
