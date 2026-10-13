@@ -14,14 +14,17 @@ $(NAME):
 	@mkdir -p backups && chmod 700 backups
 	docker compose up --build -d
 	@echo "$(GREEN)$(NAME) is up and running!$(RESET)"
+	@touch $(NAME)
 
 down:
 	@echo "$(YELLOW)Stopping $(NAME) containers...$(RESET)"
 	docker compose down
+	@rm -f $(NAME)
 
 clean:
 	@echo "$(YELLOW)Removing this project's containers and local images (volumes are preserved)...$(RESET)"
 	docker compose down --rmi local
+	@rm -f $(NAME)
 
 fclean: down
 	@echo "$(RED)Deep clean: Removing project containers, networks, images, and volumes...$(RESET)"
