@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
+import { getAuthToken } from '@/src/lib/authToken';
 import { UserConversationType, MessageType } from '../type/conversation';
 import { UserType } from '@/src/type/user';
 
-const hasToken = () => typeof window !== 'undefined' && !!localStorage.getItem('token');
+const hasToken = () => !!getAuthToken();
 
 export function useConversation() {
   const authenticated = hasToken();

@@ -1,10 +1,11 @@
 // src/hooks/useUser.ts
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
+import { getAuthToken } from '@/src/lib/authToken';
 import { UserType } from '../type/user';
 import { ActivityType } from '../type/activity';
 
-const hasToken = () => typeof window !== 'undefined' && !!localStorage.getItem('token');
+const hasToken = () => !!getAuthToken();
 
 export function useUser() {
   const authenticated = hasToken();
