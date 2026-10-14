@@ -26,9 +26,6 @@ export default function Home() {
             Ici on veut du fun, de quoi se détendre pendant les meilleurs mois de l'année, faire des rencontres. 
             Et pourquoi pas même trouver votre rayon de soleil de l'été ou... de votre vie.
           </p>
-          <p className="font-medium">
-            Une application qui commence par un jeu : le gagnant aura le droit de lancer la conversation !
-          </p>
         </div>
 
       </div>
