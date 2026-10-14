@@ -71,7 +71,7 @@ Le fichier `docker-compose.yml`, à la racine du projet, orchestre 5 services :
 | `backend` | Le serveur NestJS, construit depuis `backend/Dockerfile` |
 | `frontend` | Le site Next.js, construit depuis `front/Dockerfile` (mode **production**, pas dev — voir plus bas) |
 | `nginx` | Redirige le trafic, gère le HTTPS, fait le lien entre `/api/...` (backend) et le reste (frontend) |
-| `vault` | Gestion des secrets (HashiCorp Vault) — présent mais pas encore intégré au code |
+| `vault` | Gestion des secrets (HashiCorp Vault) — secrets récupérés par le backend sur TLS avec un jeton à portée limitée |
 
 ### Variables d'environnement nécessaires (fichier `.env` à la racine, jamais commité)
 
@@ -79,10 +79,8 @@ Le fichier `docker-compose.yml`, à la racine du projet, orchestre 5 services :
 DB_USER=...
 DB_PASSWORD=...
 DB_NAME=...
-JWT_SECRET=...
-DATABASE_URL=postgresql://...
-VAULT_TOKEN=...
 ```
+Le secret JWT est généré par le script d'initialisation et stocké dans Vault. Le backend lit les secrets KV au démarrage avec son jeton dédié.
 
 Copier `.env.example` en `.env` et remplacer les valeurs.
 

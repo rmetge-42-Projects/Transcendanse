@@ -1,2 +1,9 @@
 .env
+keys.txt
+backend_token.txt
+secrets/
+*.key
 node_modules/
+backups/
+/vault-certs/
+/transcendence

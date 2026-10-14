@@ -1,0 +1,82 @@
+# ==============================================================================
+# DEVELOPER WORKFLOW & ALIASES
+# Usage: make -f Makefile.dev <target>
+# ==============================================================================
+
+# Fast container startup without rebuild
+up:
+	docker compose up -d
+
+down:
+	docker compose down
+
+build:
+	docker compose up --build -d
+
+restart: down up
+
+ps:
+	docker compose ps
+
+# ==============================================================================
+# LOGS
+# ==============================================================================
+
+logs:
+	docker compose logs -f
+
+logs-backend:
+	docker compose logs -f backend
+
+logs-frontend:
+	docker compose logs -f frontend
+
+logs-vault:
+	docker compose logs -f vault
+
+# ==============================================================================
+# PRISMA & DATABASE OPERATIONS
+# ==============================================================================
+
+# Run database migrations: make -f Makefile.dev migrate name="init_auth"
+migrate:
+	docker compose exec backend npx prisma migrate dev $(if $(name),--name $(name),)
+
+migrate-deploy:
+	docker compose exec backend npx prisma migrate deploy
+
+reset-db:
+	docker compose exec backend npx prisma migrate reset
+
+studio:
+	docker compose exec backend sh entrypoint.sh npx prisma studio --hostname 0.0.0.0
+db-shell:
+	docker compose exec database psql -U $${DB_USER:-transcendence} -d $${DB_NAME:-transcendence}
+
+# ==============================================================================
+# INTERACTIVE CONTAINER SHELLS
+# ==============================================================================
+
+shell-backend:
+	docker compose exec backend sh
+
+shell-frontend:
+	docker compose exec frontend sh
+
+shell-vault:
+	docker compose exec vault sh
+
+# ==============================================================================
+# PACKAGE MANAGEMENT (Executed inside containers)
+# Usage: make -f Makefile.dev install-backend pkg="lodash"
+# ==============================================================================
+
+install-backend:
+	docker compose exec backend npm install $(pkg)
+
+install-frontend:
+	docker compose exec frontend npm install $(pkg)
+
+.PHONY: up down build restart ps logs logs-backend logs-frontend logs-vault \
+        migrate migrate-deploy reset-db studio db-shell shell-backend \
+        shell-frontend shell-vault install-backend install-frontend

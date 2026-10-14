@@ -95,7 +95,7 @@ export default function Profile() {
                     <input
                         type="text"
                         {...register("username", { required: "Le nom d'utilisateur est obligatoire" })}
-                        className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent text-sm transition"
+                        className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent text-sm transition text-black"
                         />
                     {errors.username && <p className="text-red-500 text-xs mt-1 font-medium">{errors.username.message}</p>}
                 </div>
@@ -108,7 +108,7 @@ export default function Profile() {
                         </label>
                         <select
                             {...register("kind", { required: "Le genre est obligatoire" })}
-                            className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition"
+                            className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition text-black"
                             >
                             <option value="" disabled hidden>Sélectionner</option>
                             <option value="man">Homme</option>
@@ -125,7 +125,7 @@ export default function Profile() {
                         </label>
                         <select
                             {...register("orientation", { required: "L'orientation est obligatoire" })}
-                            className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition"
+                            className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition text-black"
                             >
                             <option value="" disabled hidden>Sélectionner</option>
                             <option value="man">Homme</option>
@@ -144,7 +144,7 @@ export default function Profile() {
                     <textarea
                         rows={3}
                         {...register("biography")}
-                        className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition resize-none"
+                        className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition resize-none text-black"
                         />
                 </div>
 
@@ -153,7 +153,7 @@ export default function Profile() {
                 <button 
                     type="submit"
                     disabled={isSubmit}
-                    className="self-end bg-blue-950 hover:bg-blue-900 text-white font-medium rounded-lg px-5 py-2.5 text-sm transition cursor-pointer disabled:bg-gray-300"
+                    className="self-end bg-blue-950 hover:bg-blue-900 text-white font-medium rounded-lg px-5 py-2.5 text-sm transition cursor-pointer disabled:bg-gray-300 "
                     >
                     {isSubmit ? "Enregistrement..." : "Enregistrer les modifications"}
                 </button>

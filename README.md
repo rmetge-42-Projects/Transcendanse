@@ -8,7 +8,7 @@ Transendanse is a full-stack social matching application. Users can register, cr
 
 ```bash
 cp .env.example .env
-make install
+make
 ```
 
 The application is then available at:
@@ -20,12 +20,12 @@ https://localhost:8443
 For daily use:
 
 ```bash
-make up
 make down
-make logs
+make re
+docker compose logs -f
 ```
 
-Set a real `PUBLIC_API_KEY` in `.env` before evaluation. The fallback key is only for local development.
+Set real `PUBLIC_API_KEY` and `BACKUP_ENCRYPTION_KEY` values in `.env` before evaluation. The fallback API key is only for local development.
 
 ## Technical Stack
 
@@ -39,6 +39,8 @@ Set a real `PUBLIC_API_KEY` in `.env` before evaluation. The fallback key is onl
 | Real-time | Socket.IO WebSockets |
 | Reverse proxy | Nginx over HTTPS |
 | Secrets | HashiCorp Vault |
+| Monitoring | Prometheus, Grafana, Alertmanager and status page |
+| Backups | Encrypted PostgreSQL backups |
 
 ## Database Schema
 

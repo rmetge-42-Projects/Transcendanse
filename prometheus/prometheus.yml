@@ -1,0 +1,57 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  - job_name: 'vault'
+    metrics_path: /v1/sys/metrics
+    scheme: https
+    tls_config:
+      ca_file: /etc/prometheus/vault-ca.crt
+    params:
+      format: ['prometheus']
+    static_configs:
+      - targets: ['vault:8200']
+
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://frontend:3000/
+          - http://backend:3000/
+          - http://status_page:3001/api/health
+          - https://nginx/api/health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # Scrape de l'âge réel du dernier backup présent dans le répertoire persistant.
+  - job_name: 'backup-exporter'
+    static_configs:
+      - targets: ['backup-exporter:9797']

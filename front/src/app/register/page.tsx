@@ -75,7 +75,7 @@ export default function NewAccount(){
 							type={showPassword ? 'text' : 'password'}
 							placeholder="ex: Password.123" 
 							{...register("password", {required: "Le mot de passe est obligatoire"})}
-							className="rounded px-3 py-2 w-full border "
+							className="rounded px-3 py-2 w-full border text-black "
 							/>
 						<button
                     	    type="button"
@@ -99,7 +99,7 @@ export default function NewAccount(){
 							type={showVerifPassword ? 'text' : 'password'}
 							placeholder="ex: Password.123"
 							{...register("validatePassword", {required: "La validation de mot de passe est obligatoire"})} 
-							className="rounded px-3 py-2 w-full border "
+							className="rounded px-3 py-2 w-full border text-black "
 							/>
 						<button
                     	    type="button"

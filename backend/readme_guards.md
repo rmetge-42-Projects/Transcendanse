@@ -11,10 +11,11 @@ npm install @nestjs/passport passport passport-jwt
 npm install -D @types/passport-jwt
 ```
 
-Le `.env` doit déjà contenir `JWT_SECRET` (utilisé à la fois pour fabriquer les tokens dans `auth.module.ts` et pour les vérifier ici) :
+Le backend récupère `JWT_SECRET` depuis le KV Vault au démarrage; ne pas ajouter cette clé au `.env`. La même valeur sert à signer et vérifier les JWT.
 ```
-JWT_SECRET=un_secret_a_toi
+VAULT_ADDR=https://vault:8200
 ```
+
 
 ## Les 2 fichiers à créer
 
@@ -71,7 +72,7 @@ import { JwtStrategy } from './jwt.strategy';
 @Module({
   imports: [ /* ... existant ... */ ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy]   // ← JwtStrategy ajouté ici
+  providers: [AuthService, JwtStrategy]  
 })
 export class AuthModule {}
 ```
@@ -116,12 +117,11 @@ C'est ce qui permettra, dans `users`, de savoir *qui* demande son profil, plutô
 ## Tester qu'une route est bien protégée
 
 ```bash
-# Sans token → doit renvoyer une erreur 401
+
 curl -X POST http://localhost:4000/auth/password \
   -H "Content-Type: application/json" \
   -d '{"newPass":"abc","verifNewPass":"abc","lastPass":"xyz"}'
 
-# Avec un token valide → doit fonctionner normalement
 curl -X POST http://localhost:4000/auth/password \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer LE_TOKEN_RECU_AU_LOGIN" \
@@ -132,4 +132,6 @@ curl -X POST http://localhost:4000/auth/password \
 
 - `src/auth/jwt.strategy.ts` → définit comment vérifier un token (partagé sur Git)
 - `src/auth/jwt-auth.guard.ts` → le Guard réutilisable sur n'importe quelle route (partagé sur Git)
-- `JWT_SECRET` dans `.env` → **jamais partagé sur Git**, indispensable pour signer et vérifier les tokens
+
+- `JWT_SECRET` dans Vault → généré à l'initialisation et lu par le backend avec son jeton limité
+

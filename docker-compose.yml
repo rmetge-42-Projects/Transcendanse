@@ -7,6 +7,12 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - vol_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
     restart: always
 
   backend:
@@ -14,85 +20,349 @@ services:
       context: ./backend
     depends_on:
       database:
-        condition: service_started
+        condition: service_healthy
       vault:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent --show-error --max-time 3 http://127.0.0.1:3000/ >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+    restart: unless-stopped
     environment:
-      VAULT_ADDR: http://vault:8200
+      VAULT_ADDR: https://vault:8200
+      VAULT_CACERT: /vault/certs/ca.crt
+      CORS_ORIGIN: https://transcendance42.fr:8443
+      VAULT_TOKEN_FILE: /vault/secrets/backend_token.txt
       PORT: 3000
-      CORS_ORIGIN: https://localhost:8443,https://transcendance42.fr:8443
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:5555:5555"
     volumes:
       - vol_back:/app/uploads
-      - vol_vault_secrets:/vault/secrets:ro
+      - vol_vault_token:/vault/secrets:ro
+      - ./vault-certs/vault.crt:/vault/certs/ca.crt:ro
     command: sh entrypoint.sh
+    networks:
+      default: {}
+      vault_internal: {}
 
   frontend:
     build:
       context: ./front
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
     environment:
       NEXT_PUBLIC_API_URL: https://transcendance42.fr:8443
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+    restart: unless-stopped
 
+  status_page:
+    build:
+      context: ./status_page
+    depends_on:
+      database:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
+    environment:
+      DB_SECRET_DIR: /run/status-secrets
+    volumes:
+      - vol_status_secrets:/run/status-secrets:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
   vault:
     image: hashicorp/vault:1.13
-    ports:
-      - "8200:8200"
-    env_file:
-      - .env
+    networks:
+      - vault_internal
     environment:
-      VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_ADDR: https://127.0.0.1:8200
+      VAULT_CACERT: /vault/tls/vault.crt
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
       PUBLIC_API_KEY: ${PUBLIC_API_KEY:-dev-public-api-key-change-me}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:-}
     volumes:
-      - vol_vault_data:/vault/file
-      - vol_vault_secrets:/vault/secrets
+      - vol_vault:/vault/file
+      - vol_vault_keys:/vault/keys
+      - vol_vault_token:/vault/token
+      - vol_status_secrets:/vault/runtime/status
+      - vol_backup_secrets:/vault/runtime/backup
+      - vol_exporter_secrets:/vault/runtime/exporter
+      - vol_grafana_secrets:/vault/runtime/grafana
+      - vol_alertmanager_secrets:/vault/runtime/alertmanager
       - ./Vault/vault.conf:/vault/config/vault.conf
       - ./vault-init.sh:/vault-init.sh
+      - ./vault-certs:/vault/tls:ro
     cap_add:
       - IPC_LOCK
     command: sh /vault-init.sh
+    depends_on:
+      vault-token-volume-init:
+        condition: service_completed_successfully
+      vault-runtime-volume-init:
+        condition: service_completed_successfully
+      vault-key-volume-init:
+        condition: service_completed_successfully
+      nginx-cert-permissions:
+        condition: service_completed_successfully
+      vault-cert-permissions:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "test -s /vault/secrets/backend_token.txt && VAULT_ADDR=http://127.0.0.1:8200 vault status >/dev/null 2>&1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      test: ["CMD-SHELL", "vault status >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+  vault-token-volume-init:
+    image: busybox:1.36.1
+    user: "0:0"
+    volumes:
+      - vol_vault_token:/vault/token
+    command: ["sh", "-c", "chown 100:100 /vault/token && chmod 0750 /vault/token"]
+    restart: "no"
+
+  vault-key-volume-init:
+    image: busybox:1.36.1
+    user: "0:0"
+    volumes:
+      - vol_vault_keys:/vault/keys
+    command: ["sh", "-c", "chown 100:100 /vault/keys && chmod 0700 /vault/keys"]
+    restart: "no"
+
+  vault-runtime-volume-init:
+    image: busybox:1.36.1
+    user: "0:0"
+    volumes:
+      - vol_status_secrets:/vault/runtime/status
+      - vol_backup_secrets:/vault/runtime/backup
+      - vol_exporter_secrets:/vault/runtime/exporter
+      - vol_grafana_secrets:/vault/runtime/grafana
+      - vol_alertmanager_secrets:/vault/runtime/alertmanager
+    command: ["sh", "-c", "chown 100:100 /vault/runtime/status /vault/runtime/backup /vault/runtime/exporter /vault/runtime/grafana /vault/runtime/alertmanager && chmod 0755 /vault/runtime/status /vault/runtime/backup /vault/runtime/exporter /vault/runtime/grafana /vault/runtime/alertmanager"]
+    restart: "no"
 
   nginx:
     build:
       context: ./nginx
+    depends_on:
+      nginx-cert-permissions:
+        condition: service_completed_successfully
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      status_page:
+        condition: service_healthy
     restart: always
     ports:
       - "8443:443"
       - "8080:80"
     environment:
-      MODSEC_RULE_ENGINE: on
+      MODSEC_RULE_ENGINE: "On"
       MODSEC_REQ_BODY_LIMIT: 26214400
-      MODSEC_REQ_BODY_NO_FILES_LIMIT: 26214400
+      MODSEC_REQ_BODY_NOFILES_LIMIT: 26214400
+      MODSEC_REQ_BODY_ACCESS: "On"
+    volumes:
+      - ./secrets/nginx-certs:/etc/nginx/ssl:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -k -f https://localhost:443 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
 
+  nginx-cert-permissions:
+    image: busybox:1.36.1
+    user: "0:0"
+    network_mode: none
+    volumes:
+      - ./secrets/nginx-certs:/certs
+    command: ["sh", "-c", "chown 101:101 /certs/transcendance.key && chmod 0400 /certs/transcendance.key && chmod 0644 /certs/transcendance.crt"]
+    restart: "no"
+
+  vault-cert-permissions:
+    image: busybox:1.36.1
+    user: "0:0"
+    network_mode: none
+    volumes:
+      - ./vault-certs:/certs
+    command: ["sh", "-c", "chown 100:100 /certs/vault.key && chmod 0400 /certs/vault.key && chmod 0644 /certs/vault.crt"]
+    restart: "no"
+
   backup_monitor:
-      image: postgres:15
+      build:
+        context: ./backup
       depends_on:
         database:
-          condition: service_started
+          condition: service_healthy
+        vault:
+          condition: service_healthy
       environment:
         PGHOST: database
-        PGUSER: ${DB_USER}
-        PGPASSWORD: ${DB_PASSWORD}
-        PGDATABASE: ${DB_NAME}
+        BACKUP_SECRET_DIR: /run/backup-secrets
       volumes:
-        - vol_backup:/backups
+        - ./backups:/backups
         - ./backup.sh:/backup.sh:ro
-      command: sh /backup.sh
+        - vol_backup_secrets:/run/backup-secrets:ro
+        - ./vault-certs/vault.crt:/vault/certs/ca.crt:ro
+      command: ["bash", "/backup.sh"]
+      healthcheck:
+        test: ["CMD-SHELL", "find /backups -maxdepth 1 -type f -name 'backup_*.sql.enc' -mmin -20 -size +0c -print -quit | grep -q ."]
+        interval: 1m
+        timeout: 5s
+        retries: 2
+        start_period: 2m
+      restart: unless-stopped
+
+  backup-exporter:
+      image: python:3.12-alpine
+      container_name: transcendence-backup-exporter
+      command: ["python", "/app/backup_exporter.py"]
+      volumes:
+        - ./backups:/backups:ro
+        - ./prometheus/backup_exporter.py:/app/backup_exporter.py:ro
+      expose:
+        - "9797"
+      restart: unless-stopped
+
+  alertmanager:
+      image: prom/alertmanager:v0.28.1
+      container_name: transcendence-alertmanager
+      command:
+        - --config.file=/etc/alertmanager/alertmanager.yml
+        - --storage.path=/alertmanager
+      volumes:
+        - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+        - vol_alertmanager_secrets:/run/alertmanager-secrets:ro
+        - vol_alertmanager:/alertmanager
+      ports:
+        - "127.0.0.1:9093:9093"
+      depends_on:
+        vault:
+          condition: service_healthy
+      restart: unless-stopped
+
+  prometheus:
+      image: prom/prometheus:v2.54.1
+      container_name: transcendense-prometheus
+      volumes:
+        - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+        - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+        - ./vault-certs/vault.crt:/etc/prometheus/vault-ca.crt:ro
+        - vol_prometheus:/prometheus
+      command:
+        - --config.file=/etc/prometheus/prometheus.yml
+        - --storage.tsdb.path=/prometheus
+        - --storage.tsdb.retention.time=15d
+        - --web.enable-lifecycle
+
+      depends_on:
+        - alertmanager
+        - backup-exporter
+        - node-exporter
+        - postgres-exporter
+        - blackbox-exporter
+      networks:
+        default: {}
+        vault_internal: {}
+      ports:
+        - "127.0.0.1:9090:9090"
+      restart: unless-stopped
+
+  node-exporter:
+      image: prom/node-exporter:v1.9.1
+      pid: host
+      command:
+        - --path.procfs=/host/proc
+        - --path.sysfs=/host/sys
+        - --path.rootfs=/rootfs
+      volumes:
+        - /proc:/host/proc:ro
+        - /sys:/host/sys:ro
+        - /:/rootfs:ro
+      container_name: transcendense-node-exporter
+      restart: unless-stopped
+
+  postgres-exporter:
+      image: quay.io/prometheuscommunity/postgres-exporter:v0.20.1
+      environment:
+        DATA_SOURCE_URI_FILE: /run/exporter-secrets/data_source_uri
+        DATA_SOURCE_USER_FILE: /run/exporter-secrets/data_source_user
+        DATA_SOURCE_PASS_FILE: /run/exporter-secrets/data_source_password
+      depends_on:
+        database:
+          condition: service_healthy
+        vault:
+          condition: service_healthy
+      volumes:
+        - vol_exporter_secrets:/run/exporter-secrets:ro
+      restart: unless-stopped
+
+  blackbox-exporter:
+      image: prom/blackbox-exporter:v0.28.0
+      volumes:
+        - ./prometheus/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+      command:
+        - --config.file=/etc/blackbox_exporter/config.yml
+      restart: unless-stopped
+
+  grafana:
+      image: grafana/grafana:11.2.2
+      container_name: transcendense-grafana
+      ports:
+        - "127.0.0.1:3005:3000"
+      entrypoint: ["/bin/sh", "/grafana-entrypoint.sh"]
+      volumes:
+        - vol_grafana:/var/lib/grafana
+        - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+        - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+        - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+        - vol_grafana_secrets:/run/grafana-secrets:ro
+        - ./grafana-entrypoint.sh:/grafana-entrypoint.sh:ro
+      depends_on:
+        prometheus:
+          condition: service_started
+        vault:
+          condition: service_healthy
+      restart: unless-stopped
 
 volumes:
   vol_data:
   vol_back:
-  vol_vault_data:
-  vol_vault_secrets:
-  vol_backup:
+  vol_vault:
+  vol_vault_token:
+  vol_vault_keys:
+  vol_prometheus:
+  vol_alertmanager:
+  vol_alertmanager_secrets:
+  vol_grafana:
+  vol_status_secrets:
+  vol_backup_secrets:
+  vol_exporter_secrets:
+  vol_grafana_secrets:
+
+networks:
+  vault_internal:
+    internal: true

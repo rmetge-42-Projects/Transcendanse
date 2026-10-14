@@ -304,7 +304,7 @@ export default function Duiscution({
           <input
             type="text"
             placeholder="Écrivez votre message..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-blue-950"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-blue-950 text-gray-700"
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             onKeyDown={(e) => {

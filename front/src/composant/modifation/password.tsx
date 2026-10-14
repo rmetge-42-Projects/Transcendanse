@@ -57,7 +57,7 @@ export default function Password() {
                         <input
                             type={showLastPass ? 'text' : 'password'}
                             {...register("lastPass", { required: "L'ancien mot de passe est obligatoire" })}
-                            className="w-full rounded-lg px-3.5 py-2 pr-10 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition"
+                            className="w-full rounded-lg px-3.5 py-2 pr-10 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition text-black"
                             />
                         <button
                             type="button"
@@ -83,7 +83,7 @@ export default function Password() {
                         <input
                             type={showNewPass ? 'text' : 'password'}
                             {...register("newPass", { required: "Le nouveau mot de passe est obligatoire" })}
-                            className="w-full rounded-lg px-3.5 py-2 pr-10 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition"
+                            className="w-full rounded-lg px-3.5 py-2 pr-10 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition text-black"
                             />
                         <button
                             type="button"
@@ -112,7 +112,7 @@ export default function Password() {
                         <input
                             type={showVerifNewPass ? 'text' : 'password'}
                             {...register("verifNewPass", { required: "La confirmation est obligatoire" })}
-                            className="w-full rounded-lg px-3.5 py-2 pr-10 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition"
+                            className="w-full rounded-lg px-3.5 py-2 pr-10 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition text-black"
                             />
                         <button
                             type="button"

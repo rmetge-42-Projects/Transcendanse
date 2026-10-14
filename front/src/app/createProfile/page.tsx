@@ -97,7 +97,7 @@ export default function CreateAccount() {
 								type="text"
 								placeholder="ex: Alexandre"
 								{...register("name", { required: "Le nom est obligatoire" })}
-								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 text-black"
 							/>
 							{errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
 						</div>
@@ -111,7 +111,7 @@ export default function CreateAccount() {
 								type="text"
 								placeholder="ex: alex_dev"
 								{...register("username", { required: "Le nom d'utilisateur est obligatoire" })}
-								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 text-black"
 							/>
 							{errors.username && <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>}
 						</div>
@@ -125,7 +125,7 @@ export default function CreateAccount() {
 								type="date"
 								max={dateMin}
 								{...register("birthday", { required: "La date de naissance est obligatoire" })}
-								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 text-black"
 							/>
 							{errors.birthday && <p className="text-red-500 text-xs mt-1">{errors.birthday.message}</p>}
 						</div>
@@ -138,7 +138,7 @@ export default function CreateAccount() {
 							<select
 								defaultValue=""
 								{...register("kind", { required: "Le genre est obligatoire" })}
-								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 text-black"
 							>
 								<option value="" disabled hidden>
 									Choisis une option
@@ -158,7 +158,7 @@ export default function CreateAccount() {
 							<select
 								defaultValue=""
 								{...register("orientation", { required: "L'orientation sexuelle est obligatoire" })}
-								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 text-black"
 							>
 								<option value="" disabled hidden>
 									Choisis une option
@@ -179,7 +179,7 @@ export default function CreateAccount() {
 								rows={3}
 								placeholder="Passionné(e) de danse, voyages..."
 								{...register("biography")}
-								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 resize-none"
+								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 resize-none text-black"
 							/>
 						</div>
 					</div>
