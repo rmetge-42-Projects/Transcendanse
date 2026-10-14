@@ -8,7 +8,6 @@ import IfIsLoading from "@/src/constant/ifIsLoaging";
 import Bottom from "@/src/display/bottom";
 
 import { useParams } from "next/navigation";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -17,7 +16,6 @@ export default function MyMatchProfile()
 {
     const params = useParams();
     const userId = Number(params.id);
-    const router = useRouter();
 
     const { data: user, isLoading, isError } = useMyMatch(userId);
 

@@ -24,8 +24,9 @@ unset TOKEN
 
 DATABASE_URL="$(printf '%s' "$SECRETS" | node -e 'let input=""; process.stdin.on("data", chunk => input += chunk); process.stdin.on("end", () => { const value = JSON.parse(input).data.data.database_url; if (!value) process.exit(1); process.stdout.write(value); });')"
 JWT_SECRET="$(printf '%s' "$SECRETS" | node -e 'let input=""; process.stdin.on("data", chunk => input += chunk); process.stdin.on("end", () => { const value = JSON.parse(input).data.data.jwt_secret; if (!value) process.exit(1); process.stdout.write(value); });')"
+PUBLIC_API_KEY="$(printf '%s' "$SECRETS" | node -e 'let input=""; process.stdin.on("data", chunk => input += chunk); process.stdin.on("end", () => { const value = JSON.parse(input).data.data.public_api_key; if (!value) process.exit(1); process.stdout.write(value); });')"
 unset SECRETS
-export DATABASE_URL JWT_SECRET
+export DATABASE_URL JWT_SECRET PUBLIC_API_KEY
 
 echo "Vault secrets loaded."
 echo "Running Prisma schema sync..."

@@ -3,7 +3,11 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 
-@WebSocketGateway({cors: { origin: '*'}})
+const corsOrigin = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+  : true;
+
+@WebSocketGateway({cors: { origin: corsOrigin }})
 export class MessageGateway {
   constructor(
     private readonly jwtService: JwtService,

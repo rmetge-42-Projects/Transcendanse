@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { Send, CircleUser, Heart } from "lucide-react";
+import { CircleUser, Heart, Send } from "lucide-react";
 import { useMessageStore } from "../constant/newMessage";
 
 //bandeau pour naviger entre les page
@@ -17,6 +19,7 @@ export default function Navigation()
             <Link 
                 href="/match"
                 className="text-white"
+                title="Matchs"
             >
                 <Heart />
                 {/* Match */}
@@ -24,6 +27,7 @@ export default function Navigation()
             <Link
                 href="/message"
                 className="relative inline-flex items-center text-white p-1"
+                title="Messages"
             >
                 <Send />
                 {messageCount > 0 && (
@@ -36,6 +40,7 @@ export default function Navigation()
             <Link
                 href="/myProfile"
                 className="text-white"
+                title="Profil"
             >
                 <CircleUser />
                 {/* Profile */}

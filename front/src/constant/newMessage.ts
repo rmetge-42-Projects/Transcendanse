@@ -13,7 +13,7 @@ export const useMessageStore = create<MessageState>((set) => ({
   // Définit une valeur exacte (ex: reçue depuis le serveur)
   setMessageCount: (count) => set({ messageCount: count }),
 
-  // Ajoute +1 lors de la réception d'un nouveau WebSockets/Notification
+  // Ajoute +1 lors de la réception d'un nouveau message par WebSocket
   incrementMessageCount: () =>
     set((state) => ({ messageCount: state.messageCount + 1 })),
 

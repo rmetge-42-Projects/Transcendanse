@@ -188,6 +188,7 @@ export class MessageService {
         deletedForReceiver: true,
       },
     });
+
     return { success: true, message: "Conversation masquée pour vous" };
   }
 }

@@ -12,6 +12,13 @@ export default function PrivacyPage() {
         
         {/* En-tête du document */}
         <header className="mb-12 border-b-2 border-black pb-8">
+          <Link
+            href="/myProfile"
+            className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition hover:text-black"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour au profil
+          </Link>
           <h1 className="text-4xl font-extrabold tracking-tight mb-2">
             Politique de Confidentialité
           </h1>

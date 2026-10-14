@@ -99,6 +99,7 @@ require_env DB_USER
 require_env DB_PASSWORD
 require_env DB_NAME
 require_env JWT_SECRET
+PUBLIC_API_KEY="${PUBLIC_API_KEY:-dev-public-api-key-change-me}"
 
 echo "Enabling KV secrets engine and storing backend secrets..."
 if vault secrets list 2>/dev/null | awk '{ print $1 }' | grep -qx 'secret/'; then
@@ -108,7 +109,8 @@ else
 fi
 vault kv put secret/backend \
     database_url="postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}" \
-    jwt_secret="${JWT_SECRET}" >/dev/null
+    jwt_secret="${JWT_SECRET}" \
+    public_api_key="${PUBLIC_API_KEY}" >/dev/null
 
 printf '%s\n' "$ROOT_TOKEN" > "$TOKEN_FILE"
 chmod 600 "$KEYS_FILE" "$TOKEN_FILE" 2>/dev/null || true

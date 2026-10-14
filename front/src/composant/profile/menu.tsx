@@ -1,5 +1,5 @@
 'use client'
-import { Settings, UserPen, Lock, ShieldCheck, X } from "lucide-react"
+import { FileText, Settings, UserPen, Lock, ShieldCheck, X } from "lucide-react"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -131,6 +131,13 @@ export default function Menu()
 					>
 						<Lock/>
 						Politique de confidentialité
+					</Link>
+					<Link
+						href="/terms"
+						className="px-4 py-3 rounded-xl hover:bg-gray-100 font-semibold text-gray-800 transition-colors flex items-center gap-3"
+					>
+						<FileText/>
+						Conditions d’utilisation
 					</Link>
 
 					<label className="px-4 py-3 rounded-xl hover:bg-gray-100 font-semibold text-gray-800 transition-colors flex items-center justify-between cursor-pointer select-none">

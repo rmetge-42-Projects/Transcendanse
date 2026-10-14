@@ -439,12 +439,15 @@ export class MatchService {
         ],
       },
     });
+
+    return { success: true, message: 'Utilisateur bloqué' };
   }
 
   async unblockUser(currentUserId: number, targetUserId: number) {
     await this.prisma.block.deleteMany({
         where: { blockerId: currentUserId, blockedId: targetUserId },
     });
+
     return { success: true, message: "Utilisateur débloqué" };
   }
 }

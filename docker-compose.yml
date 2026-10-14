@@ -20,6 +20,7 @@ services:
     environment:
       VAULT_ADDR: http://vault:8200
       PORT: 3000
+      CORS_ORIGIN: https://localhost:8443,https://transcendance42.fr:8443
     volumes:
       - vol_back:/app/uploads
       - vol_vault_secrets:/vault/secrets:ro
@@ -41,6 +42,7 @@ services:
       - .env
     environment:
       VAULT_ADDR: http://127.0.0.1:8200
+      PUBLIC_API_KEY: ${PUBLIC_API_KEY:-dev-public-api-key-change-me}
     volumes:
       - vol_vault_data:/vault/file
       - vol_vault_secrets:/vault/secrets

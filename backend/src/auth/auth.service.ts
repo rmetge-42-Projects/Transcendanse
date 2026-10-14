@@ -241,6 +241,7 @@ export class AuthService {
                 select: { id: true },
                 data: { twoFactorEnabled: true},
             });
+
             return true;
         }
         else

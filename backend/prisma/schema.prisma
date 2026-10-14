@@ -44,6 +44,11 @@ model User {
 
   blocksSent     Block[] @relation("BlocksSent")
   blocksReceived Block[] @relation("BlocksReceived")
+
+  friendsRequested Friend[] @relation("FriendsRequested")
+  friendsReceived  Friend[] @relation("FriendsReceived")
+
+  notifications Notification[]
 }
 
 //Message
@@ -101,4 +106,37 @@ model Block {
   blocked User @relation("BlocksReceived", fields: [blockedId], references: [id])
 
   @@unique([blockerId, blockedId])
+}
+
+model Friend {
+  id          Int      @id @default(autoincrement())
+  requesterId Int
+  addresseeId Int
+  status      String   @default("accepted")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  requester User @relation("FriendsRequested", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee User @relation("FriendsReceived", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([requesterId])
+  @@index([addresseeId])
+}
+
+model Notification {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  type       String
+  action     String
+  title      String
+  message    String?
+  entityType String
+  entityId   Int?
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
 }

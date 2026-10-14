@@ -4,7 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { json, urlencoded } from 'express';
 
 async function bootstrap() {
-  if (!process.env.DATABASE_URL || !process.env.JWT_SECRET) {
+  if (!process.env.DATABASE_URL || !process.env.JWT_SECRET || !process.env.PUBLIC_API_KEY) {
     console.error(
       "Required secrets were not loaded from Vault by the container entrypoint.",
     );
@@ -16,7 +16,11 @@ async function bootstrap() {
   app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ limit: '10mb', extended: true }));
 
-  app.enableCors();
+  const corsOrigin = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+    : true;
+
+  app.enableCors({ origin: corsOrigin });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
