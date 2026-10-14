@@ -315,7 +315,7 @@ export default function Duiscution({
             }}
           />
           <button
-            className="bg-blue-950 text-black p-2.5 rounded-full hover:bg-blue-900 transition"
+            className="bg-blue-950 text-gray-700 p-2.5 rounded-full hover:bg-blue-900 transition"
             onClick={() => send(selectedUser.userId)}
           >
             <Send className="w-4 h-4" />
