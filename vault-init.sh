@@ -7,7 +7,17 @@ export VAULT_CACERT="${VAULT_CACERT:-/vault/tls/vault.crt}"
 BOOTSTRAP_DB_USER="${DB_USER:?DB_USER est requis pour l'initialisation PostgreSQL}"
 BOOTSTRAP_DB_PASSWORD="${DB_PASSWORD:?DB_PASSWORD est requis pour l'initialisation PostgreSQL}"
 BOOTSTRAP_DB_NAME="${DB_NAME:?DB_NAME est requis pour l'initialisation PostgreSQL}"
-BOOTSTRAP_PUBLIC_API_KEY="${PUBLIC_API_KEY:-dev-public-api-key-change-me}"
+BOOTSTRAP_PUBLIC_API_KEY="${PUBLIC_API_KEY:?PUBLIC_API_KEY est requise (openssl rand -hex 32)}"
+case "$BOOTSTRAP_PUBLIC_API_KEY" in
+    *[!0123456789abcdefABCDEF]*)
+        echo "ERROR: PUBLIC_API_KEY doit être une clé hexadécimale générée par 'openssl rand -hex 32'." >&2
+        exit 1
+        ;;
+esac
+if [ "${#BOOTSTRAP_PUBLIC_API_KEY}" -lt 64 ]; then
+    echo "ERROR: PUBLIC_API_KEY doit contenir au moins 64 caractères hexadécimaux." >&2
+    exit 1
+fi
 BOOTSTRAP_BACKUP_KEY="${BACKUP_ENCRYPTION_KEY:-}"
 BOOTSTRAP_GMAIL_APP_PASSWORD="${GMAIL_APP_PASSWORD:-}"
 unset DB_USER DB_PASSWORD DB_NAME PUBLIC_API_KEY BACKUP_ENCRYPTION_KEY GMAIL_APP_PASSWORD

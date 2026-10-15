@@ -20,7 +20,7 @@ The key is stored in Vault as `public_api_key` and exposed to the backend as `PU
 
 ## Rate Limiting
 
-Default limit: 60 requests per minute per API key and client.
+Default limit: 60 requests per minute for the configured API key, shared across its clients.
 
 Responses include:
 
@@ -41,7 +41,11 @@ Responses include:
 
 ## Example
 
+Set `PUBLIC_API_KEY` in your local shell from your private `.env` value before making this request. Never commit or paste the key into documentation, source code, browser code, or screenshots.
+
 ```bash
 curl -k https://localhost:8443/api/public/users \
-  -H "x-api-key: dev-public-api-key-change-me"
+  -H "x-api-key: ${PUBLIC_API_KEY}"
 ```
+
+Public profile responses intentionally omit email addresses, birthdays, online status, and 2FA state.

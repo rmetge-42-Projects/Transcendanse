@@ -4,12 +4,13 @@
 # Prepare aussi quelques matchs, des likes en attente et deux premiers messages.
 # Usage : bash create-test-users-15.sh
 
-BASE_URL="https://localhost:8443/api"
+BASE_URL="${BASE_URL:-https://localhost:8443/api}"
 PASSWORD="motdepasse123"
 COUNT=15
 
 TOKENS=()
 IDS=()
+FAILED=0
 KINDS=("woman" "man" "non_binary")
 
 NAMES=("Maya" "Noah" "Leila" "Sami" "Clara" "Kenji" "Iris" "Leo" "Lina" "Adam" "Naima" "Robin" "Hana" "Malik" "Zoe")
@@ -88,6 +89,7 @@ like() {
 
     if [ -z "${TOKENS[$from]}" ] || [ -z "${IDS[$to]}" ]; then
         echo "  user$from -> user$to : ignore (compte manquant)"
+        FAILED=1
         return
     fi
 
@@ -102,6 +104,7 @@ like() {
         echo "  user$from -> user$to : like envoye"
     else
         echo "  user$from -> user$to : $result"
+        FAILED=1
     fi
 }
 
@@ -114,6 +117,7 @@ send_message() {
 
     if [ -z "${TOKENS[$from]}" ] || [ -z "${IDS[$to]}" ]; then
         echo "  user$from -> user$to : message ignore (compte manquant)"
+        FAILED=1
         return
     fi
 
@@ -126,6 +130,7 @@ send_message() {
         echo "  user$from -> user$to : message envoye"
     else
         echo "  user$from -> user$to : $result"
+        FAILED=1
     fi
 }
 
@@ -156,6 +161,7 @@ for i in $(seq 1 $COUNT); do
 
     if [ -z "$TOKEN" ]; then
         echo "  $email : ECHEC de connexion ($RES)"
+        FAILED=1
         continue
     fi
     TOKENS[$i]="$TOKEN"
@@ -171,6 +177,7 @@ for i in $(seq 1 $COUNT); do
 
     if echo "$PROFILE" | grep -q '"statusCode"'; then
         echo "  $email : compte OK (id=${IDS[$i]}) mais profil refuse : $PROFILE"
+        FAILED=1
     else
         echo "  $email : OK (id=${IDS[$i]}, $kind)"
     fi
@@ -214,3 +221,7 @@ echo "                           user1-user3, user2-user4, user11-user12"
 echo "Likes en attente         : user13 -> user1, user14 -> user1, user15 -> user2"
 echo "                           (quand user1 ou user2 like en retour : MATCH)"
 echo "======================================"
+if [ "$FAILED" -ne 0 ]; then
+    echo "ERREUR : au moins une création ou interaction a échoué." >&2
+    exit 1
+fi

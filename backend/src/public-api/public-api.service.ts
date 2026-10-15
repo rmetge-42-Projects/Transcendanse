@@ -14,17 +14,13 @@ export class PublicApiService {
 
   private publicUserSelect = {
     id: true,
-    email: true,
     createdAt: true,
     name: true,
     username: true,
-    birthday: true,
     kind: true,
     orientation: true,
     biography: true,
     photo: true,
-    isOnline: true,
-    twoFactorEnabled: true,
   } as const;
 
   async listUsers(limit = 20, offset = 0) {

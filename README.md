@@ -25,7 +25,9 @@ make re
 docker compose logs -f
 ```
 
-Set real `PUBLIC_API_KEY` and `BACKUP_ENCRYPTION_KEY` values in `.env` before evaluation. The fallback API key is only for local development.
+`make` also creates the 15 demo accounts, profiles, matches and messages after the backend becomes healthy. The seeder runs once per Docker volume. `make fclean` removes that volume, so the next `make` seeds the accounts again. These accounts share the test password `motdepasse123`.
+
+Run `make` to start the stack. Before Compose starts, the Makefile creates a cryptographically random 64-character `PUBLIC_API_KEY` in `.env` if one is missing or still a placeholder, and keeps that key for later launches. The key is not displayed and `.env` must never be committed. Other required settings in `.env` (including database credentials) still need valid local values. Direct `docker compose up` requires a valid `PUBLIC_API_KEY` to already be present in `.env`.
 
 ## Technical Stack
 
@@ -92,8 +94,10 @@ Documentation is available in `docs/public-api.md` and at runtime through:
 
 ```bash
 curl -k https://localhost:8443/api/public/docs \
-  -H "x-api-key: dev-public-api-key-change-me"
+  -H "x-api-key: ${PUBLIC_API_KEY}"
 ```
+
+Export `PUBLIC_API_KEY` in your local shell before running the example. The API key is private and must not be added to frontend code or screenshots.
 
 ## Browser Support
 

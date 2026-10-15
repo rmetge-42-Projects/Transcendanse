@@ -8,6 +8,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { timingSafeEqual } from 'node:crypto';
 
 interface RateBucket {
   count: number;
@@ -28,7 +29,9 @@ export class PublicApiGuard implements CanActivate {
     }
 
     const apiKey = this.extractApiKey(request);
-    if (apiKey !== expectedApiKey) {
+    const supplied = Buffer.from(apiKey);
+    const expected = Buffer.from(expectedApiKey);
+    if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) {
       throw new UnauthorizedException('Invalid public API key.');
     }
 
@@ -54,9 +57,14 @@ export class PublicApiGuard implements CanActivate {
     const now = Date.now();
     const windowMs = 60_000;
     const limit = Number(process.env.PUBLIC_API_RATE_LIMIT ?? 60);
-    const clientId =
-      request.ip ?? request.socket.remoteAddress ?? request.header('user-agent') ?? 'unknown';
-    const bucketKey = `${apiKey}:${clientId}`;
+    if (!Number.isSafeInteger(limit) || limit < 1) {
+      throw new ServiceUnavailableException('Public API rate limit is not configured correctly.');
+    }
+
+    // One shared API key means one shared quota. This avoids trusting a
+    // client IP forwarded by Nginx and prevents clients bypassing the limit
+    // by changing their User-Agent or source address.
+    const bucketKey = apiKey;
     const current = PublicApiGuard.buckets.get(bucketKey);
     const bucket =
       current && current.resetAt > now
