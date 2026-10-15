@@ -27,4 +27,4 @@ Run this checklist before the final defense on Chrome plus at least two addition
 ## Known Limitations
 
 - The local TLS certificate is self-signed, so browsers may ask the evaluator to accept the local certificate warning.
-- The public API default key is only for local development; set `PUBLIC_API_KEY` in `.env` before evaluation.
+- The public API key is generated and stored by Vault; obtain it only through the authorized local operator workflow for API evaluation.

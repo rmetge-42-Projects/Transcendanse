@@ -114,7 +114,6 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
-      PUBLIC_API_KEY: ${PUBLIC_API_KEY:?Set PUBLIC_API_KEY in .env (generate with openssl rand -hex 32)}
       BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
       GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:-}
     volumes:

@@ -12,8 +12,7 @@ start:
 	@if [ ! -s secrets/nginx-certs/transcendance.crt ] || [ ! -s secrets/nginx-certs/transcendance.key ]; then ./generate-certs.sh; fi
 	@if [ ! -s vault-certs/vault.crt ] || [ ! -s vault-certs/vault.key ]; then ./generate-vault-certs.sh; fi
 	@mkdir -p backups && chmod 700 backups
-	@python3 ensure-public-api-key.py
-	@unset PUBLIC_API_KEY && docker compose up --build -d
+	docker compose up --build -d
 	@echo "$(GREEN)$(NAME) is up and running!$(RESET)"
 
 down:

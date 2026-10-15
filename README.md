@@ -27,7 +27,7 @@ docker compose logs -f
 
 `make` also creates the 15 demo accounts, profiles, matches and messages after the backend becomes healthy. The seeder runs once per Docker volume. `make fclean` removes that volume, so the next `make` seeds the accounts again. These accounts share the test password `motdepasse123`.
 
-Run `make` to start the stack. Before Compose starts, the Makefile creates a cryptographically random 64-character `PUBLIC_API_KEY` in `.env` if one is missing or still a placeholder, and keeps that key for later launches. The key is not displayed and `.env` must never be committed. Other required settings in `.env` (including database credentials) still need valid local values. Direct `docker compose up` requires a valid `PUBLIC_API_KEY` to already be present in `.env`.
+Run `make` to start the stack. On first initialization, Vault creates a cryptographically random 64-character `PUBLIC_API_KEY` if no valid key is already stored. Vault keeps it across container restarts, and the backend reads it from Vault at startup. The API key is not stored in `.env` or exposed to the frontend. Other required local settings (including database credentials and the backup key) still belong in `.env`, which must never be committed. Direct `docker compose up` uses the same Vault-based key initialization.
 
 ## Technical Stack
 
@@ -97,7 +97,7 @@ curl -k https://localhost:8443/api/public/docs \
   -H "x-api-key: ${PUBLIC_API_KEY}"
 ```
 
-Export `PUBLIC_API_KEY` in your local shell before running the example. The API key is private and must not be added to frontend code or screenshots.
+Set `PUBLIC_API_KEY` in your shell only through the approved local Vault operator workflow before running the example. Do not put the key in `.env`, frontend code, screenshots, or shared documentation.
 
 ## Browser Support
 
