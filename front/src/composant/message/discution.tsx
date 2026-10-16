@@ -33,15 +33,20 @@ export default function Duiscution({
   useEffect(() => {
     if (!selectedUser || !users) return;
     const freshUser = users.find((u) => u.id === selectedUser.userId);
-    if (freshUser) {
-      setSelectedUser({
-        ...selectedUser,
-        userPhoto: freshUser.photo !== undefined ? freshUser.photo : selectedUser.userPhoto,
-        isBlocked: freshUser.isBlocked,
-        isActive: freshUser.isActive,
-        isOnline: freshUser.isOnline,
-      });
+    if (!freshUser) return;
+
+    if (freshUser.isActive === false || freshUser.isBlocked) {
+      setSelectedUser(null);
+    return;
     }
+
+    setSelectedUser({
+      ...selectedUser,
+      userPhoto: freshUser.photo !== undefined ? freshUser.photo : selectedUser.userPhoto,
+      isBlocked: freshUser.isBlocked,
+      isActive: freshUser.isActive,
+      isOnline: freshUser.isOnline,
+    });
   }, [users]);
 
   useEffect(() => {

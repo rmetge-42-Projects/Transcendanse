@@ -112,6 +112,11 @@ export class AuthService {
             throw new BadRequestException("Les nouveaux mots de passe ne correspondent pas.");
         }
 
+        if (passwordDto.newPass.length < 8)
+        {
+            throw new BadRequestException("Le mot de passe doit contenir au moins 8 caractères.");
+        }
+
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         if (!user)
         {
