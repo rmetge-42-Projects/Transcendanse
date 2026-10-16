@@ -27,6 +27,7 @@ export default function Profile() {
     
     const [preview, setPreview] = useState<string | null>(user?.photo || null);
     const [croppedFile, setCroppedFile] = useState<File | null>(null);
+    
 
     // Mettre à jour l'aperçu si les données utilisateur arrivent
     useEffect(() => {
@@ -38,6 +39,7 @@ export default function Profile() {
     const {
         register,
         handleSubmit,
+        watch,
         formState: { errors },
     } = useForm<ProfileFormValues>({
         values: {
@@ -47,6 +49,8 @@ export default function Profile() {
             biography: user?.biography || '',
         }
     });
+
+    const biographyText = watch("biography") || "";
 
     const handlePhotoChange = (file: File | null, dataUrl: string | null) => {
         setCroppedFile(file);
@@ -140,12 +144,23 @@ export default function Profile() {
 
                 {/* BIOGRAPHY */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Biographie
-                    </label>
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Biographie
+                        </label>
+                        <span className="text-xs text-gray-400">
+                            {biographyText.length}/300
+                        </span>
+                    </div>
                     <textarea
                         rows={3}
-                        {...register("biography")}
+                        maxLength={300}
+                        {...register("biography", {
+							maxLength: {
+							  value: 300,
+							  message: "La biographie ne doit pas dépasser 300 caractères",
+							},
+						})}
                         className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition resize-none text-black"
                         />
                 </div>

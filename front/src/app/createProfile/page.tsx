@@ -39,8 +39,11 @@ export default function CreateAccount() {
 	const {
 		register,
 		handleSubmit,
+		watch,
 		formState: { errors },
 	} = useForm<ProfileFormValues>();
+
+	const biographyText = watch("biography") || "";
 
 	const handlePhotoChange = (_file: File | null, dataUrl: string | null) => {
 		setPreview(dataUrl);
@@ -178,13 +181,25 @@ export default function CreateAccount() {
 
 						{/* BIOGRAPHIE */}
 						<div>
-							<label className="text-sm font-semibold text-gray-700 block mb-1">
-								Biographie
-							</label>
+
+							<div className="flex justify-between items-center mb-1">
+                    		    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    		        Biographie
+                    		    </label>
+                    		    <span className="text-xs text-gray-400">
+                    		        {biographyText.length}/300
+                    		    </span>
+                    		</div>
 							<textarea
 								rows={3}
 								placeholder="Passionné(e) de danse, voyages..."
-								{...register("biography")}
+                        		maxLength={300}
+                        		{...register("biography", {
+									maxLength: {
+									  value: 300,
+									  message: "La biographie ne doit pas dépasser 300 caractères",
+									},
+								})}
 								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 resize-none text-black"
 							/>
 						</div>

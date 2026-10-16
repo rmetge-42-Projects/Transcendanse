@@ -86,8 +86,8 @@ export default function Profile() {
         <span className="text-xs md:text-sm font-extrabold text-gray-400 uppercase tracking-widest block mb-3">
           À propos de moi
         </span>
-        <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-100">
-          <p className="text-gray-800 text-base md:text-lg leading-relaxed">
+        <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-100 max-h-60 overflow-y-auto">
+          <p className="text-gray-800 text-base md:text-lg leading-relaxed break-words whitespace-pre-wrap">
             {user.biography || "Aucune biographie pour le moment."}
           </p>
         </div>
