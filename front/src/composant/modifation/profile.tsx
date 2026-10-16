@@ -66,7 +66,9 @@ export default function Profile() {
             };
             await api.put('/users/updateProfile', payload);
             // alert("Profil mis à jour avec succès !");
-            await queryClient.invalidateQueries({ queryKey: ['userMe'] });
+            await queryClient.invalidateQueries({ queryKey: ["userMe"] });
+            await queryClient.invalidateQueries({ queryKey: ["matches"] });
+            await queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
             router.push("/myProfile");
         } catch (error) {
             setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));

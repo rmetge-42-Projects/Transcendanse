@@ -102,6 +102,8 @@ like() {
         echo "  user$from -> user$to : MATCH"
     elif echo "$result" | grep -q '"match":false'; then
         echo "  user$from -> user$to : like envoye"
+    elif echo "$result" | grep -q 'déjà liké'; then
+        echo "  user$from -> user$to : déjà liké (ignoré)"
     else
         echo "  user$from -> user$to : $result"
         FAILED=1
