@@ -5,6 +5,7 @@ import IfIsLoading from "@/src/constant/ifIsLoaging";
 import { useState } from "react";
 import { UserConversationType } from "@/src/type/conversation";
 import { UserType } from "@/src/type/user";
+import BlockedUsers from "@/src/composant/message/BlockedUsers";
 
 interface ContactProps {
   selectedUser: UserConversationType | null;
@@ -25,6 +26,9 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
     return <IfIsError>Erreur : impossible d'accéder aux contacts.</IfIsError>;
   }
 
+  // Un match supprimé ou un contact bloqué sort de la liste
+  const visibleUsers = users?.filter((user) => user.isActive !== false && !user.isBlocked) ?? [];
+  const blockedUsers = users?.filter((user) => user.isBlocked) ?? [];
   // Match tout neuf : aucun message echange et conversation jamais ouverte
   const showNewMatch = (user: UserType) => {
     return user.isNewMatch === true && (user.unreadCount ?? 0) === 0;
@@ -48,7 +52,7 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
           Messages
         </div>
         <div className="flex-1 overflow-y-auto">
-          {users?.map((user) => (
+          {visibleUsers.map((user) => (
             <div
               key={user.id}
               // onClick={() => setSelectedUser(user)}
@@ -117,6 +121,7 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
             </div>
           ))}
         </div>
+        <BlockedUsers users={blockedUsers} />
       </div>
     </>
   );
