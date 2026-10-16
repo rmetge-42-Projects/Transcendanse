@@ -89,10 +89,6 @@ export default function Duiscution({
     }
   };
 
-  
-
-  
-
   // Masque UN message precis, uniquement pour moi (l'autre personne le voit toujours)
   const deleteMessage = async (messageId: number, userId: number) => {
     try {
@@ -105,7 +101,6 @@ export default function Duiscution({
   };
 
   
-
   const seeProfileMatch = async (userId: number) => {
     router.push(`/myMatchProfile/${userId}`);
   };

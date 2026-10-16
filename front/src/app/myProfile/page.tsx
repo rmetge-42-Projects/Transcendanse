@@ -14,7 +14,7 @@ import { useMessageStore } from "@/src/constant/newMessage";
 
 export default function Profile() {
   const router = useRouter();
-  const { data: user, isLoading, isError } = useUser();
+  const { data: user, isLoading, isError, isFetching } = useUser();
   const queryClient = useQueryClient();
   const setMessageCount = useMessageStore((state) => state.setMessageCount);
 
@@ -26,7 +26,8 @@ export default function Profile() {
 
 
   useEffect(() => {
-    if (
+    if ( !isLoading &&
+      !isFetching &&
       user &&
       (!user.username || !user.birthday || !user.kind || !user.orientation)
     ) {
@@ -38,7 +39,7 @@ export default function Profile() {
 
 
   // État de chargement grand format
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <Bottom>
         <IfIsLoading>Chargement du profil...</IfIsLoading>;
