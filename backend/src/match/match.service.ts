@@ -2,12 +2,31 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ValidateDto } from './dto/validate.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { MessageGateway } from '../message/message.gateway';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class MatchService {
   constructor(private prisma: PrismaService,
               private messageGateway: MessageGateway,
               ){}
+
+  private withPairTransaction<T>(
+    firstId: number,
+    secondId: number,
+    action: (tx: Prisma.TransactionClient) => Promise<T>,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      // Serialize both directions of a pair, including likes, removals and blocks.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${Math.min(firstId, secondId)}::int, ${Math.max(firstId, secondId)}::int)`;
+      return action(tx);
+    });
+  }
+
+  private notifyActivityChanged(firstId: number, secondId: number) {
+    this.messageGateway.server
+      .to(`user_${firstId}`).to(`user_${secondId}`)
+      .emit('activityChanged', {});
+  }
 
   //valide ou non le profile de mach et dire si on a un match
   async rejected(currentUserId: number, validateDto: ValidateDto) {
@@ -19,12 +38,13 @@ export class MatchService {
           throw new BadRequestException('Vous ne pouvez pas liker votre propre profil');
       }
 
-      const targetUser = await this.prisma.user.findUnique({where: {id: validateDto.userId}});
+      const isMatch = await this.withPairTransaction(currentUserId, validateDto.userId, async (tx) => {
+      const targetUser = await tx.user.findUnique({where: {id: validateDto.userId}});
       if (!targetUser) {
           throw new NotFoundException('Utilisateur introuvable');
       }
 
-      const blocked = await this.prisma.block.findFirst({
+      const blocked = await tx.block.findFirst({
         where: {
             OR: [
                 { blockerId: currentUserId, blockedId: validateDto.userId },
@@ -36,31 +56,34 @@ export class MatchService {
         throw new NotFoundException('Utilisateur introuvable');
     }
 
-      const existingLike = await this.prisma.like.findUnique({where: {fromUserId_toUserId: {fromUserId: currentUserId, toUserId: validateDto.userId}}});
+      const existingLike = await tx.like.findUnique({where: {fromUserId_toUserId: {fromUserId: currentUserId, toUserId: validateDto.userId}}});
       if (existingLike) {
           throw new BadRequestException('Vous avez déjà liké ce profil');
       }
 
-      const isMatch = await this.prisma.$transaction(async (tx) => {
-          await tx.like.create({data: {fromUserId: currentUserId, toUserId: validateDto.userId}});
+          // PostgreSQL now() is the transaction start, which may precede a lock wait.
+          const newLike = await tx.like.create({data: {fromUserId: currentUserId, toUserId: validateDto.userId, createdAt: new Date()}});
 
       const reverseLike = await tx.like.findUnique({where: { fromUserId_toUserId: { fromUserId: validateDto.userId, toUserId: currentUserId}}});
       const matched = reverseLike !== null;
 
     if (matched) {
+      // A rematch starts a new cycle; its date must follow both likes.
+      const matchedAt = new Date(Math.max(Date.now(), newLike.createdAt.getTime(), reverseLike.createdAt.getTime()));
       const user1Id = Math.min(currentUserId, validateDto.userId);
       const user2Id = Math.max(currentUserId, validateDto.userId);
 
     await tx.match.upsert({
         where: { user1Id_user2Id: { user1Id: user1Id, user2Id: user2Id } },
-        update: { isActive: true, seenByUser1: false, seenByUser2: false },
-        create: { user1Id: user1Id, user2Id: user2Id },
+        update: { isActive: true, seenByUser1: false, seenByUser2: false, createdAt: matchedAt },
+        create: { user1Id: user1Id, user2Id: user2Id, createdAt: matchedAt },
     });
   }
 
     return matched;
   });
 
+    this.notifyActivityChanged(currentUserId, validateDto.userId);
     if (isMatch) {
       this.messageGateway.server.to(`user_${currentUserId}`).emit('newMatch', {});
       this.messageGateway.server.to(`user_${validateDto.userId}`).emit('newMatch', {});
@@ -184,8 +207,9 @@ export class MatchService {
   }
 
   async getActivity(currentUserId: number) {
-
-    const likes = await this.prisma.like.findMany({
+    // Both reads must describe the same committed cycle, even during a rematch.
+    return this.prisma.$transaction(async (tx) => {
+    const likes = await tx.like.findMany({
       where: {
         OR: [
           { fromUserId: currentUserId },
@@ -213,6 +237,7 @@ export class MatchService {
       if (like.fromUserId === currentUserId) {
         return {
           type: 'like_sent',
+          eventId: like.id,
           user: like.toUser,
           createdAt: like.createdAt,
         };
@@ -220,14 +245,16 @@ export class MatchService {
     
       return {
         type: 'like_received',
+        eventId: like.id,
         user: like.fromUser,
         createdAt: like.createdAt,
       };
     });
 
 
-    const matches = await this.prisma.match.findMany({
+    const matches = await tx.match.findMany({
       where: {
+        isActive: true,
         OR: [
           { user1Id: currentUserId },
           { user2Id: currentUserId },
@@ -265,6 +292,7 @@ export class MatchService {
     
       return {
         type: 'match',
+        eventId: match.id,
         user: otherUser,
         createdAt: match.createdAt,
       };
@@ -276,10 +304,15 @@ export class MatchService {
     ];
 
     activities.sort((a, b) => {
-      return b.createdAt.getTime() - a.createdAt.getTime();
+      const dateOrder = b.createdAt.getTime() - a.createdAt.getTime();
+      if (dateOrder) return dateOrder;
+      // Newest first: the match follows its likes, even in the same millisecond.
+      const matchOrder = Number(b.type === 'match') - Number(a.type === 'match');
+      return matchOrder || b.eventId - a.eventId;
     });
 
     return activities;
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead });
   }
 
   //envoie les infos des profil des match
@@ -352,10 +385,11 @@ export class MatchService {
 
   //supprimer un match
 	async deleteMatch(currentUserId: number, otherUserId: number) {
+    await this.withPairTransaction(currentUserId, otherUserId, async (tx) => {
     const user1Id = Math.min(currentUserId, otherUserId);
     const user2Id = Math.max(currentUserId, otherUserId);
 
-    const existingMatch = await this.prisma.match.findUnique({
+    const existingMatch = await tx.match.findUnique({
         where: {
             user1Id_user2Id: {
                 user1Id: user1Id,
@@ -368,7 +402,7 @@ export class MatchService {
         throw new NotFoundException('Match introuvable');
     }
 
-    await this.prisma.match.update({
+    await tx.match.update({
         where: {
             user1Id_user2Id: {
                 user1Id: user1Id,
@@ -378,7 +412,7 @@ export class MatchService {
         data: { isActive: false },
     });
 
-    await this.prisma.like.deleteMany({
+    await tx.like.deleteMany({
       where: {
           OR: [
               { fromUserId: currentUserId, toUserId: otherUserId },
@@ -387,6 +421,8 @@ export class MatchService {
       },
     });
 
+    });
+    this.notifyActivityChanged(currentUserId, otherUserId);
     return {
         success: true,
         message: "Match supprime"
@@ -394,6 +430,7 @@ export class MatchService {
   }
 
   async blockUser(currentUserId: number, targetUserId: number) {
+    await this.withPairTransaction(currentUserId, targetUserId, async (tx) => {
     const currentId = Math.min(currentUserId, targetUserId);
     const targetId = Math.max(currentUserId, targetUserId);
 
@@ -401,37 +438,37 @@ export class MatchService {
       throw new BadRequestException('Vous ne pouvez pas vous bloquer vous-même.');
     }
 
-    const targetUser = await this.prisma.user.findUnique({ where: { id: targetUserId } });
+    const targetUser = await tx.user.findUnique({ where: { id: targetUserId } });
       if (!targetUser) {
     throw new NotFoundException('Utilisateur introuvable');
     }
 
-    const existingBlock = await this.prisma.block.findUnique({
+    const existingBlock = await tx.block.findUnique({
         where: { blockerId_blockedId: { blockerId: currentUserId, blockedId: targetUserId } },
     });
     if (existingBlock) {
       throw new BadRequestException('Vous avez déjà bloqué cet utilisateur.');
     }
 
-    await this.prisma.block.create({
+    await tx.block.create({
       data: {
         blockerId: currentUserId,
         blockedId: targetUserId,
       },
     });
 
-    const existingMatch = await this.prisma.match.findUnique({
+    const existingMatch = await tx.match.findUnique({
       where: { user1Id_user2Id: { user1Id: currentId, user2Id: targetId } },
     });
 
     if (existingMatch) {
-      await this.prisma.match.update({
+      await tx.match.update({
         where: { user1Id_user2Id: { user1Id: currentId, user2Id: targetId } },
         data: { isActive: false },
       });
     }
 
-    await this.prisma.like.deleteMany({
+    await tx.like.deleteMany({
       where: {
         OR: [
           { fromUserId: currentUserId, toUserId: targetUserId },
@@ -440,14 +477,19 @@ export class MatchService {
       },
     });
 
+    });
+    this.notifyActivityChanged(currentUserId, targetUserId);
     return { success: true, message: 'Utilisateur bloqué' };
   }
 
   async unblockUser(currentUserId: number, targetUserId: number) {
-    await this.prisma.block.deleteMany({
+    await this.withPairTransaction(currentUserId, targetUserId, async (tx) => {
+    await tx.block.deleteMany({
         where: { blockerId: currentUserId, blockedId: targetUserId },
     });
 
+    });
+    this.notifyActivityChanged(currentUserId, targetUserId);
     return { success: true, message: "Utilisateur débloqué" };
   }
 }

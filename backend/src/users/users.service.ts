@@ -3,12 +3,14 @@ import { CreateDto } from './dto/createProfile.dto';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { StatusDto } from './dto/status.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { MessageGateway } from '../message/message.gateway';
 
 @Injectable()
 export class UsersService {
 
     constructor(
     private prisma: PrismaService,
+    private messageGateway: MessageGateway,
     ) {}
 
     //verifie si il y a un doublon de username
@@ -167,6 +169,9 @@ export class UsersService {
             },
         });
 
+        if (updateProfileDto.kind !== undefined || updateProfileDto.orientation !== undefined) {
+            this.messageGateway.notifySuggestionsChanged();
+        }
         return updatedUser;
         } catch (error) {
             this.checkUsernameError(error);

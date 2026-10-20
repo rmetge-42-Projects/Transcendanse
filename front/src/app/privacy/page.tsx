@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import LegalBack from "@/src/composant/LegalBack";
 
 //page de politiqued de confidentialité (liens vers "accuille")
 export default function PrivacyPage() {
@@ -12,13 +11,7 @@ export default function PrivacyPage() {
         
         {/* En-tête du document */}
         <header className="mb-12 border-b-2 border-black pb-8">
-          <Link
-            href="/myProfile"
-            className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition hover:text-black"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Retour au profil
-          </Link>
+          <LegalBack />
           <h1 className="text-4xl font-extrabold tracking-tight mb-2">
             Politique de Confidentialité
           </h1>

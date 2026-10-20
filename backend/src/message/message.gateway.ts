@@ -34,6 +34,7 @@ export class MessageGateway {
         data: { isOnline: true },
       });
 
+      await client.join('authenticated');
       console.log('Utilisateur connecté :', payload.id);
     }
     catch {
@@ -62,6 +63,11 @@ export class MessageGateway {
 
   sendNewMessage(userId: number, message: any) {
     this.server.to(`user_${userId}`).emit('newMessage', message);
+  }
+
+  notifySuggestionsChanged() {
+    // Only invalidate suggestions; do not broadcast private profile preferences.
+    this.server.to('authenticated').emit('suggestionsChanged');
   }
 
 }

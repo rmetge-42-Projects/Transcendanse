@@ -126,14 +126,14 @@ export default function Menu()
 						Modifier le profil
 					</Link>
 					<Link 
-						href="/privacy"
+						href="/privacy?from=/myProfile"
 						className="px-4 py-3 rounded-xl hover:bg-gray-100 font-semibold text-gray-800 transition-colors flex items-center gap-3"
 					>
 						<Lock/>
 						Politique de confidentialité
 					</Link>
 					<Link
-						href="/terms"
+						href="/terms?from=/myProfile"
 						className="px-4 py-3 rounded-xl hover:bg-gray-100 font-semibold text-gray-800 transition-colors flex items-center gap-3"
 					>
 						<FileText/>

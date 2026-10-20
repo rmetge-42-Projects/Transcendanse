@@ -34,3 +34,129 @@ pour afficher les utilisateurs :
  13 | hana@gmail.com  | Hana  | hana_kpop    | woman      | all
  14 | malik@gmail.com | Malik | malik_pop    | man        | woman
  15 | zoe@gmail.com   | Zoe   | zoe_vibes    | woman      | all
+
+
+match.service.spec.ts (backend/src/match);
+import { MatchService } from './match.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { MessageGateway } from '../message/message.gateway';
+
+describe('Match activity', () => {
+  const user1 = { id: 1, username: 'Alice' };
+  const user2 = { id: 2, username: 'Bob' };
+
+  function setup() {
+    let likes: any[] = [];
+    let match: any = null;
+    let nextId = 1;
+    const prisma: any = {
+      $executeRaw: jest.fn(),
+      user: { findUnique: jest.fn().mockResolvedValue(user2) },
+      block: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        findUnique: jest.fn().mockResolvedValue(null),
+        create: jest.fn(), deleteMany: jest.fn(),
+      },
+      like: {
+        findUnique: jest.fn(async ({ where }) => likes.find(like =>
+          like.fromUserId === where.fromUserId_toUserId.fromUserId &&
+          like.toUserId === where.fromUserId_toUserId.toUserId) ?? null),
+        create: jest.fn(async ({ data }) => {
+          const like = { ...data, id: nextId++, createdAt: new Date(),
+            fromUser: data.fromUserId === 1 ? user1 : user2,
+            toUser: data.toUserId === 1 ? user1 : user2 };
+          likes.push(like);
+          return like;
+        }),
+        findMany: jest.fn(async () => likes),
+        deleteMany: jest.fn(async () => { likes = []; }),
+      },
+      match: {
+        findUnique: jest.fn(async () => match),
+        upsert: jest.fn(async ({ create, update }) => {
+          match = match ? { ...match, ...update } :
+            { ...create, id: 1, isActive: true, user1, user2 };
+          return match;
+        }),
+        update: jest.fn(async ({ data }) => { match = { ...match, ...data }; return match; }),
+        findMany: jest.fn(async ({ where }) => match && (!where.isActive || match.isActive) ? [match] : []),
+      },
+    };
+    prisma.$transaction = (callback: (tx: any) => unknown) => callback(prisma);
+    const room = { to: jest.fn(), emit: jest.fn() };
+    room.to.mockReturnValue(room);
+    const gateway = { server: room };
+    return new MatchService(prisma as PrismaService, gateway as unknown as MessageGateway);
+  }
+
+  beforeEach(() => { jest.useFakeTimers(); jest.setSystemTime(new Date('2026-10-16T10:00:00Z')); });
+  afterEach(() => jest.useRealTimers());
+
+  it('orders a match before both likes when timestamps are identical, for both users', async () => {
+    const service = setup();
+    await service.rejected(1, { userId: 2, status: 'like' });
+    await service.rejected(2, { userId: 1, status: 'like' });
+    expect((await service.getActivity(1)).map(event => event.type)).toEqual(['match', 'like_received', 'like_sent']);
+    expect((await service.getActivity(2)).map(event => event.type)).toEqual(['match', 'like_sent', 'like_received']);
+  });
+
+  it.each(['delete', 'block'])('shows a fresh like/like/match cycle after %s and rematch', async (action) => {
+    const service = setup();
+    await service.rejected(1, { userId: 2, status: 'like' });
+    await service.rejected(2, { userId: 1, status: 'like' });
+    if (action === 'delete') await service.deleteMatch(1, 2);
+    else { await service.blockUser(1, 2); await service.unblockUser(1, 2); }
+    expect(await service.getActivity(1)).toEqual([]);
+    jest.setSystemTime(new Date('2026-10-16T11:00:00Z'));
+    await service.rejected(1, { userId: 2, status: 'like' });
+    jest.advanceTimersByTime(10);
+    await service.rejected(2, { userId: 1, status: 'like' });
+    const activity = await service.getActivity(1);
+    expect(activity.map(event => event.type)).toEqual(['match', 'like_received', 'like_sent']);
+    expect(activity[0].createdAt.getTime()).toBe(Date.now());
+  });
+});
+
+
+user.service.spec.ts (backend/srv/user):
+import { UsersService } from './users.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { MessageGateway } from '../message/message.gateway';
+import { UpdateProfileDto } from './dto/updateProfile.dto';
+
+describe('Suggestion invalidation after profile changes', () => {
+  const update = jest.fn();
+  const notifySuggestionsChanged = jest.fn();
+  const service = new UsersService(
+    { user: { update } } as unknown as PrismaService,
+    { notifySuggestionsChanged } as unknown as MessageGateway,
+  );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    update.mockResolvedValue({ id: 1 });
+  });
+
+  it.each([{ orientation: 'woman' }, { kind: 'man' }])(
+    'notifies viewers after saving compatibility changes: %j',
+    async (profile) => {
+      await service.updateProfile(1, profile as UpdateProfileDto);
+      expect(notifySuggestionsChanged).toHaveBeenCalledTimes(1);
+      expect(update.mock.invocationCallOrder[0]).toBeLessThan(
+        notifySuggestionsChanged.mock.invocationCallOrder[0],
+      );
+    },
+  );
+
+  it('does not notify viewers when saving fails', async () => {
+    update.mockRejectedValueOnce(new Error('Database unavailable'));
+    await expect(service.updateProfile(1, { orientation: 'woman' } as UpdateProfileDto)).rejects.toThrow();
+    expect(notifySuggestionsChanged).not.toHaveBeenCalled();
+  });
+
+  it('does not invalidate suggestions for biography-only changes', async () => {
+    await service.updateProfile(1, { biography: 'Hello' } as UpdateProfileDto);
+    expect(notifySuggestionsChanged).not.toHaveBeenCalled();
+  });
+});
+

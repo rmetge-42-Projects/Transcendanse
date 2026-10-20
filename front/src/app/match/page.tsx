@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getErrorMessage } from "@/src/lib/errors";
 
 const DECK_STORAGE_KEY = "matchDeckState";
+// const REJECT_DURATION_MS = 30 * 60 * 1000;
 const REJECT_DURATION_MS = 5 * 1000;
 const REJECT_CHECK_INTERVAL_MS = 1000;
 

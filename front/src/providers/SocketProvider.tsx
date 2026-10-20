@@ -14,7 +14,7 @@ export default function SocketProvider({ children }: { children: React.ReactNode
     // Vrai quand un token existe dans le navigateur (relu a chaque changement de page,
     const [hasToken, setHasToken] = useState(false);
 
-    const isPublicPage = pathname === "/" || pathname === "/login" || pathname === "/register" || pathname === "/privacy";
+    const isPublicPage = ["/", "/login", "/register", "/privacy", "/terms"].includes(pathname);
 
     // Aucune requete /match tant qu'on n'est pas connecte ou sur une page publique
     const { data: users } = useMatches(hasToken && !isPublicPage);
@@ -51,10 +51,25 @@ export default function SocketProvider({ children }: { children: React.ReactNode
         };
         socket.on("newMatch", refresh);
         socket.on("messagesRead", refresh);
+        const refreshActivity = () => {
+            refresh();
+            queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+        };
+        socket.on("activityChanged", refreshActivity);
+        socket.on("connect", refresh);
+        const refreshSuggestions = () => {
+            queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+        };
+        socket.on("suggestionsChanged", refreshSuggestions);
+        socket.on("connect", refreshSuggestions);
 
         return () => {
             socket.off("newMatch", refresh);
             socket.off("messagesRead", refresh);
+            socket.off("activityChanged", refreshActivity);
+            socket.off("connect", refresh);
+            socket.off("suggestionsChanged", refreshSuggestions);
+            socket.off("connect", refreshSuggestions);
         };
     }, [hasToken, queryClient]);
 

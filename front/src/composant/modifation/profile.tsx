@@ -65,6 +65,7 @@ export default function Profile() {
                 photo: preview ?? null,
             };
             await api.put('/users/updateProfile', payload);
+            await queryClient.invalidateQueries({ queryKey: ['otherUsers'], refetchType: 'all' });
             // alert("Profil mis à jour avec succès !");
             await queryClient.invalidateQueries({ queryKey: ['userMe'] });
             router.push("/myProfile");

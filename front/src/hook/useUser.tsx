@@ -30,6 +30,8 @@ export function useOtherUser() {
     },
     enabled: authenticated,
     refetchInterval: authenticated ? 10000 : false,
+    refetchOnWindowFocus: 'always',
+    refetchOnReconnect: 'always',
     retry: (count, err: any) => err?.response?.status !== 401 && count < 2,
   });
 }
@@ -51,13 +53,15 @@ export function useActivity() {
   const authenticated = hasToken();
   return useQuery<ActivityType[]>({
     queryKey: ['activity'],
+    staleTime: 0,
     queryFn: async () => {
       const res = await api.get<ActivityType[]>('/match/activity');
       return res.data;
     },
     enabled: authenticated,
     refetchInterval: authenticated ? 5000 : false,
-    refetchOnWindowFocus: authenticated,
+    refetchOnWindowFocus: 'always',
+    refetchOnReconnect: 'always',
     retry: (count, err: any) => err?.response?.status !== 401 && count < 2,
   });
 }

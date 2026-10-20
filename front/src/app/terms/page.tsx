@@ -1,18 +1,11 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import LegalBack from "@/src/composant/LegalBack";
 
 export default function TermsPage() {
   return (
     <main className="bg-white min-h-screen text-black font-sans">
       <article className="max-w-4xl mx-auto p-6 md:p-12">
         <header className="mb-12 border-b-2 border-black pb-8">
-          <Link
-            href="/myProfile"
-            className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition hover:text-black"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Retour au profil
-          </Link>
+          <LegalBack />
 
           <h1 className="text-4xl font-extrabold tracking-tight mb-2">
             Conditions d’utilisation
