@@ -30,13 +30,20 @@ export default function CreateAccount() {
 	// Date maximum (18 ans minimum)
 	const maxDateObj = new Date();
 	maxDateObj.setFullYear(maxDateObj.getFullYear() - 18);
-	const dateMin = maxDateObj.toISOString().split("T")[0];
+	const dateMax = maxDateObj.toISOString().split("T")[0];
+
+	const minDateObj = new Date();
+	minDateObj.setFullYear(minDateObj.getFullYear() - 120);
+	const dateMin = minDateObj.toISOString().split("T")[0];
 
 	const {
 		register,
 		handleSubmit,
+		watch,
 		formState: { errors },
 	} = useForm<ProfileFormValues>();
+
+	const biographyText = watch("biography") || "";
 
 	const handlePhotoChange = (_file: File | null, dataUrl: string | null) => {
 		setPreview(dataUrl);
@@ -57,7 +64,8 @@ export default function CreateAccount() {
 			};
 
 			await api.post('/users/createProfile', payload);
-			await queryClient.invalidateQueries({ queryKey: ['userMe'] });
+			await queryClient.refetchQueries({ queryKey: ['userMe'] });
+			// await queryClient.invalidateQueries({ queryKey: ['userMe'] });
 			router.push('/myProfile');
 		}
 		catch (err: any) {
@@ -99,7 +107,7 @@ export default function CreateAccount() {
 								{...register("name", { required: "Le nom est obligatoire" })}
 								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 text-black"
 							/>
-							{errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+							{errors.name && <p className="bg-white text-red-500 text-xs mt-1 px-2 py-0.5 rounded w-fit">{errors.name.message}</p>}
 						</div>
 
 						{/* NOM D'UTILISATEUR */}
@@ -113,7 +121,7 @@ export default function CreateAccount() {
 								{...register("username", { required: "Le nom d'utilisateur est obligatoire" })}
 								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 text-black"
 							/>
-							{errors.username && <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>}
+							{errors.username && <p className="bg-white text-red-500 text-xs mt-1 px-2 py-0.5 rounded w-fit">{errors.username.message}</p>}
 						</div>
 
 						{/* DATE DE NAISSANCE */}
@@ -123,11 +131,12 @@ export default function CreateAccount() {
 							</label>
 							<input
 								type="date"
-								max={dateMin}
+								max={dateMax}
+								min={dateMin}
 								{...register("birthday", { required: "La date de naissance est obligatoire" })}
 								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 text-black"
 							/>
-							{errors.birthday && <p className="text-red-500 text-xs mt-1">{errors.birthday.message}</p>}
+							{errors.birthday && <p className="bg-white text-red-500 text-xs mt-1 px-2 py-0.5 rounded w-fit">{errors.birthday.message}</p>}
 						</div>
 
 						{/* GENRE */}
@@ -147,7 +156,7 @@ export default function CreateAccount() {
 								<option value="woman">Femme</option>
 								<option value="non_binary">Non-binaire</option>
 							</select>
-							{errors.kind && <p className="text-red-500 text-xs mt-1">{errors.kind.message}</p>}
+							{errors.kind && <p className="bg-white text-red-500 text-xs mt-1 px-2 py-0.5 rounded w-fit">{errors.kind.message}</p>}
 						</div>
 
 						{/* ORIENTATION SEXUELLE */}
@@ -167,18 +176,30 @@ export default function CreateAccount() {
 								<option value="woman">Femme</option>
 								<option value="all">N'importe</option>
 							</select>
-							{errors.orientation && <p className="text-red-500 text-xs mt-1">{errors.orientation.message}</p>}
+							{errors.orientation && <p className="bg-white text-red-500 text-xs mt-1 px-2 py-0.5 rounded w-fit">{errors.orientation.message}</p>}
 						</div>
 
 						{/* BIOGRAPHIE */}
 						<div>
-							<label className="text-sm font-semibold text-gray-700 block mb-1">
-								Biographie
-							</label>
+
+							<div className="flex justify-between items-center mb-1">
+                    		    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    		        Biographie
+                    		    </label>
+                    		    <span className="text-xs text-gray-400">
+                    		        {biographyText.length}/300
+                    		    </span>
+                    		</div>
 							<textarea
 								rows={3}
 								placeholder="Passionné(e) de danse, voyages..."
-								{...register("biography")}
+                        		maxLength={300}
+                        		{...register("biography", {
+									maxLength: {
+									  value: 300,
+									  message: "La biographie ne doit pas dépasser 300 caractères",
+									},
+								})}
 								className="rounded-lg px-3.5 py-2 w-full bg-white border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 resize-none text-black"
 							/>
 						</div>

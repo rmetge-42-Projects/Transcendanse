@@ -14,7 +14,7 @@ import { useMessageStore } from "@/src/constant/newMessage";
 
 export default function Profile() {
   const router = useRouter();
-  const { data: user, isLoading, isError } = useUser();
+  const { data: user, isLoading, isError, isFetching } = useUser();
   const queryClient = useQueryClient();
   const setMessageCount = useMessageStore((state) => state.setMessageCount);
 
@@ -26,7 +26,8 @@ export default function Profile() {
 
 
   useEffect(() => {
-    if (
+    if ( !isLoading &&
+      !isFetching &&
       user &&
       (!user.username || !user.birthday || !user.kind || !user.orientation)
     ) {
@@ -38,7 +39,7 @@ export default function Profile() {
 
 
   // État de chargement grand format
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <Bottom>
         <IfIsLoading>Chargement du profil...</IfIsLoading>;
@@ -85,8 +86,8 @@ export default function Profile() {
         <span className="text-xs md:text-sm font-extrabold text-gray-400 uppercase tracking-widest block mb-3">
           À propos de moi
         </span>
-        <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-100">
-          <p className="text-gray-800 text-base md:text-lg leading-relaxed">
+        <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-100 max-h-60 overflow-y-auto">
+          <p className="text-gray-800 text-base md:text-lg leading-relaxed break-words whitespace-pre-wrap">
             {user.biography || "Aucune biographie pour le moment."}
           </p>
         </div>

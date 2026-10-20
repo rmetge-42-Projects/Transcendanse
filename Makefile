@@ -5,26 +5,23 @@ RED = \033[0;31m
 YELLOW = \033[0;33m
 RESET = \033[0m
 
-all: $(NAME)
+all: start
 
-$(NAME):
+start:
 	@echo "$(GREEN)Building and starting containers for $(NAME)...$(RESET)"
 	@if [ ! -s secrets/nginx-certs/transcendance.crt ] || [ ! -s secrets/nginx-certs/transcendance.key ]; then ./generate-certs.sh; fi
 	@if [ ! -s vault-certs/vault.crt ] || [ ! -s vault-certs/vault.key ]; then ./generate-vault-certs.sh; fi
 	@mkdir -p backups && chmod 700 backups
 	docker compose up --build -d
 	@echo "$(GREEN)$(NAME) is up and running!$(RESET)"
-	@touch $(NAME)
 
 down:
 	@echo "$(YELLOW)Stopping $(NAME) containers...$(RESET)"
 	docker compose down
-	@rm -f $(NAME)
 
 clean:
 	@echo "$(YELLOW)Removing this project's containers and local images (volumes are preserved)...$(RESET)"
 	docker compose down --rmi local
-	@rm -f $(NAME)
 
 fclean: down
 	@echo "$(RED)Deep clean: Removing project containers, networks, images, and volumes...$(RESET)"
@@ -33,4 +30,4 @@ fclean: down
 
 re: fclean all
 
-.PHONY: all down clean fclean re
+.PHONY: all start down clean fclean re

@@ -48,6 +48,21 @@ services:
       default: {}
       vault_internal: {}
 
+  test_users_seed:
+    build:
+      context: ./backend
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      BASE_URL: http://backend:3000
+    volumes:
+      - ./create-test-users.sh:/app/create-test-users.sh:ro
+      - ./seed-test-users-once.sh:/app/seed-test-users-once.sh:ro
+      - vol_test_users_seed:/seed
+    entrypoint: ["/bin/sh", "/app/seed-test-users-once.sh"]
+    restart: "no"
+
   frontend:
     build:
       context: ./front
@@ -99,7 +114,6 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
-      PUBLIC_API_KEY: ${PUBLIC_API_KEY:-dev-public-api-key-change-me}
       BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
       GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:-}
     volumes:
@@ -362,6 +376,7 @@ volumes:
   vol_backup_secrets:
   vol_exporter_secrets:
   vol_grafana_secrets:
+  vol_test_users_seed:
 
 networks:
   vault_internal:

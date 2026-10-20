@@ -25,7 +25,9 @@ make re
 docker compose logs -f
 ```
 
-Set real `PUBLIC_API_KEY` and `BACKUP_ENCRYPTION_KEY` values in `.env` before evaluation. The fallback API key is only for local development.
+`make` also creates the 15 demo accounts, profiles, matches and messages after the backend becomes healthy. The seeder runs once per Docker volume. `make fclean` removes that volume, so the next `make` seeds the accounts again. These accounts share the test password `motdepasse123`.
+
+Run `make` to start the stack. On first initialization, Vault creates a cryptographically random 64-character `PUBLIC_API_KEY` if no valid key is already stored. Vault keeps it across container restarts, and the backend reads it from Vault at startup. The API key is not stored in `.env` or exposed to the frontend. Other required local settings (including database credentials and the backup key) still belong in `.env`, which must never be committed. Direct `docker compose up` uses the same Vault-based key initialization.
 
 ## Technical Stack
 
@@ -92,8 +94,10 @@ Documentation is available in `docs/public-api.md` and at runtime through:
 
 ```bash
 curl -k https://localhost:8443/api/public/docs \
-  -H "x-api-key: dev-public-api-key-change-me"
+  -H "x-api-key: ${PUBLIC_API_KEY}"
 ```
+
+Set `PUBLIC_API_KEY` in your shell only through the approved local Vault operator workflow before running the example. Do not put the key in `.env`, frontend code, screenshots, or shared documentation.
 
 ## Browser Support
 

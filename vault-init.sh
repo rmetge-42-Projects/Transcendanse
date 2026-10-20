@@ -7,10 +7,9 @@ export VAULT_CACERT="${VAULT_CACERT:-/vault/tls/vault.crt}"
 BOOTSTRAP_DB_USER="${DB_USER:?DB_USER est requis pour l'initialisation PostgreSQL}"
 BOOTSTRAP_DB_PASSWORD="${DB_PASSWORD:?DB_PASSWORD est requis pour l'initialisation PostgreSQL}"
 BOOTSTRAP_DB_NAME="${DB_NAME:?DB_NAME est requis pour l'initialisation PostgreSQL}"
-BOOTSTRAP_PUBLIC_API_KEY="${PUBLIC_API_KEY:-dev-public-api-key-change-me}"
 BOOTSTRAP_BACKUP_KEY="${BACKUP_ENCRYPTION_KEY:-}"
 BOOTSTRAP_GMAIL_APP_PASSWORD="${GMAIL_APP_PASSWORD:-}"
-unset DB_USER DB_PASSWORD DB_NAME PUBLIC_API_KEY BACKUP_ENCRYPTION_KEY GMAIL_APP_PASSWORD
+unset DB_USER DB_PASSWORD DB_NAME BACKUP_ENCRYPTION_KEY GMAIL_APP_PASSWORD
 VAULT_PID=""
 
 shutdown() {
@@ -83,10 +82,20 @@ else
     JWT_SECRET="$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')"
 fi
 
+PUBLIC_API_KEY="$(vault kv get -field=public_api_key secret/backend 2>/dev/null || true)"
+case "$PUBLIC_API_KEY" in
+    ""|"dev-public-api-key-change-me"|*[!0123456789abcdefABCDEF]*)
+        PUBLIC_API_KEY=""
+        ;;
+esac
+if [ "${#PUBLIC_API_KEY}" -lt 64 ]; then
+    PUBLIC_API_KEY="$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')"
+fi
+
 vault kv put secret/backend \
     "database_url=postgresql://${BOOTSTRAP_DB_USER}:${BOOTSTRAP_DB_PASSWORD}@database:5432/${BOOTSTRAP_DB_NAME}" \
     "jwt_secret=${JWT_SECRET}" \
-    "public_api_key=${BOOTSTRAP_PUBLIC_API_KEY}" >/dev/null
+    "public_api_key=${PUBLIC_API_KEY}" >/dev/null
 
 vault kv put secret/runtime/database \
     "db_user=${BOOTSTRAP_DB_USER}" \
@@ -154,7 +163,7 @@ fi
 BACKEND_TOKEN="$(vault token create -policy=backend-policy -field=token)"
 printf '%s\n' "$BACKEND_TOKEN" > /vault/token/backend_token.txt
 chmod 0440 /vault/token/backend_token.txt
-unset VAULT_TOKEN ROOT_TOKEN UNSEAL_KEY1 UNSEAL_KEY2 BACKEND_TOKEN OLD_BACKEND_TOKEN JWT_SECRET BOOTSTRAP_DB_USER BOOTSTRAP_DB_PASSWORD BOOTSTRAP_DB_NAME BOOTSTRAP_PUBLIC_API_KEY BOOTSTRAP_BACKUP_KEY BOOTSTRAP_GMAIL_APP_PASSWORD
+unset VAULT_TOKEN ROOT_TOKEN UNSEAL_KEY1 UNSEAL_KEY2 BACKEND_TOKEN OLD_BACKEND_TOKEN JWT_SECRET PUBLIC_API_KEY BOOTSTRAP_DB_USER BOOTSTRAP_DB_PASSWORD BOOTSTRAP_DB_NAME BOOTSTRAP_BACKUP_KEY BOOTSTRAP_GMAIL_APP_PASSWORD
 
 echo "Vault initialized, unsealed, and ready."
 wait "$VAULT_PID"
