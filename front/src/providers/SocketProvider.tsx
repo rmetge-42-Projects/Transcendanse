@@ -21,19 +21,22 @@ export default function SocketProvider({ children }: { children: React.ReactNode
     const setMessageCount = useMessageStore((state) => state.setMessageCount);
 
     // Compteur du badge : messages non lus + nouveaux matchs jamais ouverts
+    
     useEffect(() => {
         if (!hasToken || isPublicPage) {
             setMessageCount(0);
             return;
         }
         if (!users) return;
-        const total = users.reduce((sum, user) => {
-            let count = user.unreadCount ?? 0;
-            if (user.isNewMatch === true && (user.unreadCount ?? 0) === 0) {
-                count += 1;
-            }
-            return sum + count;
-        }, 0);
+        const total = users
+            .filter((user) => user.isActive !== false && !user.isBlocked)
+            .reduce((sum, user) => {
+                let count = user.unreadCount ?? 0;
+                if (user.isNewMatch === true && (user.unreadCount ?? 0) === 0) {
+                    count += 1;
+                }
+                return sum + count;
+            }, 0);
         setMessageCount(total);
     }, [users, hasToken, isPublicPage, setMessageCount]);
 
