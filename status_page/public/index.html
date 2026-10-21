@@ -95,8 +95,6 @@
       el.innerText = state;
       el.className = `status-badge status-${state.toLowerCase()}`;
     }
-
-    // Run immediately, then every 30 seconds
     checkStatus();
     setInterval(checkStatus, 30000);
   </script>

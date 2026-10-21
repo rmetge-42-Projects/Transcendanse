@@ -10,17 +10,12 @@ import { getAuthToken } from "@/src/lib/authToken";
 export default function SocketProvider({ children }: { children: React.ReactNode }) {
     const queryClient = useQueryClient();
     const pathname = usePathname() ?? "";
-
-    // Vrai quand un token existe dans le navigateur (relu a chaque changement de page,
     const [hasToken, setHasToken] = useState(false);
 
     const isPublicPage = ["/", "/login", "/register", "/privacy", "/terms"].includes(pathname);
 
-    // Aucune requete /match tant qu'on n'est pas connecte ou sur une page publique
     const { data: users } = useMatches(hasToken && !isPublicPage);
     const setMessageCount = useMessageStore((state) => state.setMessageCount);
-
-    // Compteur du badge : messages non lus + nouveaux matchs jamais ouverts
     
     useEffect(() => {
         if (!hasToken || isPublicPage) {
@@ -40,7 +35,6 @@ export default function SocketProvider({ children }: { children: React.ReactNode
         setMessageCount(total);
     }, [users, hasToken, isPublicPage, setMessageCount]);
 
-    // Evenements recus : ils font simplement recharger la liste si l'utilisateur est authentifie
     useEffect(() => {
         if (!hasToken) {
             socket.off("newMatch");
@@ -76,7 +70,6 @@ export default function SocketProvider({ children }: { children: React.ReactNode
         };
     }, [hasToken, queryClient]);
 
-    // La connexion suit le token : ouverte apres un login, fermee apres un logout
     useEffect(() => {
         const token = getAuthToken();
         const authenticated = !!token;

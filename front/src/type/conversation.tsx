@@ -10,12 +10,6 @@ export interface UserConversationType {
   isBlocked?: boolean;
 }
 
-// export interface MessageType {
-//   id: number;
-//   senderId: number;
-//   message: string;
-//   messageDate: string;
-// }
 
 export interface MessageType {
   id: number;

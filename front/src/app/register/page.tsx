@@ -70,8 +70,6 @@ export default function NewAccount(){
 					<label className="block mb-1 text-sm font-semibold text-gray-700">Mot de passe</label>
 					<div className="relative w-full">
 						<input 
-							// type="password" 
-							
 							type={showPassword ? 'text' : 'password'}
 							placeholder="ex: Password.123" 
 							{...register("password", {required: "Le mot de passe est obligatoire"})}
@@ -95,7 +93,6 @@ export default function NewAccount(){
 					<div className="relative w-full">
 
 						<input 
-							// type="password" 
 							type={showVerifPassword ? 'text' : 'password'}
 							placeholder="ex: Password.123"
 							{...register("validatePassword", {required: "La validation de mot de passe est obligatoire"})} 

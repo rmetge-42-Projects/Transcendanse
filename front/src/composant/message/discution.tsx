@@ -94,7 +94,6 @@ export default function Duiscution({
     }
   };
 
-  // Masque UN message precis, uniquement pour moi (l'autre personne le voit toujours)
   const deleteMessage = async (messageId: number, userId: number) => {
     try {
       await api.delete(`/message/message/${messageId}`);
@@ -112,7 +111,6 @@ export default function Duiscution({
 
   return (
     <div className="flex-1 flex flex-col bg-white">
-      {/* Entête du chat avec photo de profil ronde à côté du nom */}
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
         <div
           onClick={() => seeProfileMatch(selectedUser.userId)}
@@ -180,7 +178,6 @@ export default function Duiscution({
                   >
                     {(() => {
                       const d = new Date(msg.createdAt);
-                      // Si la date est valide, on formate l'heure, sinon on affiche le texte tel quel
                       return !isNaN(d.getTime())
                         ? d.toLocaleTimeString([], {
                             hour: "2-digit",
@@ -194,7 +191,6 @@ export default function Duiscution({
             );
           })
         ) : (
-          /* Texte affiché s'il n'y a aucun message */
           <p className="text-center text-gray-400 text-sm my-auto">
             Début de votre conversation avec {selectedUser.userName}
           </p>

@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import Bottom from "@/src/display/bottom";
-// import { api } from "@/src/lib/axios";
 import { useMessageStore } from "@/src/constant/newMessage";
 
 export default function Profile() {
@@ -38,7 +37,6 @@ export default function Profile() {
   }, [user, queryClient, router]);
 
 
-  // État de chargement grand format
   if (isLoading || isFetching) {
     return (
       <Bottom>
@@ -58,7 +56,6 @@ export default function Profile() {
   return (
     <ProfileCard photo={user.photo}>
       <Menu />
-      {/* Nom & Email */}
       <h1 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">
         {user.username}
       </h1>
@@ -66,7 +63,6 @@ export default function Profile() {
         {user.email}
       </p>
 
-      {/* Badges de genre et orientation */}
       {(user.kind || user.orientation) && (
         <div className="flex gap-3 mt-6 flex-wrap justify-center">
           {user.kind && (

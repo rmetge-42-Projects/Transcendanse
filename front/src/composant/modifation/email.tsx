@@ -78,7 +78,6 @@ export default function Email() {
                     {isSubmit ? "Envoi..." : "Changer l'e-mail"}
                 </button>
             </form>
-        {/* </div */}
         </EditCard>
     );
 }

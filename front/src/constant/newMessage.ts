@@ -8,15 +8,9 @@ interface MessageState {
 }
 
 export const useMessageStore = create<MessageState>((set) => ({
-  messageCount: 0, // Valeur initiale
-
-  // Définit une valeur exacte (ex: reçue depuis le serveur)
+  messageCount: 0,
   setMessageCount: (count) => set({ messageCount: count }),
-
-  // Ajoute +1 lors de la réception d'un nouveau message par WebSocket
   incrementMessageCount: () =>
     set((state) => ({ messageCount: state.messageCount + 1 })),
-
-  // Remet le compteur à 0 quand l'utilisateur ouvre ses messages
   resetMessageCount: () => set({ messageCount: 0 }),
 }));

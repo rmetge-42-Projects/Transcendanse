@@ -4,13 +4,10 @@ import { api } from "@/src/lib/axios";
 import { getErrorMessage } from "@/src/lib/errors";
 import { UserType } from "@/src/type/user";
 
-// Onglet replie en bas de la liste des conversations : permet de debloquer
 export default function BlockedUsers({ users }: { users: UserType[] }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
-
-  // Rien a afficher quand personne n'est bloque
   if (users.length === 0) return null;
 
   const unblockUser = async (userId: number) => {

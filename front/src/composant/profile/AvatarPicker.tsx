@@ -24,15 +24,12 @@ export default function AvatarPicker({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  // Synchroniser avec la prop value si elle change
   useEffect(() => {
     if (value !== undefined) {
       setPreview(value);
     }
   }, [value]);
 
-  // Fermer le menu lors d'un clic extérieur
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -47,7 +44,6 @@ export default function AvatarPicker({
     };
   }, [isMenuOpen]);
 
-  // Quand l'utilisateur choisit une photo depuis l'explorateur
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -55,7 +51,7 @@ export default function AvatarPicker({
       reader.onload = () => {
         if (typeof reader.result === 'string') {
           setRawImage(reader.result);
-          setIsCropperOpen(true); // Ouvre directement la fenêtre d'ajustement
+          setIsCropperOpen(true); 
         }
       };
       reader.readAsDataURL(file);
@@ -63,14 +59,12 @@ export default function AvatarPicker({
     setIsMenuOpen(false);
   };
 
-  // Validation du recadrage
   const handleCropComplete = (croppedBlob: Blob, croppedDataUrl: string) => {
     setPreview(croppedDataUrl);
     const file = new File([croppedBlob], 'avatar.jpg', { type: 'image/jpeg' });
     onChange(file, croppedDataUrl);
   };
 
-  // Suppression de la photo
   const handleRemove = () => {
     setPreview(null);
     setRawImage(null);
@@ -81,7 +75,6 @@ export default function AvatarPicker({
     setIsMenuOpen(false);
   };
 
-  // Déclencher le choix de fichier
   const handleSelectClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -89,7 +82,6 @@ export default function AvatarPicker({
     setIsMenuOpen(false);
   };
 
-  // Ouvrir l'ajusteur avec l'image actuelle
   const handleAdjustClick = () => {
     if (rawImage || preview) {
       if (!rawImage && preview) {
@@ -105,7 +97,6 @@ export default function AvatarPicker({
 
   return (
     <div className="flex flex-col items-center gap-3">
-      {/* Input de fichier masqué */}
       <input
         ref={fileInputRef}
         type="file"
@@ -114,7 +105,6 @@ export default function AvatarPicker({
         className="hidden"
       />
 
-      {/* APERÇU CIRCULAIRE DE LA PHOTO */}
       <div className="relative group">
         {preview ? (
           <img
@@ -134,10 +124,8 @@ export default function AvatarPicker({
         )}
       </div>
 
-      {/* BOUTON D'ACTION SOUS L'IMAGE */}
       <div className="relative" ref={menuRef}>
         {!preview ? (
-          /* CAS 1 : Aucune photo sélectionnée */
           <button
             type="button"
             onClick={handleSelectClick}
@@ -147,7 +135,6 @@ export default function AvatarPicker({
             Choisir une photo
           </button>
         ) : (
-          /* CAS 2 : Une photo est présente -> Bouton menu d'options */
           <div className="relative">
             <button
               type="button"
@@ -163,10 +150,9 @@ export default function AvatarPicker({
               />
             </button>
 
-            {/* MENU DÉROULANT DES OPTIONS (Sélectionner / Ajuster / Supprimer) */}
             {isMenuOpen && (
               <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-150">
-                {/* Option 1 : Changer la photo */}
+
                 <button
                   type="button"
                   onClick={handleSelectClick}
@@ -176,7 +162,6 @@ export default function AvatarPicker({
                   Sélectionner une photo
                 </button>
 
-                {/* Option 2 : Ajuster le cadrage */}
                 <button
                   type="button"
                   onClick={handleAdjustClick}
@@ -188,7 +173,6 @@ export default function AvatarPicker({
 
                 <div className="my-1 border-t border-gray-100"></div>
 
-                {/* Option 3 : Supprimer la photo */}
                 <button
                   type="button"
                   onClick={handleRemove}
@@ -205,7 +189,6 @@ export default function AvatarPicker({
 
       {error && <p className="text-red-500 text-xs font-medium mt-1">{error}</p>}
 
-      {/* FENÊTRE D'AJUSTEMENT ET RECADRAGE */}
       {rawImage && (
         <AvatarCropperModal
           imageSrc={rawImage}

@@ -28,8 +28,6 @@ export default function Profile() {
     const [preview, setPreview] = useState<string | null>(user?.photo || null);
     const [croppedFile, setCroppedFile] = useState<File | null>(null);
     
-
-    // Mettre à jour l'aperçu si les données utilisateur arrivent
     useEffect(() => {
         if (user?.photo) {
             setPreview(user.photo);
@@ -70,7 +68,6 @@ export default function Profile() {
             };
             await api.put('/users/updateProfile', payload);
             await queryClient.invalidateQueries({ queryKey: ['otherUsers'], refetchType: 'all' });
-            // alert("Profil mis à jour avec succès !");
             await queryClient.invalidateQueries({ queryKey: ["userMe"] });
             await queryClient.invalidateQueries({ queryKey: ["matches"] });
             await queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
@@ -87,14 +84,12 @@ export default function Profile() {
         <EditCard title="Information du profil">
 
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-4">
-                {/* PHOTO DE PROFIL & MENU D'OPTIONS */}
                 <div className="flex justify-center p-4 bg-gray-50/80 rounded-2xl border border-gray-100 mb-2">
                     <AvatarPicker
                         value={preview}
                         onChange={handlePhotoChange}
                     />
                 </div>
-                {/* USERNAME */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Nom d'utilisateur
@@ -108,7 +103,6 @@ export default function Profile() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* KIND */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Genre
@@ -124,8 +118,6 @@ export default function Profile() {
                         </select>
                         {errors.kind && <p className="text-red-500 text-xs mt-1 font-medium">{errors.kind.message}</p>}
                     </div>
-
-                    {/* ORIENTATION */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Orientation sexuelle
@@ -142,8 +134,6 @@ export default function Profile() {
                         {errors.orientation && <p className="text-red-500 text-xs mt-1 font-medium">{errors.orientation.message}</p>}
                     </div>
                 </div>
-
-                {/* BIOGRAPHY */}
                 <div>
                     <div className="flex justify-between items-center mb-1">
                         <label className="block text-sm font-medium text-gray-700 mb-1">

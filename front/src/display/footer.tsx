@@ -2,7 +2,6 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation";
 
-//composant pour le footer (liens vers "politique de confidentialité")
 export default function Footer()
 {
     const pathname = usePathname();

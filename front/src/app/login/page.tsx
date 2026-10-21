@@ -11,7 +11,6 @@ import { getErrorMessage } from "@/src/lib/errors";
 import { setAuthToken } from "@/src/lib/authToken";
 //page de connection
 
-// 1. Définition du type pour le formulaire
 type LoginFormValues = {
 	email: string;
 	password: string;
@@ -22,14 +21,10 @@ export default function Login() {
 	const [invalide, setInvalide] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
-	
-	// États pour gérer la 2FA
     const [requires2FA, setRequires2FA] = useState(false);
     const [emailFor2FA, setEmailFor2FA] = useState('');
     const [twoFactorToken, setTwoFactorToken] = useState('');
 
-
-	// 2. Configuration de React Hook Form
 	const {
 		register,
 		handleSubmit,
@@ -37,8 +32,6 @@ export default function Login() {
 		formState: { errors },
 	} = useForm<LoginFormValues>();
 
-
-	// Fonction centralisée pour finaliser la connexion une fois le JWT obtenu
     const handleLoginSuccess = (token: string) => {
         setAuthToken(token);
         socket.auth = { token };
@@ -69,7 +62,6 @@ export default function Login() {
         catch (error) {
             
             setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
-            // reset();
         } finally {
             setIsLoading(false);
         }
@@ -107,7 +99,6 @@ export default function Login() {
 	return (
     <Connextion title={requires2FA ? "Double authentification" : "Se connecter"}>
         {!requires2FA ? (
-            /* --- FORMULAIRE CONNEXION CLASSIQUE --- */
             <>
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 w-full">
                     <div>
@@ -163,7 +154,6 @@ export default function Login() {
                 </button>
             </>
         ) : (
-            /* --- FORMULAIRE CODE 2FA --- */
             <form onSubmit={handleVerify2FA} className="flex flex-col gap-4 w-full">
                 <p className="text-sm text-gray-600 text-center">
                     Entrez le code à 6 chiffres généré par votre application d'authentification.
@@ -198,7 +188,7 @@ export default function Login() {
                         setTwoFactorToken('');
                         setInvalide('');
                     }}
-                    className="text-sm text-gray-500 hover:underline text-center mt-2 cursor-pointer"
+                    className="text-sm text-gray-500 hover:underline text-center mt-2 cursor-pointer text-black"
                 >
                     ← Retour à la connexion
                 </button>
