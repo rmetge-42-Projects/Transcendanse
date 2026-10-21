@@ -1,4 +1,3 @@
-// src/hooks/useUser.ts
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
 import { getAuthToken } from '@/src/lib/authToken';

@@ -7,7 +7,6 @@ import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/src/lib/axios';
 import AvatarPicker from "@/src/composant/profile/AvatarPicker";
-// import { getErrorMessage } from "@/src/constant/getErrorMessage";
 import { getErrorMessage } from "@/src/lib/errors";
 //page de creation de compte où on rentre toute les info personnel
 
@@ -27,7 +26,6 @@ export default function CreateAccount() {
 	const [isSubmit, setIsSubmit] = useState(false);
 	const [preview, setPreview] = useState<string | null>(null);
 
-	// Date maximum (18 ans minimum)
 	const maxDateObj = new Date();
 	maxDateObj.setFullYear(maxDateObj.getFullYear() - 18);
 	const dateMax = maxDateObj.toISOString().split("T")[0];
@@ -65,7 +63,6 @@ export default function CreateAccount() {
 
 			await api.post('/users/createProfile', payload);
 			await queryClient.refetchQueries({ queryKey: ['userMe'] });
-			// await queryClient.invalidateQueries({ queryKey: ['userMe'] });
 			router.push('/myProfile');
 		}
 		catch (err: any) {
@@ -88,7 +85,6 @@ export default function CreateAccount() {
 					</p>
 
 					<div className="flex flex-col gap-3">
-						{/* CHAMP PHOTO AVEC BOUTON ET MENU D'OPTIONS */}
 						<div className="flex justify-center mb-2">
 							<AvatarPicker
 								value={preview}
@@ -96,7 +92,6 @@ export default function CreateAccount() {
 							/>
 						</div>
 
-						{/* NOM */}
 						<div>
 							<label className="text-sm font-semibold text-gray-700 block mb-1">
 								Nom
@@ -110,7 +105,6 @@ export default function CreateAccount() {
 							{errors.name && <p className="bg-white text-red-500 text-xs mt-1 px-2 py-0.5 rounded w-fit">{errors.name.message}</p>}
 						</div>
 
-						{/* NOM D'UTILISATEUR */}
 						<div>
 							<label className="text-sm font-semibold text-gray-700 block mb-1">
 								Nom d'utilisateur
@@ -124,7 +118,6 @@ export default function CreateAccount() {
 							{errors.username && <p className="bg-white text-red-500 text-xs mt-1 px-2 py-0.5 rounded w-fit">{errors.username.message}</p>}
 						</div>
 
-						{/* DATE DE NAISSANCE */}
 						<div>
 							<label className="text-sm font-semibold text-gray-700 block mb-1">
 								Date de naissance
@@ -139,7 +132,6 @@ export default function CreateAccount() {
 							{errors.birthday && <p className="bg-white text-red-500 text-xs mt-1 px-2 py-0.5 rounded w-fit">{errors.birthday.message}</p>}
 						</div>
 
-						{/* GENRE */}
 						<div>
 							<label className="text-sm font-semibold text-gray-700 block mb-1">
 								Genre
@@ -159,7 +151,6 @@ export default function CreateAccount() {
 							{errors.kind && <p className="bg-white text-red-500 text-xs mt-1 px-2 py-0.5 rounded w-fit">{errors.kind.message}</p>}
 						</div>
 
-						{/* ORIENTATION SEXUELLE */}
 						<div>
 							<label className="text-sm font-semibold text-gray-700 block mb-1">
 								Orientation sexuelle
@@ -179,9 +170,7 @@ export default function CreateAccount() {
 							{errors.orientation && <p className="bg-white text-red-500 text-xs mt-1 px-2 py-0.5 rounded w-fit">{errors.orientation.message}</p>}
 						</div>
 
-						{/* BIOGRAPHIE */}
 						<div>
-
 							<div className="flex justify-between items-center mb-1">
                     		    <label className="block text-sm font-medium text-gray-700 mb-1">
                     		        Biographie

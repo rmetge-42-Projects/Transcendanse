@@ -40,14 +40,6 @@ export default function MyMatchProfile()
               <ArrowLeft />
             </Link>
           </div>
-          {/* <button
-            onClick={() => router.back()}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
-          >
-            <ArrowLeft />
-            Retour
-          </button> */}
-          {/* <MatchProfile user={user}/> */}
         </ProfileCard>
     );
 }

@@ -12,7 +12,6 @@ export default function Modify() {
     return (
         <Bottom>
             <div className="min-h-screen bg-gray-50/50 pb-12">
-                {/* Header / Navigation */}
                 <div className="max-w-4xl mx-auto px-6 py-6">
                     <Link 
                         href="/myProfile" 
@@ -29,7 +28,6 @@ export default function Modify() {
                     </p>
                 </div>
 
-                {/* Section Formulaires */}
                 <div className="max-w-2xl mx-auto px-4 flex flex-col gap-6">
                     <Profile />
                     <Email />

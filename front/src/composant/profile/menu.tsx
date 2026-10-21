@@ -29,7 +29,7 @@ export default function Menu()
 	useEffect(() => {
         const fetchUserStatus = async () => {
             try {
-                const response = await api.get('/users/me'); // Ajuste l'endpoint
+                const response = await api.get('/users/me'); 
                 setIs2FAEnabled(response.data.twoFactorEnabled || false);
             } catch (e) {
                 console.error("Erreur lors de la récupération des infos utilisateur", e);
@@ -38,8 +38,6 @@ export default function Menu()
         fetchUserStatus();
     }, []);
 
-
-	// Clic sur la case à cocher
     const handleToggle2FA = async () => {
         if (!is2FAEnabled) {
             try {
@@ -182,8 +180,7 @@ export default function Menu()
                         <p className="text-sm text-gray-600 mb-4">
                             Scanne ce QR Code avec ton application (Google Authenticator, Authy...), puis entre le code à 6 chiffres.
                         </p>
-
-                        {/* Rendu dynamique de l'image QR Code transmise par le backend */}
+                        
                         {qrCodeImage && (
                             <div className="flex justify-center my-4">
                                 <img 

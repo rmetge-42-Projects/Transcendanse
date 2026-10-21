@@ -22,7 +22,6 @@ export default function MatchProfile({user} : {user:UserType})
 				)}
 				</div>
 			)}
-			{/* Zone de biographie avec hauteur stable */}
 			<div className="w-full max-w-2xl mt-8 pt-6 border-t border-gray-100 text-left">
 		<span className="text-xs md:text-sm font-extrabold text-gray-400 uppercase tracking-widest block mb-2">
 			À propos de moi

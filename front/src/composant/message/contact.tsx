@@ -17,24 +17,19 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
 
   if (isLoading) {
     return (
-      // <div className=" min-h-screen flex flex-col justify-between p-8">
         <IfIsLoading>Chargement des contacts...</IfIsLoading>
-      // </div>
     );
   }
   if (isError) {
     return <IfIsError>Erreur : impossible d'accéder aux contacts.</IfIsError>;
   }
 
-  // Un match supprimé ou un contact bloqué sort de la liste
   const visibleUsers = users?.filter((user) => user.isActive !== false && !user.isBlocked) ?? [];
   const blockedUsers = users?.filter((user) => user.isBlocked) ?? [];
-  // Match tout neuf : aucun message echange et conversation jamais ouverte
   const showNewMatch = (user: UserType) => {
     return user.isNewMatch === true && (user.unreadCount ?? 0) === 0;
   };
 
-  // Texte affiche sous le nom du contact
   const getPreview = (user: UserType) => {
     if (showNewMatch(user)) {
       return "Nouveau match !";
@@ -55,7 +50,6 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
           {visibleUsers.map((user) => (
             <div
               key={user.id}
-              // onClick={() => setSelectedUser(user)}
 
               onClick={() =>
                 setSelectedUser({
@@ -70,7 +64,6 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
                   isOnline: user.isOnline,
                 })
               }
-              // 3. Applique la couleur si c'est l'utilisateur sélectionné
               className={`p-4 border-b border-gray-100 flex items-center gap-3 cursor-pointer transition ${
                 selectedUser?.userId === user.id
                   ? "bg-gray-200/60"

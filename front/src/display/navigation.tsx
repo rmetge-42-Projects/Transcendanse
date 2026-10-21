@@ -10,19 +10,14 @@ export default function Navigation()
     const messageCount = useMessageStore((state) => state.messageCount);
 
     return(
-        // <div className="">
-        //     test
-        // </div>
         <div className="fixed bottom-0 left-0 w-full bg-black  py-4 px-6 shadow-lg z-50">
           <div className="max-w-4xl mx-auto flex items-center justify-between text-sm text-gray-700">
-            {/* <span className="text-white">Ton message ou tes boutons ici</span> */}
             <Link 
                 href="/match"
                 className="text-white"
                 title="Matchs"
             >
                 <Heart />
-                {/* Match */}
             </Link>
             <Link
                 href="/message"
@@ -35,7 +30,6 @@ export default function Navigation()
                     {messageCount > 99 ? "99+" : messageCount}
                   </span>
                 )}
-                {/* Message */}
             </Link>
             <Link
                 href="/myProfile"
@@ -43,7 +37,6 @@ export default function Navigation()
                 title="Profil"
             >
                 <CircleUser />
-                {/* Profile */}
             </Link>
           </div>
         </div>

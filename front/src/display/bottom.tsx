@@ -1,6 +1,5 @@
 import React from "react"
 
-//composant pour le fond
 export  default function Bottom({children} : { children: React.ReactNode })
 {
     return(
