@@ -72,7 +72,7 @@ The Prisma schema is in `backend/prisma/schema.prisma`.
 
 ## Modules And Point Calculation
 
-The target score excludes DevOps modules.
+The table below maps implemented project features to the ft_transcendence subject. The points are the modules we intend to present; each remains subject to a successful live demonstration during evaluation. The original 14-point application target is shown together with the infrastructure and security modules implemented in this project.
 
 | Module | Type | Points | Implementation |
 | --- | --- | ---: | --- |
@@ -85,8 +85,17 @@ The target score excludes DevOps modules.
 | Custom-made design system | Minor | 1 | Reusable UI primitives in `front/src/composant/ui` |
 | Additional browsers | Minor | 1 | Firefox, Safari and Edge support documented in `docs/browser-support.md` |
 | 2FA | Minor | 1 | TOTP secret, QR code, confirmation, login verification, disable |
+| WAF/ModSecurity and HashiCorp Vault | Major | 2 | OWASP ModSecurity CRS at Nginx; Vault stores runtime secrets and supplies scoped credentials to services |
+| Monitoring with Prometheus and Grafana | Major | 2 | Prometheus scrapes application probes and exporters; Grafana provisions a dashboard; Prometheus rules route alerts through Alertmanager |
+| Health checks, status page, automated backups and recovery procedure | Minor | 1 | Compose health checks, status page, periodic encrypted PostgreSQL backups, backup freshness monitoring and PostgreSQL restore runbook |
 
-Total target score without DevOps modules: **14 points**.
+**Application target: 14 points. Infrastructure and security modules: 5 additional points. Total intended score: 19 points.** This is a project mapping, not a guarantee of evaluation points: the evaluator must be able to observe each module working.
+
+### Infrastructure and security scope
+
+- **WAF and Vault:** Nginx runs ModSecurity with the OWASP Core Rule Set. The team has tested SQL injection and XSS probes and reports that they are blocked. Vault stores backend and runtime secrets; the backend reads its application secrets using a restricted policy. ModSecurity request-body inspection is disabled for the profile creation and update routes. Vault's development bootstrap also keeps unseal keys and the root token together in a local volume. These constraints are documented in [`DEFENSE_DEVSECOPS.md`](DEFENSE_DEVSECOPS.md).
+- **Prometheus and Grafana:** Prometheus collects service, host, PostgreSQL, Vault, HTTP probe and backup freshness metrics. The provisioned Grafana dashboard displays service availability, probes, memory use and probe latency. Alert rules cover unavailable targets, failed HTTP probes, stale backups and sealed Vault. Demonstration should confirm that targets are up, dashboard panels contain data and alerts are evaluated.
+- **Backups and recovery:** PostgreSQL dumps are encrypted and rotated, and monitoring checks that a recent non-empty dump exists. [`RESTORE.md`](RESTORE.md) documents restoration to a new PostgreSQL volume. Backups remain on the same host, cover PostgreSQL only, and the current AES-CBC format does not authenticate backup contents; uploads and Vault state are outside this backup. A successful isolated restore should be demonstrated before claiming tested disaster recovery.
 
 ## Public API
 
