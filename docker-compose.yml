@@ -28,7 +28,7 @@ services:
       interval: 15s
       timeout: 5s
       retries: 3
-      start_period: 45s
+      start_period: 90s
     restart: unless-stopped
     environment:
       VAULT_ADDR: https://vault:8200

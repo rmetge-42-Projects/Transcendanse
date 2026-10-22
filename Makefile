@@ -12,7 +12,9 @@ $(NAME):
 	@if [ ! -s secrets/nginx-certs/transcendance.crt ] || [ ! -s secrets/nginx-certs/transcendance.key ]; then ./generate-certs.sh; fi
 	@if [ ! -s vault-certs/vault.crt ] || [ ! -s vault-certs/vault.key ]; then ./generate-vault-certs.sh; fi
 	@mkdir -p backups && chmod 700 backups
-	docker compose up --build -d
+	docker compose build backend
+	docker compose build frontend
+	docker compose up -d
 	@echo "$(GREEN)$(NAME) is up and running!$(RESET)"
 	@touch $(NAME)
 
