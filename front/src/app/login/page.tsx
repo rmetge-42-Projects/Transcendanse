@@ -166,7 +166,7 @@ export default function Login() {
                         placeholder="123456" 
                         value={twoFactorToken}
                         onChange={(e) => setTwoFactorToken(e.target.value)}
-                        className="rounded px-3 py-2 w-full border text-center text-xl font-mono tracking-widest"
+                        className="rounded px-3 py-2 w-full border text-center text-xl font-mono tracking-widest text-black"
                         autoFocus
                     />
                 </div>
