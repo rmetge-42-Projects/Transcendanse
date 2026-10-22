@@ -16,7 +16,6 @@ export class MatchService {
     action: (tx: Prisma.TransactionClient) => Promise<T>,
   ) {
     return this.prisma.$transaction(async (tx) => {
-      // Serialize both directions of a pair, including likes, removals and blocks.
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(${Math.min(firstId, secondId)}::int, ${Math.max(firstId, secondId)}::int)`;
       return action(tx);
     });
@@ -28,7 +27,6 @@ export class MatchService {
       .emit('activityChanged', {});
   }
 
-  //valide ou non le profile de mach et dire si on a un match
   async rejected(currentUserId: number, validateDto: ValidateDto) {
     if (validateDto.status === 'reject') {
         return { success: true, message: 'Profile Reject !' };
@@ -61,14 +59,12 @@ export class MatchService {
           throw new BadRequestException('Vous avez déjà liké ce profil');
       }
 
-          // PostgreSQL now() is the transaction start, which may precede a lock wait.
           const newLike = await tx.like.create({data: {fromUserId: currentUserId, toUserId: validateDto.userId, createdAt: new Date()}});
 
       const reverseLike = await tx.like.findUnique({where: { fromUserId_toUserId: { fromUserId: validateDto.userId, toUserId: currentUserId}}});
       const matched = reverseLike !== null;
 
     if (matched) {
-      // A rematch starts a new cycle; its date must follow both likes.
       const matchedAt = new Date(Math.max(Date.now(), newLike.createdAt.getTime(), reverseLike.createdAt.getTime()));
       const user1Id = Math.min(currentUserId, validateDto.userId);
       const user2Id = Math.max(currentUserId, validateDto.userId);
@@ -96,7 +92,6 @@ export class MatchService {
     }
   }
 
-  //renvoit la liste des matchs
   async getMatches(currentUserId: number) {
     const matches = await this.prisma.match.findMany({
       where: {
@@ -207,7 +202,6 @@ export class MatchService {
   }
 
   async getActivity(currentUserId: number) {
-    // Both reads must describe the same committed cycle, even during a rematch.
     return this.prisma.$transaction(async (tx) => {
     const likes = await tx.like.findMany({
       where: {
@@ -306,7 +300,6 @@ export class MatchService {
     activities.sort((a, b) => {
       const dateOrder = b.createdAt.getTime() - a.createdAt.getTime();
       if (dateOrder) return dateOrder;
-      // Newest first: the match follows its likes, even in the same millisecond.
       const matchOrder = Number(b.type === 'match') - Number(a.type === 'match');
       return matchOrder || b.eventId - a.eventId;
     });
@@ -315,9 +308,6 @@ export class MatchService {
     }, { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead });
   }
 
-  //envoie les infos des profil des match
-  //faire une pres selection (orientation sexuel ...)
-  //pour faire les carte de match
   async getOtherProfile(currentUserId: number) {
 
     const currentUser = await this.prisma.user.findUnique({where: { id: currentUserId }});
@@ -353,8 +343,6 @@ export class MatchService {
     });
     const blockedMeIds = blockedMe.map((block) => block.blockerId);
 
-    //je regarde si c'est pas moi, je regarde si c'est mon genre , et je regarde si je suis son genre ou si il est all
-    //+ si on ne cest pas bloquer
     const compatibleUser = await this.prisma.user.findMany({
       where: {
         id: {
@@ -383,7 +371,6 @@ export class MatchService {
     return compatibleUser;
   }
 
-  //supprimer un match
 	async deleteMatch(currentUserId: number, otherUserId: number) {
     await this.withPairTransaction(currentUserId, otherUserId, async (tx) => {
     const user1Id = Math.min(currentUserId, otherUserId);

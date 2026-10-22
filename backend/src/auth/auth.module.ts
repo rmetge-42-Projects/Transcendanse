@@ -1,4 +1,3 @@
-// assemble auth.service, auth.controller et JwtStrategie
 import { PrismaModule } from '../prisma/prisma.module';
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';

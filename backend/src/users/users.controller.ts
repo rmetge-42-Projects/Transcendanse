@@ -1,4 +1,4 @@
-import { 
+import {
   Controller,
   Get,
   Post,
@@ -20,8 +20,6 @@ import { StatusDto } from './dto/status.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // Requête POST: enregistrement du profil utilisateur
-  // Front = createProfile
   @UseGuards(JwtAuthGuard)
   @Post('createProfile')
   async createProfile(
@@ -32,8 +30,6 @@ export class UsersController {
     return this.usersService.createProfile(userId, createDto);
   }
 
-  // Récupère les infos du profil connecté
-  // Front = profil (myProfile)
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getMe(@Req() req: Request) {
@@ -41,7 +37,6 @@ export class UsersController {
     return this.usersService.getProfile(userId);
   }
 
-  //envoie les info du match
   @UseGuards(JwtAuthGuard)
   @Get(':userId')
   async myMatchProfile(@Param('userId') userId: string, @Req() req: Request) {
@@ -49,8 +44,6 @@ export class UsersController {
       return this.usersService.myMatchProfile(currentUserId, +userId);
   }
 
-  // Mise à jour du profil
-  // Front = updateProfile
   @UseGuards(JwtAuthGuard)
   @Put('updateProfile')
   async updateProfile(@Req() req: Request, @Body() updateProfileDto: UpdateProfileDto) {
@@ -58,7 +51,6 @@ export class UsersController {
     return this.usersService.updateProfile(userId, updateProfileDto);
   }
 
-  //defini le statut
   @UseGuards(JwtAuthGuard)
   @Patch('status')
   async status(@Req() req: Request, @Body() statusDto : StatusDto){

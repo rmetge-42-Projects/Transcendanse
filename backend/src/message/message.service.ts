@@ -1,11 +1,6 @@
 import { SendMessageDto } from './dto/sendMessage.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException} from '@nestjs/common';
 import { MessageGateway } from './message.gateway';
 
 @Injectable()
@@ -49,8 +44,6 @@ export class MessageService {
     return { user1Id, user2Id };
   }
 
-  //envoie tout les message eu avec userId
-  //mettre les message comme lu	(unreadCount = 0)
   async discution(myId: number, otherUserId: number) {
     const { user1Id, user2Id } = await this.assertActiveMatch(
       myId,
@@ -95,7 +88,6 @@ export class MessageService {
     return messages;
   }
 
-  //envoyer toute les personne avec les quel je discute
   async conversation(userId: number) {
     const list = await this.prisma.message.findMany({
       where: {
@@ -111,7 +103,6 @@ export class MessageService {
     return list;
   }
 
-  //j'envoie un message
   async sendMessage(userId: number, sendMessageDto: SendMessageDto) {
     await this.assertActiveMatch(userId, sendMessageDto.receiveId);
 
@@ -142,7 +133,6 @@ export class MessageService {
     return newMessage;
   }
 
-  //supprimer un msg
   async deleteMessage(userId: number, messageId: number) {
     const message = await this.prisma.message.findUnique({
       where: { id: messageId },
@@ -167,7 +157,6 @@ export class MessageService {
     return { success: true, message: "Message masqué pour vous" };
   }
 
-  //jsp si c'est utile : romane
   async deleteDiscution(myId: number, otherUserId: number) {
     await this.prisma.message.updateMany({
       where: {

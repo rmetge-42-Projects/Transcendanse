@@ -47,7 +47,6 @@ export class MessageGateway {
     if (!userId) return;
 
     try {
-      // Ne passer hors ligne que s'il ne reste plus aucun socket pour cet utilisateur
       const remaining = await this.server.in(`user_${userId}`).fetchSockets();
       if (remaining.length > 0) return;
 
@@ -66,7 +65,6 @@ export class MessageGateway {
   }
 
   notifySuggestionsChanged() {
-    // Only invalidate suggestions; do not broadcast private profile preferences.
     this.server.to('authenticated').emit('suggestionsChanged');
   }
 

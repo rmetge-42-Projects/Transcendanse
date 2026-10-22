@@ -9,7 +9,6 @@ import type { Request } from 'express';
 export class MessageController {
     constructor(private readonly messageService: MessageService) {}
 
-    //envoie toute mes conv
     @UseGuards(JwtAuthGuard)
     @Get('conversation')
     async conversation(@Req() req: Request) {
@@ -17,14 +16,12 @@ export class MessageController {
         return this.messageService.conversation(userId);
     }
 
-    //envoie mes echange avec la personne
     @UseGuards(JwtAuthGuard)
     @Get(':userId')
     async discution(@Param('userId') userId: string, @Req() req: Request) {
         const myId = (req.user as { id: number }).id;
         return this.messageService.discution(myId, +userId);
     }
-    //recupere le message envoyer et j'enregiste dans la db
     @UseGuards(JwtAuthGuard)
     @Post('sendMessage')
     async sendMessage(@Body() sendMessageDto:SendMessageDto, @Req() req: Request){
@@ -32,8 +29,6 @@ export class MessageController {
         return this.messageService.sendMessage(userId, sendMessageDto);
     }
 
-    //Pour ROMANE a rajouter dans le front
-    //supprimer un message
     @UseGuards(JwtAuthGuard)
     @Delete('message/:messageId')
     async deleteMessage(@Param('messageId') messageId: string, @Req() req: Request) {
@@ -42,8 +37,6 @@ export class MessageController {
     }
 
 
-    //Pour ROMANE a rajouter dans le front
-    //supprimer une conversation
     @UseGuards(JwtAuthGuard)
     @Delete('conversation/:userId')
     async deleteDiscution(@Param('userId') userId: string, @Req() req: Request) {

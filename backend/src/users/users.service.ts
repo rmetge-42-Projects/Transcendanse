@@ -13,7 +13,6 @@ export class UsersService {
     private messageGateway: MessageGateway,
     ) {}
 
-    //verifie si il y a un doublon de username
     private checkUsernameError(error: any): never {
     if (error.code === 'P2002') {
         throw new ConflictException("Ce nom d'utilisateur est déjà pris.");
@@ -40,7 +39,6 @@ export class UsersService {
         }
     }
 	
-    //implemente les infos du nouvel utilisateur dans la db
    async createProfile(userId: number, createDto: CreateDto, photoPath?: string) {
 		this.validatePhoto(photoPath || createDto.photo || null);
 		const finalPhoto = photoPath || createDto.photo || null;
@@ -69,7 +67,6 @@ export class UsersService {
 	}
 	
 
-    //envoie les infos de l'utilisateur
     async getProfile(userId: number) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
@@ -94,7 +91,6 @@ export class UsersService {
         return user;
     }
 
-    //envoie les info de l'utilisateur (userId) - sert a afficher le profil du match
     async myMatchProfile(currentUserId: number, targetUserId: number){
         if (currentUserId !== targetUserId) {
             const blocked = await this.prisma.block.findFirst({
@@ -142,7 +138,6 @@ export class UsersService {
         return user;
     }
 
-    //met a jour le profil en une seule fois
     async updateProfile(userId: number, updateProfileDto: UpdateProfileDto) {
         try{
         this.validatePhoto(updateProfileDto.photo);
@@ -178,7 +173,6 @@ export class UsersService {
         }
     }
 
-  //mettre onLine a false (ou true)
     async status(userId: number, statusDto: StatusDto) {
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },

@@ -1,12 +1,5 @@
-// verifie, creer le user et genere le token JWT
 
-import {
-    BadRequestException,
-    ConflictException,
-    Injectable,
-    NotFoundException,
-    UnauthorizedException,
-} from '@nestjs/common';
+import {BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -22,8 +15,6 @@ export class AuthService {
     private prisma: PrismaService,
     ) {}
 
-    //verifie si l'utilisateur existe
-    //mettre le status en ligne
     async   validateUser(email: string, pass: string)
     {
         const user = await this.prisma.user.findUnique({
@@ -44,8 +35,6 @@ export class AuthService {
 
             if (user.twoFactorEnabled)
             {
-                // ATTENTION : ce message exact ("2FA required") est peut-etre lu par le front,
-                // ne pas le traduire sans verifier avec la personne qui fait la 2FA
                 return {
                     success: false,
                     message: "2FA required",
@@ -62,8 +51,6 @@ export class AuthService {
             };
     }
 
-    //cree un nouvel utilisateur avec ses infos
-    //mettre le status en ligne a ce moment (je pense , il faudra tester si ca marche bien)
     async   registerUser(email: string, pass: string, validPass: string)
     {
         if (pass !== validPass)
@@ -104,7 +91,6 @@ export class AuthService {
         };
     }
 
-    //l'utilisateur modifie le mot de passe
     async   password(userId: number, passwordDto: PasswordDto)
     {
         if (passwordDto.newPass !== passwordDto.verifNewPass)
@@ -147,7 +133,6 @@ export class AuthService {
     }
 
 
-    //l'utilisateur modifie l'adresse email
     async   email(userId: number, emailDto: EmailDto)
     {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -186,9 +171,7 @@ export class AuthService {
     }
 
 
-    //genere la double authentification pour la premiere fois
-    //A rajouter dans le front voir validate.User Romane
-    async generateTwoFactorSecret(userId: number) 
+    async generateTwoFactorSecret(userId: number)
     {
         const secret = generateSecret();
 
@@ -209,13 +192,12 @@ export class AuthService {
         return { qrCodeImage };
     }
 
-    //desactive la 2FA
     async disableTwoFactor(userId: number) {
         await this.prisma.user.update({
             where: { id: userId },
             data: {
-                twoFactorEnabled: false, // Remplace par le nom exact du champ dans ton schéma
-                twoFactorSecret: null,      // Réinitialise le secret (optionnel selon ta logique)
+                twoFactorEnabled: false,
+                twoFactorSecret: null,
             },
         });
 
@@ -223,8 +205,6 @@ export class AuthService {
     }
     
 
-    //regarde si le user veux la 2fa
-    //A rajouter dans le front voir validate.User Romane
     async confirmTwoFactor(userId: number, token: string)
     {
         const user = await this.prisma.user.findUnique({
@@ -253,8 +233,6 @@ export class AuthService {
             throw new BadRequestException("Code incorrect.");
     }
 
-    //genere la 2fa pour les connexions
-    //A rajouter dans le front voir validate.User Romane
     async verifyTwoFactorLogin(email: string, token: string) {
         const user = await this.prisma.user.findUnique({
             where: { email: email },

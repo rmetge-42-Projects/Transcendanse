@@ -61,9 +61,6 @@ export class PublicApiGuard implements CanActivate {
       throw new ServiceUnavailableException('Public API rate limit is not configured correctly.');
     }
 
-    // One shared API key means one shared quota. This avoids trusting a
-    // client IP forwarded by Nginx and prevents clients bypassing the limit
-    // by changing their User-Agent or source address.
     const bucketKey = apiKey;
     const current = PublicApiGuard.buckets.get(bucketKey);
     const bucket =
