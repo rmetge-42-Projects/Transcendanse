@@ -39,7 +39,7 @@ export default function Profile() {
 
 
   // État de chargement grand format
-  if (isLoading || isFetching) {
+  if (isLoading) {
     return (
       <Bottom>
         <IfIsLoading>Chargement du profil...</IfIsLoading>;

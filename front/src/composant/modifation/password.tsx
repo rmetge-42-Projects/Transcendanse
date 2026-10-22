@@ -1,5 +1,7 @@
 'use client'
 
+import { clearAuthToken } from '@/src/lib/authToken';
+import { socket } from '@/src/lib/socket';
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from 'react-hook-form'
@@ -35,8 +37,10 @@ export default function Password() {
         setIsSubmit(true);
         try {
             await api.post("/auth/password", data);
-            await queryClient.invalidateQueries({ queryKey: ['userMe'] });
-            router.push("/myProfile");
+            clearAuthToken();
+            socket.disconnect();
+            queryClient.clear();
+            router.replace("/login");
         } catch (error) {
             setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
         } finally {

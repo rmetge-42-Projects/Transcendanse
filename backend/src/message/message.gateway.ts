@@ -26,7 +26,21 @@ export class MessageGateway {
     }
     try {
       const payload = await this.jwtService.verifyAsync(token);
-      client.join(`user_${payload.id}`);
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.id },
+        select: { sessionVersion: true },
+      });
+      if (!user || (payload.version ?? 0) !== user.sessionVersion) {
+        client.disconnect();
+        return;
+      }
+      await client.join(`user_${payload.id}`);
+      // Recheck after joining: a password change may have raced with the handshake.
+      const current = await this.prisma.user.findUnique({ where: { id: payload.id }, select: { sessionVersion: true } });
+      if (!current || (payload.version ?? 0) !== current.sessionVersion) {
+        client.disconnect();
+        return;
+      }
       client.data.userId = payload.id;
 
       await this.prisma.user.update({

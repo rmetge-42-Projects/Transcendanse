@@ -131,6 +131,8 @@ export class MatchService {
       },
     });
 
+    const blockedMe = await this.prisma.block.findMany({where: {blockedId: currentUserId}, select: {blockerId: true}});
+    const blockedMeIds = new Set(blockedMe.map(block => block.blockerId));
     const matchedProfiles = await Promise.all(matches.map(async (match) => {
     let otherUser;
     if (match.user1.id === currentUserId) {
@@ -184,10 +186,7 @@ export class MatchService {
 
     return {
       id: otherUser.id,
-      username: otherUser.username,
-      kind: otherUser.kind,
-      orientation: otherUser.orientation,
-      biography: otherUser.biography,
+      username: blockedMeIds.has(otherUser.id) ? "Contact indisponible" : otherUser.username,
       isOnline: onlineStatus,
       isActive: match.isActive,
       isBlocked: isBlocked !== null,
@@ -195,7 +194,7 @@ export class MatchService {
       isNewMatch: match.isActive && !seenByMe,
       lastMessage: lastMessage ? lastMessage.content : "",
       lastActivity: lastActivity,
-      photo: otherUser.photo,
+      photo: blockedMeIds.has(otherUser.id) ? null : otherUser.photo,
       };
     }));
 

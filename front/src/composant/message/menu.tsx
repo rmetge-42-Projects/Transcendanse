@@ -5,6 +5,7 @@ import { UserConversationType } from "@/src/type/conversation";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { getErrorMessage } from "@/src/lib/errors";
+import { useDropdown } from "@/src/hook/useDropdown";
 import { Trash } from "lucide-react";
 
 
@@ -18,7 +19,7 @@ export default function Menu({selectedUser, setSelectedUser}: ContactProps)
   const queryClient = useQueryClient();
   const router = useRouter();
   const [invalide, setInvalide] = useState("");
-  const [showMenu, setShowMenu] = useState(false);
+  const { ref, isOpen: showMenu, setIsOpen: setShowMenu } = useDropdown();
 
   if (!selectedUser) return null;
 
@@ -86,10 +87,12 @@ export default function Menu({selectedUser, setSelectedUser}: ContactProps)
   };
 
   return(
-    <div className="relative ml-auto">
+    <div ref={ref} className="relative ml-auto">
       <button
         className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition"
         title="Options"
+        aria-label="Options de la conversation"
+        aria-expanded={showMenu}
         onClick={() => setShowMenu(!showMenu)}
       >
         <Trash />

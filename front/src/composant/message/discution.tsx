@@ -26,7 +26,7 @@ export default function Duiscution({
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
 
-  const { data: messages, isLoading } = useMessages(selectedUser?.userId);
+  const { data: messages, isLoading, isError } = useMessages(selectedUser?.userId);
 
   const { data: users } = useMatches();
 
@@ -42,6 +42,7 @@ export default function Duiscution({
 
     setSelectedUser({
       ...selectedUser,
+      userName: freshUser.username,
       userPhoto: freshUser.photo !== undefined ? freshUser.photo : selectedUser.userPhoto,
       isBlocked: freshUser.isBlocked,
       isActive: freshUser.isActive,
@@ -89,8 +90,7 @@ export default function Duiscution({
       setMessageText("");
       queryClient.invalidateQueries({ queryKey: ["discution", userId] });
     } catch (error) {
-      if (messageText)
-        setInvalide(getErrorMessage(error, "Une erreur est survenue, veuillez réessayer."));
+      setInvalide(getErrorMessage(error, "Une erreur est survenue, veuillez réessayer."));
     }
   };
 
@@ -193,13 +193,14 @@ export default function Duiscution({
               </div>
             );
           })
-        ) : (
+        ) : !isError ? (
           /* Texte affiché s'il n'y a aucun message */
           <p className="text-center text-gray-400 text-sm my-auto">
             Début de votre conversation avec {selectedUser.userName}
           </p>
-        )}
+        ) : null}
       </div>
+      {isError && <p role="alert" className="text-red-500 text-sm mt-3 font-medium">Impossible de charger les messages. Réessayez en rouvrant la conversation.</p>}
       {invalide && (
         <p className="text-red-500 text-sm mt-3 font-medium">{invalide}</p>
       )}

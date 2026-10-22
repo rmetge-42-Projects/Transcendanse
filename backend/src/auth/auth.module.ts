@@ -1,4 +1,5 @@
 // assemble auth.service, auth.controller et JwtStrategie
+import { MessageModule } from '../message/message.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
@@ -10,6 +11,7 @@ import { JwtStrategy } from './jwt.strategy';
 @Module({
   imports: [
     PrismaModule,
+    MessageModule,
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],

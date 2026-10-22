@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { SendMessageDto } from './dto/sendMessage.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -15,7 +16,7 @@ export class MessageService {
     private messageGateway: MessageGateway,
   ) {}
 
-  private async assertActiveMatch(userId: number, otherUserId: number) {
+  private async assertActiveMatch(userId: number, otherUserId: number, db: Prisma.TransactionClient = this.prisma) {
     if (userId === otherUserId) {
       throw new BadRequestException(
         "Vous ne pouvez pas vous envoyer un message à vous-même.",
@@ -25,7 +26,7 @@ export class MessageService {
     const user1Id = Math.min(userId, otherUserId);
     const user2Id = Math.max(userId, otherUserId);
 
-    const existingMatch = await this.prisma.match.findUnique({
+    const existingMatch = await db.match.findUnique({
       where: {
         user1Id_user2Id: {
           user1Id: user1Id,
@@ -113,9 +114,11 @@ export class MessageService {
 
   //j'envoie un message
   async sendMessage(userId: number, sendMessageDto: SendMessageDto) {
-    await this.assertActiveMatch(userId, sendMessageDto.receiveId);
+    const newMessage = await this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${Math.min(userId, sendMessageDto.receiveId)}::int, ${Math.max(userId, sendMessageDto.receiveId)}::int)`;
+      await this.assertActiveMatch(userId, sendMessageDto.receiveId, tx);
 
-    const blocked = await this.prisma.block.findFirst({
+    const blocked = await tx.block.findFirst({
       where: {
         OR: [
           { blockerId: userId, blockedId: sendMessageDto.receiveId },
@@ -130,7 +133,7 @@ export class MessageService {
       );
     }
 
-    const newMessage = await this.prisma.message.create({
+    return tx.message.create({
       data: {
         senderId: userId,
         receiverId: sendMessageDto.receiveId,
@@ -138,6 +141,7 @@ export class MessageService {
       },
     });
 
+    });
     this.messageGateway.sendNewMessage(sendMessageDto.receiveId, newMessage);
     return newMessage;
   }
