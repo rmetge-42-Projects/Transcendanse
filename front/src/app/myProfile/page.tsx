@@ -37,7 +37,7 @@ export default function Profile() {
   }, [user, queryClient, router]);
 
 
-  if (isLoading || isFetching) {
+  if (isLoading) {
     return (
       <Bottom>
         <IfIsLoading>Chargement du profil...</IfIsLoading>;

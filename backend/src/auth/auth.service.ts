@@ -1,4 +1,5 @@
 
+import { MessageGateway } from '../message/message.gateway';
 import {BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
@@ -13,6 +14,7 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     private prisma: PrismaService,
+    private readonly messageGateway: MessageGateway,
     ) {}
 
     async   validateUser(email: string, pass: string)
@@ -41,7 +43,7 @@ export class AuthService {
                 };
             }
 
-            const payload = { id: user.id, email: user.email };
+            const payload = { id: user.id, email: user.email, version: user.sessionVersion };
             const token = await this.jwtService.signAsync(payload);
 
             return {
@@ -79,9 +81,12 @@ export class AuthService {
                 email: email,
                 password: hashedPassword,
             },
+        }).catch((error) => {
+            if (error.code === 'P2002') throw new ConflictException("Un compte existe déjà avec cet email.");
+            throw error;
         });
 
-        const payload = { id: newUser.id, email: newUser.email };
+        const payload = { id: newUser.id, email: newUser.email, version: newUser.sessionVersion };
         const token = await this.jwtService.signAsync(payload);
 
         return {
@@ -123,9 +128,10 @@ export class AuthService {
         const hashedPassword = await bcrypt.hash(passwordDto.newPass, 10);
         await this.prisma.user.update({
             where: { id: userId },
-            data: { password: hashedPassword },
+            data: { password: hashedPassword, sessionVersion: { increment: 1 } },
         });
 
+        this.messageGateway.server.in(`user_${userId}`).disconnectSockets(true);
         return {
             success: true,
             message: "Le mot de passe a été modifié."
@@ -162,6 +168,9 @@ export class AuthService {
         await this.prisma.user.update({
             where: { id: userId },
             data: { email: emailDto.newEmail },
+        }).catch((error) => {
+            if (error.code === 'P2002') throw new ConflictException("Un compte existe déjà avec cet email.");
+            throw error;
         });
 
         return {
@@ -252,7 +261,7 @@ export class AuthService {
             throw new BadRequestException("Code incorrect.");
         }
 
-        const payload = { id: user.id, email: user.email };
+        const payload = { id: user.id, email: user.email, version: user.sessionVersion };
         const JWTtoken = await this.jwtService.signAsync(payload);
 
         return {

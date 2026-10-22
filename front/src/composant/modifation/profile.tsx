@@ -66,11 +66,12 @@ export default function Profile() {
                 ...data,
                 photo: preview ?? null,
             };
-            await api.put('/users/updateProfile', payload);
-            await queryClient.invalidateQueries({ queryKey: ['otherUsers'], refetchType: 'all' });
-            await queryClient.invalidateQueries({ queryKey: ["userMe"] });
-            await queryClient.invalidateQueries({ queryKey: ["matches"] });
-            await queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+            const { data: updatedProfile } = await api.put('/users/updateProfile', payload);
+            await queryClient.cancelQueries({ queryKey: ["userMe"] });
+            queryClient.setQueryData(["userMe"], { ...user, ...updatedProfile });
+            void queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+            void queryClient.invalidateQueries({ queryKey: ["matches"] });
+            void queryClient.invalidateQueries({ queryKey: ["userMyMatch"] });
             router.push("/myProfile");
         } catch (error) {
             setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));

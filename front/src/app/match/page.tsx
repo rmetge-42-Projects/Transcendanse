@@ -329,32 +329,6 @@ export default function Match() {
     );
   }
 
-  if (orderedProfiles.length === 0 || !currentProfile) {
-    return (
-      <Bottom>
-        <div className="max-w-6xl w-full mx-auto min-h-[75vh] flex flex-col justify-center items-center px-4 pb-16">
-          <div className="bg-white rounded-3xl shadow-xl border border-gray-200/80 p-8 md:p-10 w-full max-w-md flex flex-col items-center text-center gap-5">
-            <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center">
-              <Heart className="w-8 h-8 text-rose-500" />
-            </div>
-
-            <div>
-              <h1 className="text-2xl font-extrabold text-blue-950">
-                Plus de profils pour l'instant
-              </h1>
-              <p className="text-gray-500 text-sm mt-2">
-                {nextRefreshDelayMs === null
-                  ? "Aucun profil disponible pour le moment."
-                  : `Prochain profil dans ${formatRemainingTime(nextRefreshDelayMs)}.`}
-              </p>
-            </div>
-          </div>
-        </div>
-        <Navigation />
-      </Bottom>
-    );
-  }
-
   if (isMatch) {
     return (
       <Bottom>
@@ -378,6 +352,32 @@ export default function Match() {
             >
               Continuer a defiler
             </button>
+          </div>
+        </div>
+        <Navigation />
+      </Bottom>
+    );
+  }
+
+  if (orderedProfiles.length === 0 || !currentProfile) {
+    return (
+      <Bottom>
+        <div className="max-w-6xl w-full mx-auto min-h-[75vh] flex flex-col justify-center items-center px-4 pb-16">
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-200/80 p-8 md:p-10 w-full max-w-md flex flex-col items-center text-center gap-5">
+            <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center">
+              <Heart className="w-8 h-8 text-rose-500" />
+            </div>
+
+            <div>
+              <h1 className="text-2xl font-extrabold text-blue-950">
+                Plus de profils pour l'instant
+              </h1>
+              <p className="text-gray-500 text-sm mt-2">
+                {nextRefreshDelayMs === null
+                  ? "Aucun profil disponible pour le moment."
+                  : `Prochain profil dans ${formatRemainingTime(nextRefreshDelayMs)}.`}
+              </p>
+            </div>
           </div>
         </div>
         <Navigation />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useDropdown } from "@/src/hook/useDropdown";
 import { Activity, X, Heart, HeartPlus, UsersRound, Bell } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useActivity } from "@/src/hook/useUser";
@@ -45,12 +45,13 @@ function getActivityDisplay(activity: ActivityType): {
 }
 
 export default function ActivityDropdown() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { ref, isOpen, setIsOpen } = useDropdown();
   const { data: activities, isLoading, isError } = useActivity();
 
   return (
-    <div className="relative">
+    <div ref={ref} className="relative">
       <button
+        aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-4 py-2 bg-blue-950 text-white rounded-full hover:bg-blue-900 transition"
       >
