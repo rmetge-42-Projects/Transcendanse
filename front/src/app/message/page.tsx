@@ -21,7 +21,7 @@ export default function Message() {
         </div>
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row h-[70vh] w-full border border-gray-200/80">
           <Contact selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
-          <Discution selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
+          <Discution key={selectedUser?.userId ?? "empty"} selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
         </div>
       </div>
 
