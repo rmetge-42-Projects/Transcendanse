@@ -64,7 +64,7 @@ docker compose logs -f backend
 
 `make re` removes volumes, including persisted application data and Vault state. Use it only when a full reset is intended. The local API key is initialized and stored by Vault; it is not configured in the frontend or `.env`. See [docs/public-api.md](docs/public-api.md) for authorized local API access instructions.
 
-Additional service endpoints are configured in [docker-compose.yml](docker-compose.yml). The project includes a manual validation guide at [TESTS_VALIDATION_MODULES.md](TESTS_VALIDATION_MODULES.md), browser checks at [docs/browser-support.md](docs/browser-support.md), and public API documentation at [docs/public-api.md](docs/public-api.md).
+Additional service endpoints are configured in [docker-compose.yml](docker-compose.yml). Browser checks are documented in [docs/browser-support.md](docs/browser-support.md), public API usage in [docs/public-api.md](docs/public-api.md), and PostgreSQL restoration in the [Database Backup and Recovery section](#database-backup-and-recovery).
 
 ## Technical Stack
 
@@ -131,12 +131,12 @@ The team currently expects **19 points** from the module mapping below.
 | Public API for database interaction | Major | 2 | API-key-protected documented user endpoints with CRUD operations. |
 | Standard user management and authentication | Major | 2 | Registration/login, JWT, profile management, and account state. |
 | ORM for database | Minor | 1 | Prisma models and generated client over PostgreSQL. |
-| Custom-made design system | Minor | 1 | Reusable UI components in `front/src/composant/ui`. |
+| Custom-made design system | Minor | 1 | Interface components and pages in `front/src/app` and `front/src/composant`, shared layout components in `front/src/display`, and reusable loading/error states in `front/src/constant` |
 | Additional browsers | Minor | 1 | Browser support target and manual test checklist in `docs/browser-support.md`. |
 | Two-factor authentication | Minor | 1 | TOTP setup, confirmation, login verification, and disable flow. |
 | WAF / ModSecurity | Major | 2 | Nginx with ModSecurity and the OWASP Core Rule Set; Vault is also used to manage runtime secrets. |
 | Monitoring with Prometheus and Grafana | Major | 2 | Metrics, dashboard provisioning, and Prometheus alert rules. |
-| Health checks, status page, backups, and recovery procedure | Minor | 1 | Compose health checks, status page, encrypted PostgreSQL backups, and recovery documentation. |
+| Health checks, status page, backups, and recovery procedure | Minor | 1 | Compose health checks, status page, encrypted PostgreSQL backups, and the [PostgreSQL restoration procedure](#database-backup-and-recovery). |
 | **Expected total** |  | **19** | **14 application points + 5 infrastructure/security points.** |
 
 The validation guide notes that some subject modules require strict demonstrations (for example, browser testing and WAF behavior). 
@@ -149,7 +149,7 @@ Each team member listed at the top of this README has an assigned role and a bri
 | --- | --- | --- |
 | `rmetge` | Product Owner (PO), Project Manager (PM), Developer | Guides product direction and project follow-up, organizes and attends team meetings, coordinates module testing, and contributes to account/profile, matching, and messaging features. |
 | `bemma` | Project Manager (PM), Developer | Supports project coordination and contributes to matching, messaging, real-time session behavior, and authentication. |
-| `cipelat` | Developer | Contributes to profile and messaging flows, blocked-user handling, and socket behavior. |
+| `cipelat` | Product Owner (PO), Developer | Contributes to profile and messaging flows, blocked-user handling, and socket behavior. |
 | `desambou` | Technical Lead, Developer | Leads application architecture and coordination across components, ensures the application runs as an integrated whole, and contributes to the public API and deployment/security infrastructure. |
 
 ## Project Management
@@ -157,13 +157,13 @@ Each team member listed at the top of this README has an assigned role and a bri
 ### Work organization
 
 - Work was divided across application features and infrastructure modules. The Git history shows development on feature branches followed by integration through merge commits.
-- `desambou`, as Technical Lead, coordinated the architecture and integration across components. `rmetge` followed up on team meetings and coordinated module testing; `bemma` also contributed to project coordination.
+- `desambou`, as Technical Lead, coordinated the architecture and integration across components. `rmetge` followed up on team meetings and coordinated module testing; `bemma` also contributed to project coordination. `cipelat` contributed to profile and messaging features, blocked-user handling, and socket behavior.
 - The team held a weekly meeting, either in person or partly by video call when a member could not attend in person.
 
 ### Project management tools
 
-- Git and the GitHub repository were used for version control and collaboration.
-- The team used feature branches and merge commits to organize and integrate code changes. No separate task-tracking tool is listed.
+- Canva was used to organize and plan the project before coding began.
+- Git and the GitHub repository were used for version control and collaboration, with feature branches and merge commits to organize and integrate code changes.
 
 ### Communication
 
@@ -175,8 +175,8 @@ Each team member listed at the top of this README has an assigned role and a bri
 The feature examples summarize work visible in the repository history and may not capture pair work, reviews, or work committed under another account. Team roles and project responsibilities are described separately above.
 
 - **`rmetge` (Romane):** account creation and profile data, profile photos, match and messaging interface changes, and application integration.
-- **`bemma` (Emma):** match display and deck behavior, real-time/session fixes, account and 2FA updates, and legal pages.
-- **`cipelat` (Cindy):** profile and password-related updates, blocked-user controls, messaging improvements, and WebSocket connection/disconnection behavior.
+- **`bemma` (Emma):** match display and deck behavior, real-time/session fixes, account, and legal pages.
+- **`cipelat` (Cindy):** profile and password-related updates, blocked-user controls, messaging improvements, and WebSocket connection/disconnection behavior and 2FA updates.
 - **`desambou` (Delphine):** public API and API documentation, Vault-based secret handling, deployment/security/monitoring work, and README/build-memory changes.
 
 Challenges evidenced in project changes include coordinating feature branches and resolving integration conflicts, stabilizing real-time connection state, and reducing memory pressure during Docker builds by building the backend and frontend sequentially and excluding `node_modules` from their build contexts.
@@ -201,7 +201,133 @@ Challenges evidenced in project changes include coordinating feature branches an
 
 ### AI usage
 
-AI tools were used for debugging, coding assistance, and writing project documentation, including this README. They also helped the team understand ft_transcendence modules and learn about Docker, HashiCorp Vault, and DevSecOps, including material from Stephan Robet's DevSecOps site. For example, AI assistance contributed to discussing the sequential backend/frontend build workflow and `.dockerignore` exclusions documented in this repository. Team members reviewed the suggestions and remain responsible for validating, understanding, and defending the final implementation.
+AI tools were used for debugging, coding assistance, and writing project documentation, including this README. They also helped the team understand ft_transcendence modules and learn. For example, AI assistance contributed to discussing the sequential backend/frontend build workflow and `.dockerignore` exclusions documented in this repository. Team members reviewed the suggestions and remain responsible for validating, understanding, and defending the final implementation.
+
+## Database Backup and Recovery
+
+This procedure restores **the PostgreSQL database only** after its volume has been deleted or lost. It does not provide full platform recovery.
+
+### Backup coverage
+
+- `backup_monitor` creates an encrypted PostgreSQL dump in `backups/` approximately every ten minutes.
+- The `backups/` directory is a host bind mount and is ignored by Git. It is not removed by `docker compose down -v` or `make fclean`.
+- The service retains the six most recent files, providing approximately one hour of retention under normal operation.
+- The dump does not include uploads in the `vol_back` volume, Vault storage, Grafana internal data, Prometheus history, or Alertmanager state and silences.
+
+**Before deleting any volumes**, copy important dumps off this machine. `make fclean` and `make re` delete the project's Compose volumes, including the database, Vault, uploads, Grafana, and Prometheus metrics. Files in `backups/` remain on the local disk, but do not protect against loss of that disk.
+
+### Prerequisites
+
+1. Run the commands from the Chi-Fou-Mi project root.
+2. Have a valid, uncommitted `.env` file with `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and the same `BACKUP_ENCRYPTION_KEY` that was used to encrypt the dump.
+3. To restore Gmail delivery after recreating Vault, also configure `GMAIL_APP_PASSWORD` in `.env`. Never paste these values into a ticket, chat, or audit report.
+4. Have at least one non-empty `backups/backup_*.sql.enc` file.
+
+The dump cannot be restored without the original encryption key. Do not replace that key with a new value before decryption.
+
+### Restore PostgreSQL to a new volume
+
+This procedure is for a new PostgreSQL volume, for example after `make fclean`. **Do not run it against an existing database containing data you need to keep**: it may fail on existing objects or result in a partial restore.
+
+The script selects the most recent dump, reads the key locally without displaying it, decrypts to a private temporary file, and imports the SQL before starting the rest of the stack.
+
+```sh
+set -eu
+set +x
+
+if [ ! -r .env ]; then
+  echo "Error: .env is missing or unreadable." >&2
+  exit 1
+fi
+
+BACKUP_FILE="$(ls -1t backups/backup_*.sql.enc 2>/dev/null | head -n 1)"
+if [ -z "$BACKUP_FILE" ] || [ ! -s "$BACKUP_FILE" ]; then
+  echo "Error: no non-empty encrypted dump found in backups/." >&2
+  exit 1
+fi
+
+BACKUP_ENCRYPTION_KEY="$(sed -n 's/^BACKUP_ENCRYPTION_KEY=//p' .env | tail -n 1)"
+if [ -z "$BACKUP_ENCRYPTION_KEY" ]; then
+  echo "Error: BACKUP_ENCRYPTION_KEY is missing from .env." >&2
+  exit 1
+fi
+export BACKUP_ENCRYPTION_KEY
+
+umask 077
+RESTORE_FILE="$(mktemp "${TMPDIR:-/tmp}/chi-fou-mi-restore.XXXXXX")"
+cleanup() {
+  rm -f "$RESTORE_FILE"
+  unset BACKUP_ENCRYPTION_KEY
+}
+trap cleanup EXIT
+trap 'exit 1' HUP INT TERM
+
+openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
+  -pass env:BACKUP_ENCRYPTION_KEY \
+  -in "$BACKUP_FILE" -out "$RESTORE_FILE"
+
+if [ ! -s "$RESTORE_FILE" ] || ! head -n 5 "$RESTORE_FILE" | grep -q '^-- PostgreSQL database dump'; then
+  echo "Error: the decrypted file does not look like a PostgreSQL dump." >&2
+  exit 1
+fi
+
+docker compose up -d database
+ready=0
+for attempt in $(seq 1 30); do
+  if docker compose exec -T database sh -c \
+    'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"' >/dev/null 2>&1; then
+    ready=1
+    break
+  fi
+  sleep 2
+done
+if [ "$ready" -ne 1 ]; then
+  echo "Error: PostgreSQL is not ready; import canceled." >&2
+  exit 1
+fi
+
+docker compose exec -T database sh -c \
+  'PGPASSWORD="$POSTGRES_PASSWORD" psql --no-password -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1' \
+  < "$RESTORE_FILE"
+
+rm -f "$RESTORE_FILE"
+trap - EXIT HUP INT TERM
+unset BACKUP_ENCRYPTION_KEY
+
+docker compose up --build -d
+```
+
+After the import, check `docker compose ps` and the application's health endpoint. If `psql` fails, consider the restore **incomplete**: the import may have applied some SQL statements. Keep the original encrypted dump and do not report the service as restored until you have checked the database and the application.
+
+### Tamper detection limitations
+
+The current format uses `openssl enc -aes-256-cbc -pbkdf2`. AES-CBC encrypts the content but does not authenticate the file. A truncated or modified file may fail to decrypt, but a successful decryption does not prove that its content has not been altered. The PostgreSQL header check above is a basic format check, not proof of integrity. Plan a migration to an authenticated encryption format and an associated verification procedure.
+
+### Effects of a full Vault recreation
+
+After `make fclean`, the Vault volume and its key volume are deleted. On restart, initialization recreates Vault and runtime secrets from `.env`; it also generates a new JWT secret if one does not already exist. This may invalidate previous sessions. Secret version history and old Vault tokens are not restored by the PostgreSQL dump.
+
+The current bootstrap stores the unseal shares and root token together in the `vol_vault_keys` volume. This is a known risk: this development procedure does not provide effective separation of Shamir key holders. Grafana credentials are also regenerated when its volume and the Vault volume are new. To retrieve the generated Grafana password, use a private local session and do not save the output to a shared file:
+
+```sh
+docker compose exec -it vault sh
+```
+
+In the container shell, once Vault is ready:
+
+```sh
+export VAULT_ADDR=https://127.0.0.1:8200
+export VAULT_CACERT=/vault/tls/vault.crt
+export VAULT_TOKEN="$(awk '/Initial Root Token:/ {print $4}' /vault/keys/keys.txt)"
+vault kv get -field=admin_password secret/runtime/grafana
+unset VAULT_TOKEN
+```
+
+The command displays a secret on screen: keep this session private and do not copy the result into the repository. Accessing the root token this way is a consequence of the current architecture and should be hardened before any real-world use.
+
+### Full recovery work still needed
+
+To recover the application after losing a workstation or disk, arrange an off-machine encrypted copy, back up uploads if needed, protect Vault keys separately, and periodically test a full restore in a clean environment. Also define the acceptable recovery point objective (RPO) and recovery time objective (RTO).
 
 ## Known Limitations
 
@@ -211,22 +337,26 @@ AI tools were used for debugging, coding assistance, and writing project documen
 - Match records are used as the application's friends/contacts list.
 
 
+## Demo Users for Manual Testing
 
+The `test_users_seed` service creates these demo accounts on the first stack startup. All accounts use the password `motdepasse123`. The interaction column summarizes the seeded matches, pending likes, and messages, so you can choose an account based on the flow you want to check.
 
-   id |      email      | name  |   username   |    kind    | orientation 
-----+-----------------+-------+--------------+------------+-------------
-  1 | maya@gmail.com  | Maya  | maya_dance   | woman      | all
-  2 | noah@gmail.com  | Noah  | noah_moves   | man        | woman
-  3 | leila@gmail.com | Leila | leila_swing  | woman      | all
-  4 | sami@gmail.com  | Sami  | sami_flow    | non_binary | all
-  5 | clara@gmail.com | Clara | clara_steps  | woman      | man
-  6 | kenji@gmail.com | Kenji | kenji_beat   | man        | all
-  7 | iris@gmail.com  | Iris  | iris_salsa   | non_binary | all
-  8 | leo@gmail.com   | Leo   | leo_tango    | man        | woman
-  9 | lina@gmail.com  | Lina  | lina_groove  | woman      | all
- 10 | adam@gmail.com  | Adam  | adam_rock    | man        | all
- 11 | naima@gmail.com | Naima | naima_latina | woman      | man
- 12 | robin@gmail.com | Robin | robin_wave   | non_binary | all
- 13 | hana@gmail.com  | Hana  | hana_kpop    | woman      | all
- 14 | malik@gmail.com | Malik | malik_pop    | man        | woman
- 15 | zoe@gmail.com   | Zoe   | zoe_vibes    | woman      | all
+| # | Name | Login email | Username | Kind / orientation | Seeded interactions |
+| ---: | --- | --- | --- | --- | --- |
+| 1 | Maya | `maya@gmail.com` | `maya_dance` | woman / all | Match with Noah (messages); match with Leila; pending like from Hana |
+| 2 | Noah | `noah@gmail.com` | `noah_moves` | man / woman | Match with Maya (messages); match with Sami; pending like from Zoe |
+| 3 | Leila | `leila@gmail.com` | `leila_swing` | woman / all | Match with Sami and Maya |
+| 4 | Sami | `sami@gmail.com` | `sami_flow` | non_binary / all | Match with Leila and Noah |
+| 5 | Clara | `clara@gmail.com` | `clara_steps` | woman / man | Match with Kenji (messages) |
+| 6 | Kenji | `kenji@gmail.com` | `kenji_beat` | man / all | Match with Clara (messages) |
+| 7 | Iris | `iris@gmail.com` | `iris_salsa` | non_binary / all | Match with Leo |
+| 8 | Leo | `leo@gmail.com` | `leo_tango` | man / woman | Match with Iris |
+| 9 | Lina | `lina@gmail.com` | `lina_groove` | woman / all | Match with Adam |
+| 10 | Adam | `adam@gmail.com` | `adam_rock` | man / all | Match with Lina |
+| 11 | Naima | `naima@gmail.com` | `naima_latina` | woman / man | Match with Robin |
+| 12 | Robin | `robin@gmail.com` | `robin_wave` | non_binary / all | Match with Naima |
+| 13 | Hana | `hana@gmail.com` | `hana_kpop` | woman / all | Pending like to Maya |
+| 14 | Malik | `malik@gmail.com` | `malik_pop` | man / woman | Pending like to Maya |
+| 15 | Zoe | `zoe@gmail.com` | `zoe_vibes` | woman / all | Pending like to Noah |
+
+The seed script also creates profiles and avatars. These are demonstration credentials; do not reuse them outside a local test environment. For database backup and restoration instructions, see the [Database Backup and Recovery section](#database-backup-and-recovery).
