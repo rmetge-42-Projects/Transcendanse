@@ -2,133 +2,231 @@
 
 # Transendanse
 
-Transendanse is a full-stack social matching application. Users can register, create a profile, discover compatible profiles, match with other users, exchange real-time messages, manage contacts through matches and secure their account with two-factor authentication.
+## Description
+
+Transendanse is a full-stack dating and social matching application. It lets users create profiles, discover people, like profiles, form matches, and chat in real time. The project combines user-facing features with a secured and monitored deployment stack.
+
+Key features include:
+
+- Account registration and login with password hashing, JWT sessions, and optional TOTP two-factor authentication.
+- Profile creation and editing, avatar upload and cropping, and online presence.
+- Profile discovery, likes, mutual matches, match-based contacts, blocking, and notifications.
+- Real-time conversations, read state, unread counts, and message or conversation hiding/deletion.
+- A protected public user API, served through HTTPS with Nginx and ModSecurity.
+- Vault-managed runtime secrets, PostgreSQL persistence, encrypted database backups, service health checks, and Prometheus/Grafana monitoring.
 
 ## Instructions
 
+### Prerequisites
+
+- Docker Engine with the Docker Compose v2 plugin (`docker compose` command).
+- GNU Make and a shell able to run the repository scripts.
+- Git to clone the repository.
+- A browser to use the application. Local TLS certificates are self-signed, so the browser will ask you to trust the local certificate.
+- Sufficient available RAM and disk space for Docker images, containers, and database volumes. The Makefile builds the backend and frontend one after the other to limit build-time memory use.
+
+The containers provide the application runtimes: Node.js, Next.js, NestJS, PostgreSQL, Nginx, Vault, and monitoring services. Installing Node.js or PostgreSQL on the host is not required for the Docker workflow.
+
+### Configuration and startup
+
+1. Clone the repository and enter its root directory.
+2. Create a local environment file:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Edit `.env`. Replace the example database username, password, and database name with local values. Set `BACKUP_ENCRYPTION_KEY` to a randomly generated 64-character hexadecimal key. `GMAIL_APP_PASSWORD` is only needed if using the email-dependent functionality. Keep `.env` private and never commit it.
+4. Build and start the stack:
+
+   ```bash
+   make
+   ```
+
+   The Makefile prepares local TLS certificates and the backups directory, builds `backend`, then `frontend`, and finally runs `docker compose up -d`. Docker Compose starts the supporting services and any remaining service images needed by the stack.
+5. Check container health and follow startup logs if needed:
+
+   ```bash
+   docker compose ps
+   docker compose logs -f
+   ```
+
+6. Open <https://localhost:8443> and accept the warning for the self-signed local certificate.
+
+Useful commands:
+
 ```bash
-cp .env.example .env
-make
+make down       # Stop containers; keep volumes
+make clean      # Stop containers and remove local project images
+make re         # Remove volumes/images, then rebuild and start from scratch
+docker compose logs -f backend
 ```
 
-The application is then available at:
+`make re` removes volumes, including persisted application data and Vault state. Use it only when a full reset is intended. The local API key is initialized and stored by Vault; it is not configured in the frontend or `.env`. See [docs/public-api.md](docs/public-api.md) for authorized local API access instructions.
 
-```text
-https://localhost:8443
-```
-
-For daily use:
-
-```bash
-make down
-make re
-docker compose logs -f
-```
-
-`make` also creates the 15 demo accounts, profiles, matches and messages after the backend becomes healthy. The seeder runs once per Docker volume. `make fclean` removes that volume, so the next `make` seeds the accounts again. These accounts share the test password `motdepasse123`.
-
-Run `make` to start the stack. On first initialization, Vault creates a cryptographically random 64-character `PUBLIC_API_KEY` if no valid key is already stored. Vault keeps it across container restarts, and the backend reads it from Vault at startup. The API key is not stored in `.env` or exposed to the frontend. Other required local settings (including database credentials and the backup key) still belong in `.env`, which must never be committed. Direct `docker compose up` uses the same Vault-based key initialization.
+Additional service endpoints are configured in [docker-compose.yml](docker-compose.yml). The project includes a manual validation guide at [TESTS_VALIDATION_MODULES.md](TESTS_VALIDATION_MODULES.md), browser checks at [docs/browser-support.md](docs/browser-support.md), and public API documentation at [docs/public-api.md](docs/public-api.md).
 
 ## Technical Stack
 
-| Layer | Technology |
-| --- | --- |
-| Frontend | Next.js, React, TypeScript, Tailwind CSS |
-| Backend | NestJS, TypeScript |
-| Database | PostgreSQL |
-| ORM | Prisma |
-| Authentication | JWT, bcrypt, optional TOTP 2FA |
-| Real-time | Socket.IO WebSockets |
-| Reverse proxy | Nginx over HTTPS |
-| Secrets | HashiCorp Vault |
-| Monitoring | Prometheus, Grafana, Alertmanager and status page |
-| Backups | Encrypted PostgreSQL backups |
+### Frontend
+
+- **Next.js 16, React 19, TypeScript, Tailwind CSS 4:** component-based interface with server-rendered pages and typed client code.
+
+### Backend
+
+- **NestJS 11, TypeScript:** modular HTTP API.
+- **Socket.IO:** real-time messaging and online presence.
+- The frontend and backend run as separate services, keeping their frameworks, runtime configuration, and build processes independent.
+
+### Database
+
+- **PostgreSQL 15:** chosen for relational user and social data, including likes, matches, messages, blocks, contacts, and notifications.
+- **Prisma 6:** provides typed database access and schema/migration tooling.
+
+### Other significant technologies
+
+- **Authentication:** JWT, bcrypt, and TOTP (`otplib`) for authenticated API access, password hashing, and optional second-factor login.
+- **Edge and secrets:** Nginx, ModSecurity/OWASP CRS, and HashiCorp Vault provide the TLS reverse proxy, request filtering, and centralized runtime secrets.
+- **Operations:** Docker Compose, Prometheus, Grafana, and Alertmanager provide the multi-service environment, metrics, dashboards, and alert rules.
+- **Status and backups:** an Express status page, PostgreSQL tools, and encrypted backup scripts support service status reporting and database backups.
 
 ## Database Schema
 
-Main entities:
+The canonical schema is [`backend/prisma/schema.prisma`](backend/prisma/schema.prisma). All primary keys are auto-incrementing integer IDs unless noted otherwise. Prisma `DateTime` fields are stored as timestamps; `String` fields hold text values; `Boolean` fields represent flags.
 
-- `User`: account, profile, avatar, online status and 2FA fields.
-- `Like`: one-way profile likes.
-- `Match`: active or inactive two-user matches.
-- `Message`: direct messages between matched users.
-- `Block`: blocked-user relationships.
+| Model | Main fields | Relationships and purpose |
+| --- | --- | --- |
+| `User` | `id`, unique `email`, optional unique `username`, `password`, profile fields, `twoFactorSecret`, `twoFactorEnabled`, `isOnline` | Central account. Related to all social and messaging records. |
+| `Like` | `id`, `fromUserId`, `toUserId`, `createdAt` | Two foreign keys to `User`; unique sender/recipient pair. A reciprocal pair can lead to a match. |
+| `Match` | `id`, `user1Id`, `user2Id`, `createdAt`, `isActive`, seen flags | Two foreign keys to `User`; records a match/contact relationship. |
+| `Message` | `id`, `senderId`, `receiverId`, `content`, optional `photo`, `createdAt`, `isRead`, deletion flags | Sender and receiver are both users; supports direct conversations and per-side hiding. |
+| `Block` | `id`, `blockerId`, `blockedId`, `createdAt` | Two user relationships; unique blocker/blocked pair. |
+| `Friend` | `id`, `requesterId`, `addresseeId`, `status`, timestamps | Two user relationships; unique requester/addressee pair. The current contact flow primarily uses matches. |
+| `Notification` | `id`, `userId`, `type`, `action`, `title`, optional message/entity/read time, `createdAt` | Belongs to one user; indexed by user, read state, and creation time. |
 
-The Prisma schema is in `backend/prisma/schema.prisma`.
+In summary: `User` has one-to-many relationships with sent/received likes, matches on either side, messages on either side, blocks on either side, friend requests, and notifications. Foreign keys connect these records to their users; several pair relationships have composite uniqueness constraints to prevent duplicates.
 
-## Features
+## Features List
 
-- Email/password registration and login with hashed passwords.
-- Profile creation and update.
-- Avatar upload/crop with backend validation for accepted image formats and size.
-- Match deck with stable session state and temporary rejected-profile delay.
-- Real-time messaging between matched users only.
-- Message read state, unread counts, conversation deletion and message hiding.
-- Match-based contacts: add by mutual like, remove by deleting a match, list in messages, view profile information and online status.
-- Blocking and unblocking.
-- 2FA generation, confirmation, login verification and disable flow.
-- Public API under `/api/public` with API key protection and rate limiting.
-- Privacy Policy and Terms of Service pages.
+| Feature | What it does | Contributors visible in repository history* |
+| --- | --- | --- |
+| Registration, login, password handling, and 2FA | Creates accounts, authenticates users, hashes passwords, and supports TOTP setup and verification. | Emma (`bemma`), Romane (`rmetge`), Cindy (`cipelat`), Delphine (`desambou`) |
+| User profiles and avatars | Creates and edits profile information and supports profile photos/cropping. | Romane (`rmetge`), Cindy (`cipelat`), Emma (`bemma`) |
+| Discovery, likes, and matches | Presents profiles, records likes, and forms/removes mutual matches. | Emma (`bemma`), Romane (`rmetge`), Cindy (`cipelat`) |
+| Messaging and presence | Sends direct messages in real time and tracks online state, read state, and conversation controls. | Romane (`rmetge`), Cindy (`cipelat`), Emma (`bemma`) |
+| Public user API | Provides documented, API-key-protected user CRUD endpoints with rate limiting. | Delphine (`desambou`), Emma (`bemma`) |
+| Infrastructure, security, and monitoring | Runs the app with Compose, Nginx/ModSecurity, Vault, monitoring, status checks, and database backup services. | Delphine (`desambou`), with team integration commits |
+| Legal and privacy pages | Provides privacy and terms pages. | Emma (`bemma`), Romane (`rmetge`) |
 
-## Modules And Point Calculation
 
-The table below maps implemented project features to the ft_transcendence subject. The points are the modules we intend to present; each remains subject to a successful live demonstration during evaluation. The original 14-point application target is shown together with the infrastructure and security modules implemented in this project.
+## Modules and Point Calculation
 
-| Module | Type | Points | Implementation |
+The team currently expects **19 points** from the module mapping below. 
+
+| Module | Type | Points | Implementation in this project |
 | --- | --- | ---: | --- |
-| Use a framework for both frontend and backend | Major | 2 | Next.js frontend and NestJS backend |
-| Real-time features with WebSockets | Major | 2 | Socket.IO connection lifecycle, online status, message/match events |
-| User interaction | Major | 2 | Chat, matched profile view, match-based contacts as friends: mutual like to add, delete match to remove, list in messages |
-| Public API for database interaction | Major | 2 | `/api/public/docs`, `/api/public/users`, `/api/public/users/:id` with GET, POST, PUT, DELETE, API key and rate limit |
-| Standard user management and authentication | Major | 2 | Profile update, avatar, match contacts, online status, profile pages, JWT auth |
-| ORM for database | Minor | 1 | Prisma |
-| Custom-made design system | Minor | 1 | Reusable UI primitives in `front/src/composant/ui` |
-| Additional browsers | Minor | 1 | Firefox, Safari and Edge support documented in `docs/browser-support.md` |
-| 2FA | Minor | 1 | TOTP secret, QR code, confirmation, login verification, disable |
-| WAF/ModSecurity and HashiCorp Vault | Major | 2 | OWASP ModSecurity CRS at Nginx; Vault stores runtime secrets and supplies scoped credentials to services |
-| Monitoring with Prometheus and Grafana | Major | 2 | Prometheus scrapes application probes and exporters; Grafana provisions a dashboard; Prometheus rules route alerts through Alertmanager |
-| Health checks, status page, automated backups and recovery procedure | Minor | 1 | Compose health checks, status page, periodic encrypted PostgreSQL backups, backup freshness monitoring and PostgreSQL restore runbook |
+| Frameworks for frontend and backend | Major | 2 | Next.js/React frontend and NestJS backend. |
+| Real-time features with WebSockets | Major | 2 | Socket.IO messaging and online presence. |
+| User interaction | Major | 2 | Profile discovery, likes, matches/contacts, and direct chat. |
+| Public API for database interaction | Major | 2 | API-key-protected documented user endpoints with CRUD operations. |
+| Standard user management and authentication | Major | 2 | Registration/login, JWT, profile management, and account state. |
+| ORM for database | Minor | 1 | Prisma models and generated client over PostgreSQL. |
+| Custom-made design system | Minor | 1 | Reusable UI components in `front/src/composant/ui`. |
+| Additional browsers | Minor | 1 | Browser support target and manual test checklist in `docs/browser-support.md`. |
+| Two-factor authentication | Minor | 1 | TOTP setup, confirmation, login verification, and disable flow. |
+| WAF / ModSecurity | Major | 2 | Nginx with ModSecurity and the OWASP Core Rule Set; Vault is also used to manage runtime secrets. |
+| Monitoring with Prometheus and Grafana | Major | 2 | Metrics, dashboard provisioning, and Prometheus alert rules. |
+| Health checks, status page, backups, and recovery procedure | Minor | 1 | Compose health checks, status page, encrypted PostgreSQL backups, and recovery documentation. |
+| **Expected total** |  | **19** | **14 application points + 5 infrastructure/security points.** |
 
-**Application target: 14 points. Infrastructure and security modules: 5 additional points. Total intended score: 19 points.** This is a project mapping, not a guarantee of evaluation points: the evaluator must be able to observe each module working.
+The validation guide notes that some subject modules require strict demonstrations (for example, browser testing and WAF behavior). 
 
-### Infrastructure and security scope
+## Team Information
 
-- **WAF and Vault:** Nginx runs ModSecurity with the OWASP Core Rule Set. The team has tested SQL injection and XSS probes and reports that they are blocked. Vault stores backend and runtime secrets; the backend reads its application secrets using a restricted policy. ModSecurity request-body inspection is disabled for the profile creation and update routes. Vault's development bootstrap also keeps unseal keys and the root token together in a local volume. These constraints are documented in [`DEFENSE_DEVSECOPS.md`](DEFENSE_DEVSECOPS.md).
-- **Prometheus and Grafana:** Prometheus collects service, host, PostgreSQL, Vault, HTTP probe and backup freshness metrics. The provisioned Grafana dashboard displays service availability, probes, memory use and probe latency. Alert rules cover unavailable targets, failed HTTP probes, stale backups and sealed Vault. Demonstration should confirm that targets are up, dashboard panels contain data and alerts are evaluated.
-- **Backups and recovery:** PostgreSQL dumps are encrypted and rotated, and monitoring checks that a recent non-empty dump exists. [`RESTORE.md`](RESTORE.md) documents restoration to a new PostgreSQL volume. Backups remain on the same host, cover PostgreSQL only, and the current AES-CBC format does not authenticate backup contents; uploads and Vault state are outside this backup. A successful isolated restore should be demonstrated before claiming tested disaster recovery.
+Each team member listed at the top of this README has an assigned role and a brief description of their responsibilities.
 
-## Public API
-
-Documentation is available in `docs/public-api.md` and at runtime through:
-
-```bash
-curl -k https://localhost:8443/api/public/docs \
-  -H "x-api-key: ${PUBLIC_API_KEY}"
-```
-
-Set `PUBLIC_API_KEY` in your shell only through the approved local Vault operator workflow before running the example. Do not put the key in `.env`, frontend code, screenshots, or shared documentation.
-
-## Browser Support
-
-The application targets Chrome plus Firefox, Safari and Edge. The manual verification matrix is documented in `docs/browser-support.md`.
-
-## Team Information And Contributions
-
-| Contributor | Main areas |
-| --- | --- |
-| rmetge | Initial database/application structure and project coordination |
-| bemma | Match module, backend/frontend matching flow, messaging integration and session fixes |
-| cipelat | Frontend/account/profile work and user-facing flows |
-| desambou | Infrastructure, deployment scripts and documentation support |
-
-Recent hardening work added the public API, legal pages, browser-support documentation, design-system components and module documentation on the `Emma` branch.
+| Login | Role(s) | Responsibilities |
+| --- | --- | --- |
+| `rmetge` | Product Owner (PO), Project Manager (PM), Developer | Guides product direction and project follow-up, organizes and attends team meetings, coordinates module testing, and contributes to account/profile, matching, and messaging features. |
+| `bemma` | Project Manager (PM), Developer | Supports project coordination and contributes to matching, messaging, real-time session behavior, and authentication. |
+| `cipelat` | Developer | Contributes to profile and messaging flows, blocked-user handling, and socket behavior. |
+| `desambou` | Technical Lead, Developer | Leads application architecture and coordination across components, ensures the application runs as an integrated whole, and contributes to the public API and deployment/security infrastructure. |
 
 ## Project Management
 
-The project is organized around feature branches and a final integration branch. The final branch should keep generated dependencies out of Git, keep `.env` ignored, and include `.env.example` for local setup.
+### Work organization
 
-## Resources And AI Usage
+- Work was divided across application features and infrastructure modules. The Git history shows development on feature branches followed by integration through merge commits.
+- `desambou`, as Technical Lead, coordinated the architecture and integration across components. `rmetge` followed up on team meetings and coordinated module testing; `bemma` also contributed to project coordination.
+- The team held a weekly meeting, either in person or partly by video call when a member could not attend in person.
 
-Documentation consulted during development includes the official documentation for Next.js, NestJS, Prisma, Socket.IO, Docker, Vault and 42 subject requirements.
+### Project management tools
 
-AI assistance was used for audit, debugging, documentation drafting and implementation support. Human team members remain responsible for reviewing, testing and defending the final implementation.
+- Git and the GitHub repository were used for version control and collaboration.
+- The team used feature branches and merge commits to organize and integrate code changes. No separate task-tracking tool is listed.
+
+### Communication
+
+- Discord was the central communication channel for reporting code problems and receiving notifications about code changes.
+- `rmetge` organized and attended the weekly team meetings.
+
+## Individual Contributions
+
+The feature examples summarize work visible in the repository history and may not capture pair work, reviews, or work committed under another account. Team roles and project responsibilities are described separately above.
+
+- **`rmetge` (Romane):** account creation and profile data, profile photos, match and messaging interface changes, and application integration.
+- **`bemma` (Emma):** match display and deck behavior, real-time/session fixes, account and 2FA updates, and legal pages.
+- **`cipelat` (Cindy):** profile and password-related updates, blocked-user controls, messaging improvements, and WebSocket connection/disconnection behavior.
+- **`desambou` (Delphine):** public API and API documentation, Vault-based secret handling, deployment/security/monitoring work, and README/build-memory changes.
+
+Challenges evidenced in project changes include coordinating feature branches and resolving integration conflicts, stabilizing real-time connection state, and reducing memory pressure during Docker builds by building the backend and frontend sequentially and excluding `node_modules` from their build contexts.
+
+## Resources and AI Usage
+
+### Technical references
+
+- The 42 ft_transcendence subject and README requirements provided for this project.
+- [Next.js documentation](https://nextjs.org/docs)
+- [React documentation](https://react.dev/learn)
+- [NestJS documentation](https://docs.nestjs.com/)
+- [Prisma documentation](https://www.prisma.io/docs)
+- [PostgreSQL documentation](https://www.postgresql.org/docs/)
+- [Socket.IO documentation](https://socket.io/docs/v4/)
+- [Docker Compose documentation](https://docs.docker.com/compose/)
+- [HashiCorp Vault documentation](https://developer.hashicorp.com/vault/docs)
+- [Stéphane Robert's DevSecOps learning resources](https://www.stephane-robert.info/docs/devops/)
+- [Prometheus documentation](https://prometheus.io/docs/)
+- [Grafana documentation](https://grafana.com/docs/)
+- [OWASP ModSecurity Core Rule Set](https://coreruleset.org/)
+
+### AI usage
+
+AI tools were used for debugging, coding assistance, and writing project documentation, including this README. They also helped the team understand ft_transcendence modules and learn about Docker, HashiCorp Vault, and DevSecOps, including material from Stephan Robet's DevSecOps site. For example, AI assistance contributed to discussing the sequential backend/frontend build workflow and `.dockerignore` exclusions documented in this repository. Team members reviewed the suggestions and remain responsible for validating, understanding, and defending the final implementation.
+
+## Known Limitations
+
+- The application's user experience and accessibility are limited and have not been brought into conformity with applicable French and European accessibility standards.
+- HTTPS uses a locally generated self-signed certificate in the development setup.
+- The application is a demonstration and is intended for a limited number of users.
+- Match records are used as the application's friends/contacts list.
+
+
+
+
+   id |      email      | name  |   username   |    kind    | orientation 
+----+-----------------+-------+--------------+------------+-------------
+  1 | maya@gmail.com  | Maya  | maya_dance   | woman      | all
+  2 | noah@gmail.com  | Noah  | noah_moves   | man        | woman
+  3 | leila@gmail.com | Leila | leila_swing  | woman      | all
+  4 | sami@gmail.com  | Sami  | sami_flow    | non_binary | all
+  5 | clara@gmail.com | Clara | clara_steps  | woman      | man
+  6 | kenji@gmail.com | Kenji | kenji_beat   | man        | all
+  7 | iris@gmail.com  | Iris  | iris_salsa   | non_binary | all
+  8 | leo@gmail.com   | Leo   | leo_tango    | man        | woman
+  9 | lina@gmail.com  | Lina  | lina_groove  | woman      | all
+ 10 | adam@gmail.com  | Adam  | adam_rock    | man        | all
+ 11 | naima@gmail.com | Naima | naima_latina | woman      | man
+ 12 | robin@gmail.com | Robin | robin_wave   | non_binary | all
+ 13 | hana@gmail.com  | Hana  | hana_kpop    | woman      | all
+ 14 | malik@gmail.com | Malik | malik_pop    | man        | woman
+ 15 | zoe@gmail.com   | Zoe   | zoe_vibes    | woman      | all
