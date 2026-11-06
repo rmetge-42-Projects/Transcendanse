@@ -1,17 +1,12 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import LegalBack from "@/src/composant/LegalBack";
 
-//page de politiqued de confidentialité (liens vers "accuille")
 export default function PrivacyPage() {
   return (
-    // Fond blanc pur pour un look "papier" officiel
     <main className="bg-white min-h-screen text-black font-sans">
       
-      {/* Contenu principal centré */}
       <article className="max-w-4xl mx-auto p-6 md:p-12">
-        
-        {/* En-tête du document */}
         <header className="mb-12 border-b-2 border-black pb-8">
+          <LegalBack />
           <h1 className="text-4xl font-extrabold tracking-tight mb-2">
             Politique de Confidentialité
           </h1>
@@ -20,7 +15,6 @@ export default function PrivacyPage() {
           </p>
         </header>
 
-        {/* Corps du texte - Style "Document Officiel" */}
         <div className="space-y-10 text-base leading-relaxed text-gray-800">
           
           <section>
@@ -101,8 +95,6 @@ export default function PrivacyPage() {
           </section>
 
         </div>
-
-        {/* Pied de page du document */}
         <footer className="mt-20 pt-8 border-t border-gray-100 text-center text-sm text-gray-500">
           <p>&copy; {new Date().getFullYear()} Chi-Fou-Mi. Tous droits réservés.</p>
         </footer>

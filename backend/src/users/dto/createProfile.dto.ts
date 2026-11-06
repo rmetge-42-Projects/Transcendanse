@@ -37,5 +37,6 @@ export class CreateDto{
 
     @IsString()
     @IsOptional()
+    @MaxLength(5000000, { message: "L'avatar ne peut pas dépasser 5 Mo." })
     photo?: string;
 }

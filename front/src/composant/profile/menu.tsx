@@ -1,11 +1,12 @@
 'use client'
-import { Settings, UserPen, Lock, ShieldCheck, X } from "lucide-react"
+import { FileText, Settings, UserPen, Lock, ShieldCheck, X } from "lucide-react"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/src/lib/axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { clearAuthToken } from "@/src/lib/authToken";
 
 export default function Menu()
 {
@@ -28,7 +29,7 @@ export default function Menu()
 	useEffect(() => {
         const fetchUserStatus = async () => {
             try {
-                const response = await api.get('/users/me'); // Ajuste l'endpoint
+                const response = await api.get('/users/me'); 
                 setIs2FAEnabled(response.data.twoFactorEnabled || false);
             } catch (e) {
                 console.error("Erreur lors de la récupération des infos utilisateur", e);
@@ -37,8 +38,6 @@ export default function Menu()
         fetchUserStatus();
     }, []);
 
-
-	// Clic sur la case à cocher
     const handleToggle2FA = async () => {
         if (!is2FAEnabled) {
             try {
@@ -92,19 +91,19 @@ export default function Menu()
         }
     };
 
-	const logout = async () => {
-    	const confirmLogout = window.confirm("Es-tu sûr de vouloir te déconnecter ?");
-    	if (!confirmLogout) return;
-    	try {
-        	await api.patch('/users/status', { isOnline: false });
-    	} catch (e) {
-        	console.error("Erreur lors de la déconnexion", e);
-    	} finally {
-        	localStorage.removeItem('token');
-        	queryClient.clear();
-        	router.push('/');
-    	}
-	};
+    const logout = async () => {
+        const confirmLogout = window.confirm("Es-tu sûr de vouloir te déconnecter ?");
+        if (!confirmLogout) return;
+        try {
+            await api.patch('/users/status', { isOnline: false });
+        } catch (e) {
+            console.error("Erreur lors de la déconnexion", e);
+        } finally {
+            clearAuthToken();
+            queryClient.clear();
+            router.push('/');
+        }
+    };
 
 	return(
 		<div className="absolute top-4 right-6 z-50">
@@ -125,11 +124,18 @@ export default function Menu()
 						Modifier le profil
 					</Link>
 					<Link 
-						href="/privacy"
+						href="/privacy?from=/myProfile"
 						className="px-4 py-3 rounded-xl hover:bg-gray-100 font-semibold text-gray-800 transition-colors flex items-center gap-3"
 					>
 						<Lock/>
 						Politique de confidentialité
+					</Link>
+					<Link
+						href="/terms?from=/myProfile"
+						className="px-4 py-3 rounded-xl hover:bg-gray-100 font-semibold text-gray-800 transition-colors flex items-center gap-3"
+					>
+						<FileText/>
+						Conditions d’utilisation
 					</Link>
 
 					<label className="px-4 py-3 rounded-xl hover:bg-gray-100 font-semibold text-gray-800 transition-colors flex items-center justify-between cursor-pointer select-none">
@@ -174,8 +180,7 @@ export default function Menu()
                         <p className="text-sm text-gray-600 mb-4">
                             Scanne ce QR Code avec ton application (Google Authenticator, Authy...), puis entre le code à 6 chiffres.
                         </p>
-
-                        {/* Rendu dynamique de l'image QR Code transmise par le backend */}
+                        
                         {qrCodeImage && (
                             <div className="flex justify-center my-4">
                                 <img 

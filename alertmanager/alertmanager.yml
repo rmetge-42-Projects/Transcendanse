@@ -1,0 +1,27 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: smtp.gmail.com:587
+  smtp_from: "sambouni.delphine@gmail.com"
+  smtp_auth_username: "sambouni.delphine@gmail.com"
+  smtp_auth_password_file: /run/alertmanager-secrets/gmail_app_password
+  smtp_require_tls: true
+
+route:
+  receiver: gmail-email
+  group_by: [alertname, job, instance]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - receiver: gmail-email
+      matchers:
+        - severity="critical"
+      repeat_interval: 1h
+
+receivers:
+  - name: gmail-email
+    email_configs:
+      - to: "sambouni.delphine@gmail.com"
+        send_resolved: true
+        headers:
+          subject: '{{ if eq .Status "firing" }}[ALERTE]{{ else }}[RÉSOLUE]{{ end }} {{ .CommonAnnotations.summary }}'

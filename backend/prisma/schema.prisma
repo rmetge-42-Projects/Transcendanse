@@ -1,23 +1,20 @@
-// Fichier de shema prisma
 
-//genere le dossier qui va contenir toute les fonctions adapter
 
 generator client {
   provider = "prisma-client-js"
 }
 
-//donne le type de base et ladresse de la base
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-//utilisateur type
 
 model User {
   id          Int       @id @default(autoincrement())
   email       String    @unique
+  sessionVersion Int @default(0)
   password    String
   createdAt   DateTime  @default(now())
   name        String?
@@ -44,9 +41,13 @@ model User {
 
   blocksSent     Block[] @relation("BlocksSent")
   blocksReceived Block[] @relation("BlocksReceived")
+
+  friendsRequested Friend[] @relation("FriendsRequested")
+  friendsReceived  Friend[] @relation("FriendsReceived")
+
+  notifications Notification[]
 }
 
-//Message
 
 model Message {
   id         Int      @id @default(autoincrement())
@@ -101,4 +102,37 @@ model Block {
   blocked User @relation("BlocksReceived", fields: [blockedId], references: [id])
 
   @@unique([blockerId, blockedId])
+}
+
+model Friend {
+  id          Int      @id @default(autoincrement())
+  requesterId Int
+  addresseeId Int
+  status      String   @default("accepted")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  requester User @relation("FriendsRequested", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee User @relation("FriendsReceived", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([requesterId])
+  @@index([addresseeId])
+}
+
+model Notification {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  type       String
+  action     String
+  title      String
+  message    String?
+  entityType String
+  entityId   Int?
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
 }

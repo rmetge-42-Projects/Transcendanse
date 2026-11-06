@@ -27,8 +27,7 @@ export default function Profile() {
     
     const [preview, setPreview] = useState<string | null>(user?.photo || null);
     const [croppedFile, setCroppedFile] = useState<File | null>(null);
-
-    // Mettre à jour l'aperçu si les données utilisateur arrivent
+    
     useEffect(() => {
         if (user?.photo) {
             setPreview(user.photo);
@@ -38,6 +37,7 @@ export default function Profile() {
     const {
         register,
         handleSubmit,
+        watch,
         formState: { errors },
     } = useForm<ProfileFormValues>({
         values: {
@@ -47,6 +47,8 @@ export default function Profile() {
             biography: user?.biography || '',
         }
     });
+
+    const biographyText = watch("biography") || "";
 
     const handlePhotoChange = (file: File | null, dataUrl: string | null) => {
         setCroppedFile(file);
@@ -64,9 +66,12 @@ export default function Profile() {
                 ...data,
                 photo: preview ?? null,
             };
-            await api.put('/users/updateProfile', payload);
-            // alert("Profil mis à jour avec succès !");
-            await queryClient.invalidateQueries({ queryKey: ['userMe'] });
+            const { data: updatedProfile } = await api.put('/users/updateProfile', payload);
+            await queryClient.cancelQueries({ queryKey: ["userMe"] });
+            queryClient.setQueryData(["userMe"], { ...user, ...updatedProfile });
+            void queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
+            void queryClient.invalidateQueries({ queryKey: ["matches"] });
+            void queryClient.invalidateQueries({ queryKey: ["userMyMatch"] });
             router.push("/myProfile");
         } catch (error) {
             setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
@@ -80,14 +85,12 @@ export default function Profile() {
         <EditCard title="Information du profil">
 
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-4">
-                {/* PHOTO DE PROFIL & MENU D'OPTIONS */}
                 <div className="flex justify-center p-4 bg-gray-50/80 rounded-2xl border border-gray-100 mb-2">
                     <AvatarPicker
                         value={preview}
                         onChange={handlePhotoChange}
                     />
                 </div>
-                {/* USERNAME */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Nom d'utilisateur
@@ -95,20 +98,19 @@ export default function Profile() {
                     <input
                         type="text"
                         {...register("username", { required: "Le nom d'utilisateur est obligatoire" })}
-                        className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent text-sm transition"
+                        className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent text-sm transition text-black"
                         />
                     {errors.username && <p className="text-red-500 text-xs mt-1 font-medium">{errors.username.message}</p>}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* KIND */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Genre
                         </label>
                         <select
                             {...register("kind", { required: "Le genre est obligatoire" })}
-                            className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition"
+                            className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition text-black"
                             >
                             <option value="" disabled hidden>Sélectionner</option>
                             <option value="man">Homme</option>
@@ -117,15 +119,13 @@ export default function Profile() {
                         </select>
                         {errors.kind && <p className="text-red-500 text-xs mt-1 font-medium">{errors.kind.message}</p>}
                     </div>
-
-                    {/* ORIENTATION */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Orientation sexuelle
                         </label>
                         <select
                             {...register("orientation", { required: "L'orientation est obligatoire" })}
-                            className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition"
+                            className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition text-black"
                             >
                             <option value="" disabled hidden>Sélectionner</option>
                             <option value="man">Homme</option>
@@ -135,16 +135,25 @@ export default function Profile() {
                         {errors.orientation && <p className="text-red-500 text-xs mt-1 font-medium">{errors.orientation.message}</p>}
                     </div>
                 </div>
-
-                {/* BIOGRAPHY */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Biographie
-                    </label>
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Biographie
+                        </label>
+                        <span className="text-xs text-gray-400">
+                            {biographyText.length}/300
+                        </span>
+                    </div>
                     <textarea
                         rows={3}
-                        {...register("biography")}
-                        className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition resize-none"
+                        maxLength={300}
+                        {...register("biography", {
+							maxLength: {
+							  value: 300,
+							  message: "La biographie ne doit pas dépasser 300 caractères",
+							},
+						})}
+                        className="w-full rounded-lg px-3.5 py-2 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-sm transition resize-none text-black"
                         />
                 </div>
 
@@ -153,7 +162,7 @@ export default function Profile() {
                 <button 
                     type="submit"
                     disabled={isSubmit}
-                    className="self-end bg-blue-950 hover:bg-blue-900 text-white font-medium rounded-lg px-5 py-2.5 text-sm transition cursor-pointer disabled:bg-gray-300"
+                    className="self-end bg-blue-950 hover:bg-blue-900 text-white font-medium rounded-lg px-5 py-2.5 text-sm transition cursor-pointer disabled:bg-gray-300 "
                     >
                     {isSubmit ? "Enregistrement..." : "Enregistrer les modifications"}
                 </button>

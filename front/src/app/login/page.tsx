@@ -8,9 +8,9 @@ import { Eye, EyeOff } from "lucide-react";
 import Connextion from "@/src/composant/connection/connection";
 import { socket } from "@/src/lib/socket";
 import { getErrorMessage } from "@/src/lib/errors";
+import { setAuthToken } from "@/src/lib/authToken";
 //page de connection
 
-// 1. Définition du type pour le formulaire
 type LoginFormValues = {
 	email: string;
 	password: string;
@@ -21,14 +21,10 @@ export default function Login() {
 	const [invalide, setInvalide] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
-	
-	// États pour gérer la 2FA
     const [requires2FA, setRequires2FA] = useState(false);
     const [emailFor2FA, setEmailFor2FA] = useState('');
     const [twoFactorToken, setTwoFactorToken] = useState('');
 
-
-	// 2. Configuration de React Hook Form
 	const {
 		register,
 		handleSubmit,
@@ -36,10 +32,8 @@ export default function Login() {
 		formState: { errors },
 	} = useForm<LoginFormValues>();
 
-
-	// Fonction centralisée pour finaliser la connexion une fois le JWT obtenu
     const handleLoginSuccess = (token: string) => {
-        localStorage.setItem('token', token);
+        setAuthToken(token);
         socket.auth = { token };
 
         if (socket.connected) {
@@ -68,7 +62,6 @@ export default function Login() {
         catch (error) {
             
             setInvalide(getErrorMessage(error, "Une erreur est survenue, réessayez."));
-            // reset();
         } finally {
             setIsLoading(false);
         }
@@ -106,7 +99,6 @@ export default function Login() {
 	return (
     <Connextion title={requires2FA ? "Double authentification" : "Se connecter"}>
         {!requires2FA ? (
-            /* --- FORMULAIRE CONNEXION CLASSIQUE --- */
             <>
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 w-full">
                     <div>
@@ -115,7 +107,7 @@ export default function Login() {
                             type="email" 
                             placeholder="ex: test@test.com" 
                             {...register('email', { required: 'L\'email est obligatoire' })}
-                            className="rounded px-3 py-2 w-full border"
+                            className="rounded px-3 py-2 w-full border text-black "
                         />
                         {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
                     </div>
@@ -128,7 +120,7 @@ export default function Login() {
                                 type={showPassword ? 'text' : 'password'}
                                 placeholder="ex: Password.123" 
                                 {...register('password', { required: 'Le mot de passe est obligatoire' })}
-                                className="rounded px-3 py-2 pr-10 w-full border border-gray-300"
+                                className="rounded px-3 py-2 w-full border text-black "
                             />
 
                             <button
@@ -162,7 +154,6 @@ export default function Login() {
                 </button>
             </>
         ) : (
-            /* --- FORMULAIRE CODE 2FA --- */
             <form onSubmit={handleVerify2FA} className="flex flex-col gap-4 w-full">
                 <p className="text-sm text-gray-600 text-center">
                     Entrez le code à 6 chiffres généré par votre application d'authentification.
@@ -175,7 +166,7 @@ export default function Login() {
                         placeholder="123456" 
                         value={twoFactorToken}
                         onChange={(e) => setTwoFactorToken(e.target.value)}
-                        className="rounded px-3 py-2 w-full border text-center text-xl font-mono tracking-widest"
+                        className="rounded px-3 py-2 w-full border text-center text-xl font-mono tracking-widest text-gray-900"
                         autoFocus
                     />
                 </div>
@@ -197,7 +188,7 @@ export default function Login() {
                         setTwoFactorToken('');
                         setInvalide('');
                     }}
-                    className="text-sm text-gray-500 hover:underline text-center mt-2 cursor-pointer"
+                    className="text-sm text-gray-500 hover:underline text-center mt-2 cursor-pointer text-black"
                 >
                     ← Retour à la connexion
                 </button>

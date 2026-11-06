@@ -9,12 +9,11 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import Bottom from "@/src/display/bottom";
-// import { api } from "@/src/lib/axios";
 import { useMessageStore } from "@/src/constant/newMessage";
 
 export default function Profile() {
   const router = useRouter();
-  const { data: user, isLoading, isError } = useUser();
+  const { data: user, isLoading, isError, isFetching } = useUser();
   const queryClient = useQueryClient();
   const setMessageCount = useMessageStore((state) => state.setMessageCount);
 
@@ -26,7 +25,8 @@ export default function Profile() {
 
 
   useEffect(() => {
-    if (
+    if ( !isLoading &&
+      !isFetching &&
       user &&
       (!user.username || !user.birthday || !user.kind || !user.orientation)
     ) {
@@ -37,7 +37,6 @@ export default function Profile() {
   }, [user, queryClient, router]);
 
 
-  // État de chargement grand format
   if (isLoading) {
     return (
       <Bottom>
@@ -57,7 +56,6 @@ export default function Profile() {
   return (
     <ProfileCard photo={user.photo}>
       <Menu />
-      {/* Nom & Email */}
       <h1 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">
         {user.username}
       </h1>
@@ -65,7 +63,6 @@ export default function Profile() {
         {user.email}
       </p>
 
-      {/* Badges de genre et orientation */}
       {(user.kind || user.orientation) && (
         <div className="flex gap-3 mt-6 flex-wrap justify-center">
           {user.kind && (
@@ -85,8 +82,8 @@ export default function Profile() {
         <span className="text-xs md:text-sm font-extrabold text-gray-400 uppercase tracking-widest block mb-3">
           À propos de moi
         </span>
-        <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-100">
-          <p className="text-gray-800 text-base md:text-lg leading-relaxed">
+        <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-100 max-h-60 overflow-y-auto">
+          <p className="text-gray-800 text-base md:text-lg leading-relaxed break-words whitespace-pre-wrap">
             {user.biography || "Aucune biographie pour le moment."}
           </p>
         </div>

@@ -3,26 +3,46 @@ import { CreateDto } from './dto/createProfile.dto';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { StatusDto } from './dto/status.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { MessageGateway } from '../message/message.gateway';
 
 @Injectable()
 export class UsersService {
 
     constructor(
     private prisma: PrismaService,
+    private messageGateway: MessageGateway,
     ) {}
 
-    //verifie si il y a un doublon de username
     private checkUsernameError(error: any): never {
     if (error.code === 'P2002') {
         throw new ConflictException("Ce nom d'utilisateur est déjà pris.");
     }
     throw error;
     }
+
+    private validatePhoto(photo?: string | null) {
+        if (photo === undefined || photo === null || photo === '') {
+            return;
+        }
+
+        const maxPhotoSize = 5_000_000;
+        const isDataImage = /^data:image\/(png|jpeg|jpg|webp);base64,[a-zA-Z0-9+/=]+$/.test(photo);
+        const isLocalUpload = photo.startsWith('/uploads/');
+        const isBundledAvatar = photo.startsWith('/test-avatars/');
+
+        if (photo.length > maxPhotoSize) {
+            throw new BadRequestException("L'avatar ne peut pas dépasser 5 Mo.");
+        }
+
+        if (!isDataImage && !isLocalUpload && !isBundledAvatar) {
+            throw new BadRequestException("Format d'avatar invalide.");
+        }
+    }
 	
-    //implemente les infos du nouvel utilisateur dans la db
    async createProfile(userId: number, createDto: CreateDto, photoPath?: string) {
+		this.validatePhoto(photoPath || createDto.photo || null);
 		const finalPhoto = photoPath || createDto.photo || null;
-		return await this.prisma.user.update({
+		const profile = await this.prisma.user.update({
 			where: { id: userId },
 			select: {
 				id: true,
@@ -42,10 +62,11 @@ export class UsersService {
 				photo: finalPhoto,
 			},
 		});
+
+        return profile;
 	}
 	
 
-    //envoie les infos de l'utilisateur
     async getProfile(userId: number) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
@@ -70,7 +91,6 @@ export class UsersService {
         return user;
     }
 
-    //envoie les info de l'utilisateur (userId) - sert a afficher le profil du match
     async myMatchProfile(currentUserId: number, targetUserId: number){
         if (currentUserId !== targetUserId) {
             const blocked = await this.prisma.block.findFirst({
@@ -90,7 +110,7 @@ export class UsersService {
             const match = await this.prisma.match.findUnique({
                 where: { user1Id_user2Id: { user1Id: user1Id, user2Id: user2Id } },
             });
-            if (!match) {
+            if (!match || !match.isActive) {
                 throw new NotFoundException("Utilisateur introuvable.");
             }
         }
@@ -107,18 +127,20 @@ export class UsersService {
                 orientation: true,
                 biography: true,
                 photo: true,
+                isOnline: true,
             },
         });
 
         if (!user) {
             throw new NotFoundException("Utilisateur introuvable.");
         }
+
         return user;
     }
 
-    //met a jour le profil en une seule fois
     async updateProfile(userId: number, updateProfileDto: UpdateProfileDto) {
         try{
+        this.validatePhoto(updateProfileDto.photo);
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },
             select: {
@@ -141,13 +163,16 @@ export class UsersService {
                 ...(updateProfileDto.photo !== undefined && { photo: updateProfileDto.photo }),
             },
         });
+
+        if (updateProfileDto.kind !== undefined || updateProfileDto.orientation !== undefined) {
+            this.messageGateway.notifySuggestionsChanged();
+        }
         return updatedUser;
         } catch (error) {
             this.checkUsernameError(error);
         }
     }
 
-  //mettre onLine a false (ou true)
     async status(userId: number, statusDto: StatusDto) {
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },

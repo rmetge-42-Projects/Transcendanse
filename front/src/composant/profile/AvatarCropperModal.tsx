@@ -10,7 +10,7 @@ interface AvatarCropperModalProps {
   onCropComplete: (croppedBlob: Blob, croppedDataUrl: string) => void;
 }
 
-const VIEWPORT_SIZE = 260; // Taille en pixels de la zone circulaire de cadrage
+const VIEWPORT_SIZE = 260;
 
 export default function AvatarCropperModal({
   imageSrc,
@@ -19,17 +19,15 @@ export default function AvatarCropperModal({
   onCropComplete,
 }: AvatarCropperModalProps) {
   const [scale, setScale] = useState(1);
-  const [rotation, setRotation] = useState(0); // 0, 90, 180, 270
+  const [rotation, setRotation] = useState(0);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageLoaded, setImageLoaded] = useState(false);
   const [naturalDim, setNaturalDim] = useState({ width: 0, height: 0 });
-
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Charger les dimensions naturelles de l'image
   useEffect(() => {
     if (!imageSrc) return;
     const img = new Image();
@@ -42,8 +40,6 @@ export default function AvatarCropperModal({
       setPosition({ x: 0, y: 0 });
     };
   }, [imageSrc]);
-
-  // Calculer les dimensions de base pour remplir le cercle (object-fit: cover)
   const getBaseDimensions = useCallback(() => {
     if (!naturalDim.width || !naturalDim.height) {
       return { width: VIEWPORT_SIZE, height: VIEWPORT_SIZE };
@@ -55,15 +51,12 @@ export default function AvatarCropperModal({
     const aspect = imgW / imgH;
 
     if (aspect > 1) {
-      // Image plus large que haute
       return { width: VIEWPORT_SIZE * aspect, height: VIEWPORT_SIZE };
     } else {
-      // Image plus haute que large
       return { width: VIEWPORT_SIZE, height: VIEWPORT_SIZE / aspect };
     }
   }, [naturalDim, rotation]);
 
-  // Clamper la position pour ne pas sortir du cadre circulaire
   const clampPosition = useCallback(
     (pos: { x: number; y: number }, currentScale: number) => {
       const base = getBaseDimensions();
@@ -81,7 +74,6 @@ export default function AvatarCropperModal({
     [getBaseDimensions]
   );
 
-  // Gestion du drag (souris et tactile)
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -127,7 +119,6 @@ export default function AvatarCropperModal({
     setIsDragging(false);
   };
 
-  // Zoom avec la molette
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY * -0.002;
@@ -136,13 +127,11 @@ export default function AvatarCropperModal({
     setPosition((prev) => clampPosition(prev, newScale));
   };
 
-  // Changement du slider zoom
   const handleScaleChange = (newScale: number) => {
     setScale(newScale);
     setPosition((prev) => clampPosition(prev, newScale));
   };
 
-  // Rotation
   const handleRotate = () => {
     const nextRotation = (rotation + 90) % 360;
     setRotation(nextRotation);
@@ -150,55 +139,38 @@ export default function AvatarCropperModal({
     setPosition({ x: 0, y: 0 });
   };
 
-  // Réinitialiser le cadrage
   const handleReset = () => {
     setScale(1);
     setRotation(0);
     setPosition({ x: 0, y: 0 });
   };
 
-  // Génération du rendu final via Canvas HTML5
   const handleValidate = () => {
     if (!imageRef.current) return;
 
     const canvas = document.createElement('canvas');
-    const OUTPUT_SIZE = 384; // Résolution optimale pour avatar net et très léger
+    const OUTPUT_SIZE = 384; 
     canvas.width = OUTPUT_SIZE;
     canvas.height = OUTPUT_SIZE;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Facteur d'échelle écran -> canvas
     const ratio = OUTPUT_SIZE / VIEWPORT_SIZE;
-
-    // Remplir avec fond transparent / centrage
     ctx.clearRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
-
-    // Activer l'antialiasing haute qualité
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-
     ctx.save();
-    // Déplacer l'origine au centre du canvas
     ctx.translate(OUTPUT_SIZE / 2, OUTPUT_SIZE / 2);
-
-    // Appliquer le déplacement utilisateur
     ctx.translate(position.x * ratio, position.y * ratio);
-
-    // Appliquer la rotation
     ctx.rotate((rotation * Math.PI) / 180);
-
-    // Appliquer le zoom
     ctx.scale(scale, scale);
 
-    // Dimensions de l'image de base (non tournée pour le dessin)
     const base = getBaseDimensions();
     const isRotated90or270 = rotation === 90 || rotation === 270;
     const drawW = (isRotated90or270 ? base.height : base.width) * ratio;
     const drawH = (isRotated90or270 ? base.width : base.height) * ratio;
 
-    // Dessiner l'image centrée
     ctx.drawImage(
       imageRef.current,
       -drawW / 2,
@@ -208,8 +180,6 @@ export default function AvatarCropperModal({
     );
 
     ctx.restore();
-
-    // Exporter en Blob et DataURL (JPEG léger et net)
     canvas.toBlob(
       (blob) => {
         if (blob) {
@@ -230,7 +200,6 @@ export default function AvatarCropperModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-100 flex flex-col">
-        {/* Header Modal */}
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2 text-blue-950">
             <Move className="w-5 h-5 text-blue-900" />
@@ -244,10 +213,9 @@ export default function AvatarCropperModal({
           </button>
         </div>
 
-        {/* Zone de recadrage interactive */}
         <div className="p-6 flex flex-col items-center select-none">
           <p className="text-xs text-gray-500 mb-4 text-center">
-            👉 <b>Glissez</b> la photo pour la centrer • <b>Zoomez</b> avec le curseur ou la molette
+             <b>Glissez</b> la photo pour la centrer • <b>Zoomez</b> avec le curseur ou la molette
           </p>
 
           <div
@@ -263,7 +231,6 @@ export default function AvatarCropperModal({
             style={{ width: VIEWPORT_SIZE, height: VIEWPORT_SIZE }}
             className={`relative rounded-full overflow-hidden cursor-grab active:cursor-grabbing border-4 border-blue-950 shadow-2xl bg-gray-900 flex items-center justify-center touch-none`}
           >
-            {/* Image manipulable */}
             {imageLoaded && (
               <img
                 ref={imageRef}
@@ -283,16 +250,13 @@ export default function AvatarCropperModal({
               />
             )}
 
-            {/* Repère central en croix subtil pour aider au centrage */}
             <div className="absolute inset-0 pointer-events-none opacity-20 flex items-center justify-center">
               <div className="w-full h-px border-t border-dashed border-white"></div>
               <div className="h-full w-px border-l border-dashed border-white absolute"></div>
             </div>
           </div>
 
-          {/* Contrôles de zoom et d'orientation */}
           <div className="w-full mt-6 space-y-4">
-            {/* Slider de zoom */}
             <div className="flex items-center gap-3 bg-gray-50 px-4 py-2.5 rounded-2xl border border-gray-200/80">
               <button
                 type="button"
@@ -327,7 +291,6 @@ export default function AvatarCropperModal({
               </span>
             </div>
 
-            {/* Boutons d'actions secondaires : Rotation & Réinitialiser */}
             <div className="flex items-center justify-between text-xs text-gray-600 px-1">
               <button
                 type="button"
@@ -349,7 +312,6 @@ export default function AvatarCropperModal({
           </div>
         </div>
 
-        {/* Footer Actions */}
         <div className="px-6 py-4 bg-gray-50/80 border-t border-gray-100 flex items-center justify-end gap-3">
           <button
             type="button"

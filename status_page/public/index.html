@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Status | Transcendence</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .dashboard {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 30px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    h1 { margin-top: 0; font-size: 1.5rem; border-bottom: 1px solid #333; padding-bottom: 15px; }
+    .service-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 1px solid #2a2a2a;
+    }
+    .service-row:last-child { border-bottom: none; }
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .status-up { background-color: rgba(74, 222, 128, 0.2); color: #4ade80; border: 1px solid #4ade80; }
+    .status-down { background-color: rgba(248, 113, 113, 0.2); color: #f87171; border: 1px solid #f87171; }
+    .status-degraded { background-color: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid #fbbf24; }
+    .footer { margin-top: 20px; font-size: 0.8rem; color: #888; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard">
+    <h1>System Status</h1>
+    
+    <div class="service-row">
+      <span>Frontend Application</span>
+      <span id="frontend-status" class="status-badge">Checking...</span>
+    </div>
+    
+    <div class="service-row">
+      <span>Backend API</span>
+      <span id="backend-status" class="status-badge">Checking...</span>
+    </div>
+    
+    <div class="service-row">
+      <span>PostgreSQL Database</span>
+      <span id="database-status" class="status-badge">Checking...</span>
+    </div>
+
+    <div class="footer">
+      Last updated: <span id="last-updated">--:--:--</span>
+    </div>
+  </div>
+
+  <script>
+    async function checkStatus() {
+      try {
+        const response = await fetch('/api/health');
+        const data = await response.json();
+        
+        updateBadge('frontend-status', data.frontend);
+        updateBadge('backend-status', data.backend);
+        updateBadge('database-status', data.database);
+        
+        document.getElementById('last-updated').innerText = new Date(data.timestamp).toLocaleTimeString();
+      } catch (error) {
+        updateBadge('frontend-status', 'down');
+        updateBadge('backend-status', 'down');
+        updateBadge('database-status', 'down');
+      }
+    }
+
+    function updateBadge(elementId, state) {
+      const el = document.getElementById(elementId);
+      el.innerText = state;
+      el.className = `status-badge status-${state.toLowerCase()}`;
+    }
+    checkStatus();
+    setInterval(checkStatus, 30000);
+  </script>
+</body>
+</html>

@@ -7,9 +7,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { socket } from "@/src/lib/socket";
+import Menu from "@/src/composant/message/menu";
 
 import { useMessages, useMatches } from "@/src/hook/conversation";
-import MyMatchProfile from "@/src/app/myMatchProfile/[id]/page";
 import { getErrorMessage } from "@/src/lib/errors";
 
 interface ContactProps {
@@ -26,22 +26,28 @@ export default function Duiscution({
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
 
-  const { data: messages, isLoading } = useMessages(selectedUser?.userId);
+  const { data: messages, isLoading, isError } = useMessages(selectedUser?.userId);
 
   const { data: users } = useMatches();
 
   useEffect(() => {
     if (!selectedUser || !users) return;
     const freshUser = users.find((u) => u.id === selectedUser.userId);
-    if (freshUser) {
-      setSelectedUser({
-        ...selectedUser,
-        userPhoto: freshUser.photo !== undefined ? freshUser.photo : selectedUser.userPhoto,
-        isBlocked: freshUser.isBlocked,
-        isActive: freshUser.isActive,
-        isOnline: freshUser.isOnline,
-      });
+    if (!freshUser) return;
+
+    if (freshUser.isActive === false || freshUser.isBlocked) {
+      setSelectedUser(null);
+    return;
     }
+
+    setSelectedUser({
+      ...selectedUser,
+      userName: freshUser.username,
+      userPhoto: freshUser.photo !== undefined ? freshUser.photo : selectedUser.userPhoto,
+      isBlocked: freshUser.isBlocked,
+      isActive: freshUser.isActive,
+      isOnline: freshUser.isOnline,
+    });
   }, [users]);
 
   useEffect(() => {
@@ -84,47 +90,10 @@ export default function Duiscution({
       setMessageText("");
       queryClient.invalidateQueries({ queryKey: ["discution", userId] });
     } catch (error) {
-      if (messageText)
-        setInvalide(getErrorMessage(error, "Une erreur est survenue, veuillez réessayer."));
+      setInvalide(getErrorMessage(error, "Une erreur est survenue, veuillez réessayer."));
     }
   };
 
-  const deleteMatch = async (userId: number) => {
-    const confirmLogout = window.confirm("Es-tu sûr de vouloir supprimer ce match ?");
-    if (confirmLogout) {
-      try {
-        await api.delete(`/match/${userId}`);
-        queryClient.invalidateQueries({ queryKey: ["matches"] });
-        queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
-        setSelectedUser(null);
-        router.push("/message");
-      } catch (error: any) {
-        if (error.response?.status === 404) {
-          queryClient.invalidateQueries({ queryKey: ["matches"] });
-          queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
-          setSelectedUser(null);
-          router.push("/message");
-        } else {
-          setInvalide(getErrorMessage(error, "Une erreur est survenue, le match n'a pas été supprimé."));
-        }
-      }
-    }
-  };
-
-  const deleteConversation = async (userId: number) => {
-    const confirm = window.confirm("Es-tu sûr de vouloir supprimer cette conversation ?");
-    if (confirm) {
-      try {
-        await api.delete(`/message/conversation/${userId}`);
-        queryClient.invalidateQueries({ queryKey: ["discution", userId] });
-        setShowMenu(false);
-      } catch (error) {
-        setInvalide(getErrorMessage(error, "Une erreur est survenue, la conversation n'a pas été supprimée."));
-      }
-    }
-  };
-
-  // Masque UN message precis, uniquement pour moi (l'autre personne le voit toujours)
   const deleteMessage = async (messageId: number, userId: number) => {
     try {
       await api.delete(`/message/message/${messageId}`);
@@ -135,39 +104,13 @@ export default function Duiscution({
     }
   };
 
-  const blockUser = async (userId: number) => {
-    const confirmBlock = window.confirm("Es-tu sûr de vouloir bloquer cet utilisateur ?");
-    if (confirmBlock) {
-      try {
-        await api.post(`/match/block/${userId}`);
-        queryClient.invalidateQueries({ queryKey: ["matches"] });
-        queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
-        setSelectedUser(null);
-        router.push("/message");
-      } catch (error) {
-        setInvalide(getErrorMessage(error, "Une erreur est survenue, l'utilisateur n'a pas été bloqué."));
-      }
-    }
-  };
-
-  const unblockUser = async (userId: number) => {
-    try {
-      await api.delete(`/match/block/${userId}`);
-      queryClient.invalidateQueries({ queryKey: ["matches"] });
-      queryClient.invalidateQueries({ queryKey: ["otherUsers"] });
-      setShowMenu(false);
-    } catch (error) {
-      setInvalide(getErrorMessage(error, "Une erreur est survenue, l'utilisateur n'a pas été débloqué."));
-    }
-  };
-
+  
   const seeProfileMatch = async (userId: number) => {
     router.push(`/myMatchProfile/${userId}`);
   };
 
   return (
     <div className="flex-1 flex flex-col bg-white">
-      {/* Entête du chat avec photo de profil ronde à côté du nom */}
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
         <div
           onClick={() => seeProfileMatch(selectedUser.userId)}
@@ -199,48 +142,11 @@ export default function Duiscution({
             </span>
           </div>
         </div>
-        <div className="relative ml-auto">
-          <button
-            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition"
-            title="Options"
-            onClick={() => setShowMenu(!showMenu)}
-          >
-            <Trash />
-          </button>
-          {showMenu && (
-            <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-2 flex flex-col gap-1">
-              <button
-                onClick={() => deleteConversation(selectedUser.userId)}
-                className="text-left px-3 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-700"
-              >
-                Supprimer la conversation
-              </button>
-              {selectedUser.isActive !== false && (
-                <button
-                  onClick={() => deleteMatch(selectedUser.userId)}
-                  className="text-left px-3 py-2 rounded-lg hover:bg-red-50 text-sm text-red-600"
-                >
-                  Supprimer le match
-                </button>
-              )}
-              {selectedUser.isBlocked ? (
-                <button
-                  onClick={() => unblockUser(selectedUser.userId)}
-                  className="text-left px-3 py-2 rounded-lg hover:bg-green-50 text-sm text-green-700 font-semibold"
-                >
-                  Débloquer cet utilisateur
-                </button>
-              ) : (
-                <button
-                  onClick={() => blockUser(selectedUser.userId)}
-                  className="text-left px-3 py-2 rounded-lg hover:bg-red-50 text-sm text-red-700 font-semibold"
-                >
-                  Bloquer cet utilisateur
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+       
+
+        <Menu selectedUser={selectedUser} setSelectedUser={setSelectedUser}/>
+
+
       </div>
       <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
         {messages && messages.length > 0 ? (
@@ -272,7 +178,6 @@ export default function Duiscution({
                   >
                     {(() => {
                       const d = new Date(msg.createdAt);
-                      // Si la date est valide, on formate l'heure, sinon on affiche le texte tel quel
                       return !isNaN(d.getTime())
                         ? d.toLocaleTimeString([], {
                             hour: "2-digit",
@@ -285,13 +190,13 @@ export default function Duiscution({
               </div>
             );
           })
-        ) : (
-          /* Texte affiché s'il n'y a aucun message */
+        ) : !isError ? (
           <p className="text-center text-gray-400 text-sm my-auto">
             Début de votre conversation avec {selectedUser.userName}
           </p>
-        )}
+        ) : null}
       </div>
+      {isError && <p role="alert" className="text-red-500 text-sm mt-3 font-medium">Impossible de charger les messages. Réessayez en rouvrant la conversation.</p>}
       {invalide && (
         <p className="text-red-500 text-sm mt-3 font-medium">{invalide}</p>
       )}
@@ -304,7 +209,7 @@ export default function Duiscution({
           <input
             type="text"
             placeholder="Écrivez votre message..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-blue-950"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-blue-950 text-gray-700"
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             onKeyDown={(e) => {

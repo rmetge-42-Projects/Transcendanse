@@ -8,7 +8,6 @@ import IfIsLoading from "@/src/constant/ifIsLoaging";
 import Bottom from "@/src/display/bottom";
 
 import { useParams } from "next/navigation";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -17,7 +16,6 @@ export default function MyMatchProfile()
 {
     const params = useParams();
     const userId = Number(params.id);
-    const router = useRouter();
 
     const { data: user, isLoading, isError } = useMyMatch(userId);
 
@@ -42,14 +40,6 @@ export default function MyMatchProfile()
               <ArrowLeft />
             </Link>
           </div>
-          {/* <button
-            onClick={() => router.back()}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
-          >
-            <ArrowLeft />
-            Retour
-          </button> */}
-          {/* <MatchProfile user={user}/> */}
         </ProfileCard>
     );
 }

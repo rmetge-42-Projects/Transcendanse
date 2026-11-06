@@ -1,12 +1,6 @@
-// verifie, creer le user et genere le token JWT
 
-import {
-    BadRequestException,
-    ConflictException,
-    Injectable,
-    NotFoundException,
-    UnauthorizedException,
-} from '@nestjs/common';
+import { MessageGateway } from '../message/message.gateway';
+import {BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -20,10 +14,9 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     private prisma: PrismaService,
+    private readonly messageGateway: MessageGateway,
     ) {}
 
-    //verifie si l'utilisateur existe
-    //mettre le status en ligne
     async   validateUser(email: string, pass: string)
     {
         const user = await this.prisma.user.findUnique({
@@ -44,15 +37,13 @@ export class AuthService {
 
             if (user.twoFactorEnabled)
             {
-                // ATTENTION : ce message exact ("2FA required") est peut-etre lu par le front,
-                // ne pas le traduire sans verifier avec la personne qui fait la 2FA
                 return {
                     success: false,
                     message: "2FA required",
                 };
             }
 
-            const payload = { id: user.id, email: user.email };
+            const payload = { id: user.id, email: user.email, version: user.sessionVersion };
             const token = await this.jwtService.signAsync(payload);
 
             return {
@@ -62,8 +53,6 @@ export class AuthService {
             };
     }
 
-    //cree un nouvel utilisateur avec ses infos
-    //mettre le status en ligne a ce moment (je pense , il faudra tester si ca marche bien)
     async   registerUser(email: string, pass: string, validPass: string)
     {
         if (pass !== validPass)
@@ -92,9 +81,12 @@ export class AuthService {
                 email: email,
                 password: hashedPassword,
             },
+        }).catch((error) => {
+            if (error.code === 'P2002') throw new ConflictException("Un compte existe déjà avec cet email.");
+            throw error;
         });
 
-        const payload = { id: newUser.id, email: newUser.email };
+        const payload = { id: newUser.id, email: newUser.email, version: newUser.sessionVersion };
         const token = await this.jwtService.signAsync(payload);
 
         return {
@@ -104,12 +96,16 @@ export class AuthService {
         };
     }
 
-    //l'utilisateur modifie le mot de passe
     async   password(userId: number, passwordDto: PasswordDto)
     {
         if (passwordDto.newPass !== passwordDto.verifNewPass)
         {
             throw new BadRequestException("Les nouveaux mots de passe ne correspondent pas.");
+        }
+
+        if (passwordDto.newPass.length < 8)
+        {
+            throw new BadRequestException("Le mot de passe doit contenir au moins 8 caractères.");
         }
 
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -132,9 +128,10 @@ export class AuthService {
         const hashedPassword = await bcrypt.hash(passwordDto.newPass, 10);
         await this.prisma.user.update({
             where: { id: userId },
-            data: { password: hashedPassword },
+            data: { password: hashedPassword, sessionVersion: { increment: 1 } },
         });
 
+        this.messageGateway.server.in(`user_${userId}`).disconnectSockets(true);
         return {
             success: true,
             message: "Le mot de passe a été modifié."
@@ -142,7 +139,6 @@ export class AuthService {
     }
 
 
-    //l'utilisateur modifie l'adresse email
     async   email(userId: number, emailDto: EmailDto)
     {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -172,6 +168,9 @@ export class AuthService {
         await this.prisma.user.update({
             where: { id: userId },
             data: { email: emailDto.newEmail },
+        }).catch((error) => {
+            if (error.code === 'P2002') throw new ConflictException("Un compte existe déjà avec cet email.");
+            throw error;
         });
 
         return {
@@ -181,9 +180,7 @@ export class AuthService {
     }
 
 
-    //genere la double authentification pour la premiere fois
-    //A rajouter dans le front voir validate.User Romane
-    async generateTwoFactorSecret(userId: number) 
+    async generateTwoFactorSecret(userId: number)
     {
         const secret = generateSecret();
 
@@ -204,13 +201,12 @@ export class AuthService {
         return { qrCodeImage };
     }
 
-    //desactive la 2FA
     async disableTwoFactor(userId: number) {
         await this.prisma.user.update({
             where: { id: userId },
             data: {
-                twoFactorEnabled: false, // Remplace par le nom exact du champ dans ton schéma
-                twoFactorSecret: null,      // Réinitialise le secret (optionnel selon ta logique)
+                twoFactorEnabled: false,
+                twoFactorSecret: null,
             },
         });
 
@@ -218,8 +214,6 @@ export class AuthService {
     }
     
 
-    //regarde si le user veux la 2fa
-    //A rajouter dans le front voir validate.User Romane
     async confirmTwoFactor(userId: number, token: string)
     {
         const user = await this.prisma.user.findUnique({
@@ -241,14 +235,13 @@ export class AuthService {
                 select: { id: true },
                 data: { twoFactorEnabled: true},
             });
+
             return true;
         }
         else
             throw new BadRequestException("Code incorrect.");
     }
 
-    //genere la 2fa pour les connexions
-    //A rajouter dans le front voir validate.User Romane
     async verifyTwoFactorLogin(email: string, token: string) {
         const user = await this.prisma.user.findUnique({
             where: { email: email },
@@ -268,7 +261,7 @@ export class AuthService {
             throw new BadRequestException("Code incorrect.");
         }
 
-        const payload = { id: user.id, email: user.email };
+        const payload = { id: user.id, email: user.email, version: user.sessionVersion };
         const JWTtoken = await this.jwtService.signAsync(payload);
 
         return {

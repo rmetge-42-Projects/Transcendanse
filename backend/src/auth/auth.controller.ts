@@ -1,4 +1,3 @@
-//recoit les demandes du front et defini les routes
 
 import { Controller, Post, Body, Get } from '@nestjs/common';
 import { Req, UseGuards } from '@nestjs/common';
@@ -8,23 +7,17 @@ import { RegisterDto } from './dto/register.dto';
 import { PasswordDto } from './dto/password.dto';
 import { EmailDto } from './dto/email.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { generateSecret, generateURI } from 'otplib';
-import * as qrcode from 'qrcode';
 import type { Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
 	constructor(private readonly authService: AuthService) {}
 
-	//requette post pour se connecter
-	//front = login
-	@Post('login') // 2. Écoute les requêtes POST sur /auth/login
+	@Post('login')
 	async login(@Body() loginDto: LoginDto) {
 		return this.authService.validateUser(loginDto.email, loginDto.password);
 	}
 
-	//requette post pour s'inscrire et commencer a creer son profil
-	//front = register
 	@Post('register')
 	async register(@Body() registerDto: RegisterDto){
 		return this.authService.registerUser(registerDto.email, registerDto.password, registerDto.validatePassword);
@@ -47,7 +40,6 @@ export class AuthController {
 	}
 
 
-	//genere la double authentification pour la premiere fois
 	@UseGuards(JwtAuthGuard)
 	@Post('2fa/generate')
 	async generateTwoFactor(@Req() req: Request) {
@@ -55,7 +47,6 @@ export class AuthController {
     	return this.authService.generateTwoFactorSecret(userId);
 	}
 
-	//desactive la 2FA
 	@UseGuards(JwtAuthGuard)
 	@Post('2fa/disable')
 	async disableTwoFactor(@Req() req: Request) {
@@ -63,7 +54,6 @@ export class AuthController {
     	return this.authService.disableTwoFactor(userId);
 	}
 
-	//regarde si le user veux la 2fa
 	@UseGuards(JwtAuthGuard)
 	@Post('2fa/confirm')
 	async confirmTwoFactor(@Body() body: { token: string }, @Req() req: Request) {
@@ -71,7 +61,6 @@ export class AuthController {
     	return this.authService.confirmTwoFactor(userId, body.token);
 	}
 
-	//genere la 2fa pour les connexion
 	@Post('2fa/verify-login')
 	async verifyTwoFactorLogin(@Body() body: { email: string; token: string }) {
     	return this.authService.verifyTwoFactorLogin(body.email, body.token);

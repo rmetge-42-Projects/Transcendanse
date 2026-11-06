@@ -6,6 +6,7 @@ import { api } from '@/src/lib/axios';
 import { Eye, EyeOff } from "lucide-react";
 import Connextion from "@/src/composant/connection/connection";
 import { getErrorMessage } from "@/src/lib/errors";
+import { setAuthToken } from "@/src/lib/authToken";
 
 //page register pour cree son compte
 
@@ -43,10 +44,10 @@ export default function NewAccount(){
 		data.validatePassword;
 
 		try {
-			console.log("tst");
-			const res = await api.post("/auth/register", data)
-			localStorage.setItem("token", res.data.access_token)
-			router.push("/createProfile");
+				console.log("tst");
+				const res = await api.post("/auth/register", data)
+				setAuthToken(res.data.access_token)
+				router.push("/createProfile");
 		}
 		catch (error: any) {
 			setInvalide(getErrorMessage(error, "Une erreur est survenue lors de l'inscription."));
@@ -69,12 +70,10 @@ export default function NewAccount(){
 					<label className="block mb-1 text-sm font-semibold text-gray-700">Mot de passe</label>
 					<div className="relative w-full">
 						<input 
-							// type="password" 
-							
 							type={showPassword ? 'text' : 'password'}
 							placeholder="ex: Password.123" 
 							{...register("password", {required: "Le mot de passe est obligatoire"})}
-							className="rounded px-3 py-2 w-full border "
+							className="rounded px-3 py-2 w-full border text-black "
 							/>
 						<button
                     	    type="button"
@@ -94,11 +93,10 @@ export default function NewAccount(){
 					<div className="relative w-full">
 
 						<input 
-							// type="password" 
 							type={showVerifPassword ? 'text' : 'password'}
 							placeholder="ex: Password.123"
 							{...register("validatePassword", {required: "La validation de mot de passe est obligatoire"})} 
-							className="rounded px-3 py-2 w-full border "
+							className="rounded px-3 py-2 w-full border text-black "
 							/>
 						<button
                     	    type="button"

@@ -1,4 +1,3 @@
-//creer un objet qui gere la DB et qui se connecte automatiquement
 
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';

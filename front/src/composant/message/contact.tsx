@@ -5,6 +5,7 @@ import IfIsLoading from "@/src/constant/ifIsLoaging";
 import { useState } from "react";
 import { UserConversationType } from "@/src/type/conversation";
 import { UserType } from "@/src/type/user";
+import BlockedUsers from "@/src/composant/message/BlockedUsers";
 
 interface ContactProps {
   selectedUser: UserConversationType | null;
@@ -16,21 +17,19 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
 
   if (isLoading) {
     return (
-      // <div className=" min-h-screen flex flex-col justify-between p-8">
         <IfIsLoading>Chargement des contacts...</IfIsLoading>
-      // </div>
     );
   }
   if (isError) {
     return <IfIsError>Erreur : impossible d'accéder aux contacts.</IfIsError>;
   }
 
-  // Match tout neuf : aucun message echange et conversation jamais ouverte
+  const visibleUsers = users?.filter((user) => user.isActive !== false && !user.isBlocked) ?? [];
+  const blockedUsers = users?.filter((user) => user.isBlocked) ?? [];
   const showNewMatch = (user: UserType) => {
     return user.isNewMatch === true && (user.unreadCount ?? 0) === 0;
   };
 
-  // Texte affiche sous le nom du contact
   const getPreview = (user: UserType) => {
     if (showNewMatch(user)) {
       return "Nouveau match !";
@@ -48,10 +47,9 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
           Messages
         </div>
         <div className="flex-1 overflow-y-auto">
-          {users?.map((user) => (
+          {visibleUsers.map((user) => (
             <div
               key={user.id}
-              // onClick={() => setSelectedUser(user)}
 
               onClick={() =>
                 setSelectedUser({
@@ -66,7 +64,6 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
                   isOnline: user.isOnline,
                 })
               }
-              // 3. Applique la couleur si c'est l'utilisateur sélectionné
               className={`p-4 border-b border-gray-100 flex items-center gap-3 cursor-pointer transition ${
                 selectedUser?.userId === user.id
                   ? "bg-gray-200/60"
@@ -117,6 +114,7 @@ export default function Contact({ selectedUser, setSelectedUser }: ContactProps)
             </div>
           ))}
         </div>
+        <BlockedUsers users={blockedUsers} />
       </div>
     </>
   );
